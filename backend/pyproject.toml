@@ -1,0 +1,73 @@
+[build-system]
+requires = ["setuptools==80.9.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "awaaz-tiderag"
+version = "0.1.0"
+description = "CPU-first multilingual voice RAG backend for HH Goa 2026"
+requires-python = ">=3.11,<3.14"
+dependencies = [
+  "fastapi==0.116.1",
+  "httpx==0.28.1",
+  "numpy==2.2.6",
+  "pydantic==2.11.7",
+  "pydantic-settings==2.10.1",
+  "qdrant-client==1.19.0",
+  "uvicorn[standard]==0.35.0",
+  "websockets==15.0.1",
+]
+
+[project.optional-dependencies]
+data = [
+  "datasets==5.0.1",
+  "huggingface-hub==0.34.3",
+]
+embeddings = [
+  "onnxruntime==1.22.1",
+  "sentence-transformers==5.1.0",
+]
+dev = [
+  "mypy==1.17.1",
+  "pytest==8.4.1",
+  "pytest-asyncio==1.1.0",
+  "ruff==0.12.7",
+]
+all = [
+  "datasets==5.0.1",
+  "huggingface-hub==0.34.3",
+  "mypy==1.17.1",
+  "onnxruntime==1.22.1",
+  "pytest==8.4.1",
+  "pytest-asyncio==1.1.0",
+  "ruff==0.12.7",
+  "sentence-transformers==5.1.0",
+]
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["app*"]
+
+[tool.pytest.ini_options]
+addopts = "-q --strict-markers --disable-warnings"
+asyncio_mode = "auto"
+testpaths = ["tests"]
+markers = [
+  "integration: requires a live dependency",
+  "real_sarvam: requires SARVAM_API_KEY and network access",
+]
+
+[tool.ruff]
+target-version = "py311"
+line-length = 100
+extend-exclude = ["data", "evaluation/reports"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM", "ASYNC"]
+ignore = ["B008"]
+
+[tool.mypy]
+python_version = "3.11"
+strict = true
+warn_unused_ignores = true
+plugins = ["pydantic.mypy"]

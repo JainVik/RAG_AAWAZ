@@ -1,0 +1,161 @@
+{
+  "metadata": {
+    "answerable_count": 506,
+    "cache_policy": "disabled",
+    "case_count": 518,
+    "command": "score_development",
+    "concurrency": 1,
+    "corpus": {
+      "available": true,
+      "build_time_seconds": 5390.703585,
+      "chunk_build_id": "b3e0949e158f55c8b1e60e22621893d9d17368553eca9a0b9f8455ab2603f40a",
+      "chunk_count": 112114,
+      "collection": "awaaz_tiderag_v1",
+      "corpus_manifest_sha256": "70d0bd95ced0b876490bc0c0edaf5a9bc6f2fb493b30016a233abcdb7a3a25f3",
+      "dense_model": "intfloat/multilingual-e5-small",
+      "disk_bytes": 278775333,
+      "enabled_dense_strategies": [
+        "atomic",
+        "sentence_window",
+        "semantic_section",
+        "parent_child",
+        "bilingual_paired"
+      ],
+      "feature_flags": {
+        "atomic": true,
+        "bilingual_paired": true,
+        "late_chunking": true,
+        "parent_child": true,
+        "semantic_section": true,
+        "sentence_window": true,
+        "sparse": true
+      },
+      "manifest_path": "C:\\RAG\\backend\\data\\index\\index-manifest.json",
+      "manifest_sha256": "3b872e3a2d0775c7bcc63c9305f1c26cd3c37313a46bfee2d4967199b33da3d5",
+      "point_count": 112114,
+      "runtime": {
+        "enabled_dense_strategies": [
+          "atomic",
+          "sentence_window",
+          "semantic_section",
+          "parent_child",
+          "bilingual_paired"
+        ],
+        "feature_flags": {
+          "atomic": true,
+          "bilingual_paired": true,
+          "late_chunking": true,
+          "parent_child": true,
+          "semantic_section": true,
+          "sentence_window": true,
+          "sparse": true
+        }
+      },
+      "sparse_vectors_built": true,
+      "strategies": {
+        "atomic": {
+          "artifact_bytes": 41298035,
+          "average_text_characters": 306.809,
+          "average_text_words": 53.899,
+          "build_duration_seconds": 0.485845,
+          "count": 20010,
+          "duplicate_texts": 5,
+          "enabled": true
+        },
+        "bilingual_paired": {
+          "artifact_bytes": 40911732,
+          "average_text_characters": 536.993,
+          "average_text_words": 94.376,
+          "build_duration_seconds": 0.41767,
+          "count": 11955,
+          "duplicate_texts": 115,
+          "enabled": true
+        },
+        "parent_child": {
+          "artifact_bytes": 75177732,
+          "average_text_characters": 215.989,
+          "average_text_words": 38.07,
+          "build_duration_seconds": 1.964898,
+          "count": 31793,
+          "duplicate_texts": 1016,
+          "enabled": true
+        },
+        "semantic_section": {
+          "artifact_bytes": 40915277,
+          "average_text_characters": 143.664,
+          "average_text_words": 25.858,
+          "build_duration_seconds": 548.974295,
+          "count": 16563,
+          "duplicate_texts": 548,
+          "enabled": true
+        },
+        "sentence_window": {
+          "artifact_bytes": 74605458,
+          "average_text_characters": 215.989,
+          "average_text_words": 38.07,
+          "build_duration_seconds": 1.579163,
+          "count": 31793,
+          "duplicate_texts": 1016,
+          "enabled": true
+        }
+      },
+      "strategy_counts": {
+        "atomic": 20010,
+        "bilingual_paired": 11955,
+        "parent_child": 31793,
+        "semantic_section": 16563,
+        "sentence_window": 31793
+      }
+    },
+    "created_at": "2026-08-14T21:12:59.211903+00:00",
+    "deadline_ms": 5000,
+    "fixture": {
+      "path": "C:\\RAG\\backend\\data\\evaluation\\partition\\development-fixtures.jsonl",
+      "sha256": "66d48bc129341e66e928edb0e08def91ce68b357e7c62c70e1a841fc2f028f14"
+    },
+    "hardware": {
+      "logical_cpu_count": 8,
+      "machine": "AMD64",
+      "physical_memory_bytes": 33711067136,
+      "platform": "Windows-11-10.0.26200-SP0",
+      "processor": "Intel64 Family 6 Model 140 Stepping 1, GenuineIntel",
+      "python": "3.12.10",
+      "python_implementation": "CPython",
+      "release": "11",
+      "system": "Windows"
+    },
+    "hardware_scope": "machine running this evaluation command",
+    "output_contract": "Pass the sibling JSONL artifact to calibrate_thresholds.py --fixture",
+    "packages": {
+      "awaaz-tiderag": "0.1.0",
+      "fastapi": "0.116.1",
+      "httpx": "0.28.1",
+      "numpy": "2.2.6",
+      "pydantic": "2.11.7",
+      "qdrant-client": "1.19.0",
+      "sentence-transformers": "5.1.0",
+      "websockets": "15.0.1"
+    },
+    "packages_scope": "Python environment running this evaluation command",
+    "qualification": "development_score_export",
+    "qualifying": true,
+    "query_field": "auto",
+    "retrieval_artifacts": {
+      "chunk_build_id": "b3e0949e158f55c8b1e60e22621893d9d17368553eca9a0b9f8455ab2603f40a",
+      "collection": "awaaz_tiderag_v1",
+      "corpus_artifact_sha256": "3e966191146684eefa26190c0db5e38939d254962e2b7f20c561ed0f13172166",
+      "corpus_manifest_sha256": "70d0bd95ced0b876490bc0c0edaf5a9bc6f2fb493b30016a233abcdb7a3a25f3",
+      "dense_model": "intfloat/multilingual-e5-small",
+      "index_manifest_sha256": "3b872e3a2d0775c7bcc63c9305f1c26cd3c37313a46bfee2d4967199b33da3d5",
+      "model_revision": "614241f622f53c4eeff9890bdc4f31cfecc418b3",
+      "retrieval_contract_sha256": "313d7828b9cba513734ce4ccc4612a646001d63f22fb2d929af8b419af07c713",
+      "retrieval_contract_version": "tide-router-heuristics-v3"
+    },
+    "schema_version": 1,
+    "unanswerable_count": 12,
+    "unanswerable_fixture": {
+      "path": "C:\\RAG\\backend\\evaluation\\fixtures\\development-unanswerable.jsonl",
+      "sha256": "89d1461492ffb3da5efbf8ed01bb2b1d780ce4b36ac9c4afa98c993c490b52ed"
+    }
+  }
+}

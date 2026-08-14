@@ -1,0 +1,67 @@
+{
+  "schema_version": 1,
+  "qualification": "non_qualifying_development_smoke",
+  "created_at": "2026-08-14T07:15:14.7999688Z",
+  "scope": "qdrant-client local in-memory engine; not a Qdrant server/readiness/latency claim",
+  "hardware": {
+    "os": "Windows 11",
+    "cpu": "11th Gen Intel Core i7-1185G7, 4 cores/8 threads",
+    "physical_memory_bytes": 33711067136,
+    "gpu": null
+  },
+  "software": {
+    "python": "3.12.10",
+    "qdrant_client": "1.19.0",
+    "sentence_transformers": "5.1.0",
+    "torch": "2.13.0"
+  },
+  "model": {
+    "name": "intfloat/multilingual-e5-small",
+    "revision": "614241f622f53c4eeff9890bdc4f31cfecc418b3",
+    "dimension": 384,
+    "device": "cpu",
+    "reference_mode": "torch-float"
+  },
+  "corpus": {
+    "dataset": "ai4bharat/MSMARCO-XI",
+    "dataset_revision": "bf5cdc1f26e581e519018e434db14edd1b77602b",
+    "language": "hi",
+    "split": "validation",
+    "source_rows": 1,
+    "documents": 10,
+    "corpus_sha256": "85f1d94314b3485b8cef2d6ddae8bbcdab027ee0e0009792a58e24449fcd2bf3",
+    "fixture_sha256": "3354309ec4e78b3835eedbfeef96bbbd582471153b733066dc5323919362b3ca"
+  },
+  "index": {
+    "representations": ["atomic_en", "atomic_hi", "bounded_bilingual_paired"],
+    "chunk_count": 31,
+    "upserted_points": 31,
+    "dense_vector": "dense",
+    "sparse_vector": "char_ngrams",
+    "build_and_upsert_ms": 2087.618000106886
+  },
+  "queries": [
+    {
+      "query_source": "english_query",
+      "retrieved_hits": 10,
+      "first_relevant_rank": 1,
+      "retrieval_ms": 36.108799977228045,
+      "evidence_agreement": 0.8277777777777777,
+      "top_raw_dense_similarity": 0.9131412286022237
+    },
+    {
+      "query_source": "translated_query",
+      "retrieved_hits": 10,
+      "first_relevant_rank": 1,
+      "retrieval_ms": 28.02200010046363,
+      "evidence_agreement": 0.5023148148148149,
+      "top_raw_dense_similarity": 0.8531080543849778
+    }
+  ],
+  "limitations": [
+    "Only one held-out query row and ten live passages were used.",
+    "The local Qdrant engine does not implement server payload-index behavior.",
+    "These two measurements are not a qualifying retrieval evaluation or latency percentile set.",
+    "No quantized/reference comparison was performed."
+  ]
+}

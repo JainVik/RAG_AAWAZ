@@ -1,0 +1,153 @@
+{
+  "metadata": {
+    "cache_policy": "uncontrolled",
+    "command": "run_guardrail_eval",
+    "concurrency": 1,
+    "corpus": {
+      "available": false,
+      "reason": "offline_deterministic_smoke"
+    },
+    "created_at": "2026-08-14T07:56:37.861151+00:00",
+    "fixture": {
+      "path": "C:\\RAG\\backend\\evaluation\\fixtures\\guardrail-cases.jsonl",
+      "sha256": "6fd7f95f18a9684acdec3e50ec6b57737524023c3df2e2e81ae6e363f685af6e"
+    },
+    "hardware": {
+      "logical_cpu_count": 8,
+      "machine": "AMD64",
+      "physical_memory_bytes": 33711067136,
+      "platform": "Windows-11-10.0.26200-SP0",
+      "processor": "Intel64 Family 6 Model 140 Stepping 1, GenuineIntel",
+      "python": "3.12.10",
+      "python_implementation": "CPython",
+      "release": "11",
+      "system": "Windows"
+    },
+    "hardware_scope": "machine running this evaluation command",
+    "packages": {
+      "awaaz-tiderag": "0.1.0",
+      "fastapi": "0.116.1",
+      "httpx": "0.28.1",
+      "numpy": "2.2.6",
+      "pydantic": "2.11.7",
+      "qdrant-client": "1.19.0",
+      "sentence-transformers": "5.1.0",
+      "websockets": "15.0.1"
+    },
+    "packages_scope": "Python environment running this evaluation command",
+    "qualification": "non_qualifying_offline_guardrail_smoke",
+    "qualification_checks": {
+      "checks": {
+        "active_index_ready": false,
+        "active_pipeline_contradictory_case": false,
+        "active_pipeline_supported_case": false,
+        "active_pipeline_unsupported_case": false,
+        "all_cases_correct": true,
+        "all_cases_recorded": true,
+        "all_required_guardrail_labels_present": true,
+        "frozen_bound_thresholds_ready": false,
+        "live_initialized_services": false,
+        "qdrant_ready": false,
+        "synthetic_conflict_gate_regression": true
+      },
+      "expected_case_count": 12,
+      "failed_checks": [
+        "live_initialized_services",
+        "active_pipeline_supported_case",
+        "active_pipeline_unsupported_case",
+        "active_pipeline_contradictory_case",
+        "frozen_bound_thresholds_ready",
+        "active_index_ready",
+        "qdrant_ready"
+      ],
+      "qualifying": false,
+      "recorded_case_count": 12,
+      "status": "non_qualifying_offline_guardrail_smoke"
+    },
+    "qualifying": false,
+    "runtime_feature_flags": {
+      "atomic": true,
+      "bilingual_paired": true,
+      "late_chunking": true,
+      "parent_child": true,
+      "semantic_section": true,
+      "sentence_window": true,
+      "sparse": true
+    },
+    "schema_version": 1,
+    "thresholds": {
+      "minimum_answer_score": 0.24,
+      "minimum_evidence_agreement": 0.05,
+      "minimum_score_margin": 0.015,
+      "minimum_stt_confidence": 0.55
+    }
+  },
+  "metrics": {
+    "accuracy": 1.0,
+    "case_count": 12,
+    "confusion": {
+      "ALLOW": {
+        "ALLOW": 1
+      },
+      "AUDIO_TOO_SHORT": {
+        "AUDIO_TOO_SHORT": 1
+      },
+      "DEADLINE_EXCEEDED": {
+        "DEADLINE_EXCEEDED": 1
+      },
+      "DEPENDENCY_UNAVAILABLE": {
+        "DEPENDENCY_UNAVAILABLE": 1
+      },
+      "LOW_STT_CONFIDENCE": {
+        "LOW_STT_CONFIDENCE": 1
+      },
+      "NO_RELEVANT_EVIDENCE": {
+        "NO_RELEVANT_EVIDENCE": 1
+      },
+      "PROMPT_INJECTION": {
+        "PROMPT_INJECTION": 1
+      },
+      "RETRIEVAL_DISAGREEMENT": {
+        "RETRIEVAL_DISAGREEMENT": 1
+      },
+      "SILENCE": {
+        "SILENCE": 1
+      },
+      "STALE_CORPUS": {
+        "STALE_CORPUS": 2
+      },
+      "UNSAFE_REQUEST": {
+        "UNSAFE_REQUEST": 1
+      }
+    },
+    "correct": 12
+  },
+  "qualification": {
+    "checks": {
+      "active_index_ready": false,
+      "active_pipeline_contradictory_case": false,
+      "active_pipeline_supported_case": false,
+      "active_pipeline_unsupported_case": false,
+      "all_cases_correct": true,
+      "all_cases_recorded": true,
+      "all_required_guardrail_labels_present": true,
+      "frozen_bound_thresholds_ready": false,
+      "live_initialized_services": false,
+      "qdrant_ready": false,
+      "synthetic_conflict_gate_regression": true
+    },
+    "expected_case_count": 12,
+    "failed_checks": [
+      "live_initialized_services",
+      "active_pipeline_supported_case",
+      "active_pipeline_unsupported_case",
+      "active_pipeline_contradictory_case",
+      "frozen_bound_thresholds_ready",
+      "active_index_ready",
+      "qdrant_ready"
+    ],
+    "qualifying": false,
+    "recorded_case_count": 12,
+    "status": "non_qualifying_offline_guardrail_smoke"
+  }
+}

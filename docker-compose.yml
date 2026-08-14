@@ -1,0 +1,38 @@
+services:
+  qdrant:
+    image: qdrant/qdrant:v1.19.0
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:6333:6333"
+      - "127.0.0.1:6334:6334"
+    volumes:
+      - qdrant_storage:/qdrant/storage
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - >-
+          bash -c 'exec 3<>/dev/tcp/127.0.0.1/6333 &&
+          printf "GET /readyz HTTP/1.0\r\n\r\n" >&3 &&
+          IFS= read -r status <&3 && [[ "$$status" == *" 200 "* ]]'
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  backend:
+    build:
+      context: ./backend
+    env_file:
+      - .env
+    environment:
+      QDRANT_URL: http://qdrant:6333
+      RAG_DATA_DIR: /service/data
+    volumes:
+      - ./backend/data:/service/data:ro
+    ports:
+      - "127.0.0.1:8000:8000"
+    depends_on:
+      qdrant:
+        condition: service_healthy
+
+volumes:
+  qdrant_storage:
