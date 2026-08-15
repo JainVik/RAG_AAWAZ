@@ -146,7 +146,13 @@ export const RetrievalEvaluationCard: React.FC<RetrievalEvaluationCardProps> = (
       </div>
 
       {/* Detailed Report Attributes */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 text-xs">
+        <div className="p-3 bg-white/5 border border-white/8 rounded-xl flex items-center justify-between">
+          <span className="text-slate-400">Completion Coverage:</span>
+          <span className="font-mono font-bold text-white">
+            {percent(metrics.completion_coverage)}
+          </span>
+        </div>
         <div className="p-3 bg-white/5 border border-white/8 rounded-xl flex items-center justify-between">
           <span className="text-slate-400">Hit Coverage:</span>
           <span className="font-mono font-bold text-white">

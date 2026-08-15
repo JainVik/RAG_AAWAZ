@@ -86,7 +86,7 @@ A README statement alone never changes a requirement to complete.
 | Required extractive answer uses one/two retrieved sentences | **Unit-pass** | `generation/grounded_generator.py` | exact-grounding/harness tests |
 | Exact passage IDs/spans and per-branch scores are cited | **Unit-pass** | `Citation`, Qdrant decoding, late spans | response schema and store tests |
 | Every final factual sentence is supported | **Unit-pass for extractive mode** | normalized combined-citation containment | supported/unsupported grounding tests |
-| Optional llama never weakens SLA/grounding | **Unit-pass by disabled fallback** | feature placeholder delegates to extractive until measured | no generative SLA claim |
+| Optional Groq synthesis never weakens primary SLA/grounding | **Implementation added; live-provider evidence pending** | disabled-by-default post-primary offer, bounded one-use context, strict claim/citation verification, independent terminal statuses | dedicated contract tests; no aggregate Groq latency or generation-quality claim |
 | Silence/invalid/too-short/low-confidence are distinct | **Unit-pass; real low-confidence event blocked** | audio and transcript gates | guardrail/voice injection tests; provider exposes no recognition confidence |
 | Safety is narrow and limitations explicit | **Unit-pass** | documented rules | safe/unsafe tests; `docs/guardrails.md` |
 | Prompt injection cannot override harness/context | **Unit-pass** | input regex gate; retrieved text never executed | injection test |

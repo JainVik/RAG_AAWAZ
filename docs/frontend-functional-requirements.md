@@ -44,8 +44,8 @@ process liveness from submission readiness. It includes one `Refresh status` but
 The frontend must not show Gemini, TTS, a reranker, BM25, 3072-dimensional vectors, or any other
 provider/feature that this backend does not implement. The actual stack is Sarvam realtime speech,
 multilingual E5-small 384-dimensional dense embeddings, a character n-gram sparse vector,
-client-side reciprocal-rank fusion, Qdrant, and extractive grounded answers with optional local
-generation only when configured.
+client-side reciprocal-rank fusion, Qdrant, a primary extractive grounded answer, and optional
+post-primary Groq `openai/gpt-oss-20b` synthesis when explicitly configured.
 
 ## 3. Page 1: Voice RAG Workspace (`/ask`)
 
@@ -143,9 +143,9 @@ plain-language statuses:
 
 The UI must not simulate stages or timers that the server did not report.
 
-### 3.7 Terminal result card
+### 3.7 Terminal result cards
 
-The result card renders one of these mutually exclusive outcomes:
+The primary result card renders one of these mutually exclusive outcomes:
 
 1. **Grounded answer** — answer text, mode, final transcript, language, and citations.
 2. **Evidence fallback** — exact returned evidence, clearly labelled as a deadline fallback rather
@@ -165,6 +165,31 @@ Required result controls:
 
 Client code must branch on `state`, `answer_mode`, and `guardrail.decision`; it must not infer
 success merely because HTTP/WebSocket transport succeeded.
+
+An eligible completed primary response may also contain a `synthesis` offer. The frontend renders
+the primary Evidence card immediately, then requests the optional Groq result and shows it as a
+second adjacent card on wide screens or directly below the primary card on narrow screens. The
+primary card always comes first and remains visible while the second card is loading or fails.
+
+The Groq card supports `completed`, `abstained`, `timed_out`, `unavailable`, and
+`grounding_failed`. Only `completed` displays generated answer text. Its provider/model label and
+`timings_ms.total_synthesis` duration come from the validated backend response. It must not use
+`groq_synthesis` (provider time only) as the user-facing end-to-end duration. A missing synthesis
+offer on a completed primary response preserves the existing single-card UI.
+
+When a primary response has no answer, no synthesis offer, and no synthesis result, the frontend
+renders an adjacent no-call status card under the `Groq grounded synthesis` header without a model
+badge or generated timing. An evidence abstention uses the title/status `Out of context` and exact
+body `Groq was not invoked because no verified corpus evidence was available.` `NEEDS_REPEAT`,
+`UNSAFE`/blocked (including prompt injection), `DEPENDENCY_UNAVAILABLE`, `DEADLINE_FALLBACK`, and
+`FAILED` use the title/status `Not generated` with an outcome-specific reason. This fixed copy is
+application-authored and must not be attributed to Groq. These non-completed outcomes display no
+loading placeholder, receive no synthesis offer, and must call neither `/v1/query/synthesis` nor
+Groq.
+
+Synthesis offer tokens are one-use. A non-completed secondary response is not retried with the
+consumed token; its `retryable` value is `false`, and another attempt begins with a fresh primary
+query/offer.
 
 ### 3.8 Citation list
 
@@ -324,6 +349,7 @@ The expandable section must state at least:
 | `GET` | `/metrics` | Privacy-safe aggregate process telemetry; never query history. |
 | `POST` | `/v1/query/text` | Text test/fallback request. |
 | `WS` | `/v1/query/voice` | Realtime voice session. |
+| `POST` | `/v1/query/synthesis` | Redeem an eligible short-lived offer for an independent Groq result. |
 
 Text request body:
 
@@ -339,7 +365,29 @@ Text request body:
 The language enum is `hi`, `en`, `mr`, `hi-en`, or `unknown`. The normal frontend leaves
 `deadline_ms` null so the server's frozen policy is used.
 
-### 5.2 Voice client events
+### 5.2 Optional progressive synthesis
+
+An eligible terminal `QueryResponse` includes this optional offer:
+
+```json
+{
+  "synthesis": {
+    "token": "opaque-server-issued-token",
+    "provider": "groq",
+    "model": "openai/gpt-oss-20b",
+    "expires_in_ms": 60000
+  }
+}
+```
+
+The frontend sends only the primary `request_id` and opaque `token` to
+`POST /v1/query/synthesis`; it never sends the transcript/evidence to Groq directly and never holds
+`GROQ_API_KEY`. Validate the response fields
+`request_id`, `provider`, `model`, `status`, `answer`, `claims`, `citations`, `guardrail`,
+`retryable`, `timings_ms`, and `completed_at` before rendering. Expired/invalid tokens and all
+secondary failures remain isolated from the already rendered primary response.
+
+### 5.3 Voice client events
 
 All frames are JSON text and require `version: "1"`:
 
@@ -351,7 +399,7 @@ All frames are JSON text and require `version: "1"`:
 
 The client sequence starts at zero and increases monotonically.
 
-### 5.3 Voice server events
+### 5.4 Voice server events
 
 The client validates the discriminated event types before rendering:
 
@@ -363,7 +411,7 @@ The client validates the discriminated event types before rendering:
 Unknown versions, event types, or malformed payloads produce a safe client protocol-error state and
 are never rendered as an answer.
 
-### 5.4 Required new read-only endpoint
+### 5.5 Required new read-only endpoint
 
 The frontend build requires one small backend addition:
 
@@ -454,6 +502,9 @@ Required error treatments:
 - Apply a strict Content Security Policy in production and restrict connections to the same origin.
 - Media tracks are stopped on cancel, terminal response, route change, page hide/unload, and error.
 - Server readiness/report details are allowlisted; secrets and filesystem paths stay server-side.
+- If optional Groq synthesis is enabled and requested, the final question/transcript and selected
+  evidence are processed by Groq. The UI must identify that third-party provider and the deployment
+  must disclose the processing; raw audio, partial transcripts, and credentials are never sent.
 - The final public/non-loopback deployment requires shared auth, origin checks, rate/concurrency
   controls, and HTTPS/WSS. The current safe demo default remains loopback-only.
 
@@ -487,7 +538,7 @@ The following are not required and must not be drawn as functional controls:
 - manual chunk-strategy selection in the judged query flow;
 - model, prompt, temperature, top-p, token, RRF, threshold, or guardrail settings;
 - provider/model marketplace or status badges for unused providers;
-- TTS playback or synthesized voice answers;
+- TTS playback or synthesized audio answers;
 - user accounts, teams, billing, or admin roles;
 - a developer API console;
 - fake categories, confidence percentages, document titles, or benchmark values;
@@ -509,9 +560,13 @@ The frontend is complete only when all of the following pass:
 7. Responsive checks at phone, tablet, and desktop widths.
 8. Deterministic browser E2E using a mock server for partial transcript, state changes, answer,
    citation, abstention, deadline fallback, and retryable error.
-9. One separate local real-system smoke: real microphone -> Sarvam -> Qdrant -> terminal grounded
+9. Progressive-synthesis tests for offer absent/present/expired, loading and every terminal
+   secondary status, exact card order, narrow-screen stacking, `total_synthesis` display, the fixed
+   `Out of context` versus `Not generated` no-answer mapping, absence of a model badge for no-call
+   cards, and proof that no non-completed primary outcome calls the synthesis endpoint.
+10. One separate local real-system smoke: real microphone -> Sarvam -> Qdrant -> terminal grounded
    answer or truthful abstention, with the backend ready and secrets absent from browser assets.
-10. Evidence page renders the actual sanitized 500-query report and labels absent qualifying voice
+11. Evidence page renders the actual sanitized 500-query report and labels absent qualifying voice
     evidence as pending.
 
 ## 12. What the final style specification must provide

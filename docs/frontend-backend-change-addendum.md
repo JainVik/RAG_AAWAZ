@@ -54,7 +54,8 @@ screenshots:
 - Sparse retrieval: character n-grams, not BM25
 - Vector database: Qdrant
 - Speech-to-text: Sarvam `saaras:v3-realtime`, not Saarika v2
-- Answer generation: extractive by default, with optional configured local generation
+- Answer generation: authoritative extractive primary result, with optional configured
+  post-primary Groq `openai/gpt-oss-20b` synthesis in a separate card
 - No Gemini provider label
 - No 3072-dimensional embedding label
 - No cross-encoder/reranker label
@@ -83,6 +84,30 @@ strategy selector. Runtime routing is automatic.
 - A single request timing must never be rendered as P50, P70, P95, P99, or P100.
 - Every aggregate latency display needs its measurement scope, sample count, timing coverage, and
   qualification state.
+- Keep the primary `total_after_final_audio` badge separate from optional Groq synthesis. The Groq
+  card may show its per-request `total_synthesis`; `groq_synthesis` is provider-only diagnostic
+  time. Neither value is an aggregate percentile.
+
+### Optional Groq card
+
+- Render the primary Evidence answer immediately and first.
+- Redeem an optional opaque synthesis offer through the backend only; the browser never holds the
+  Groq key or calls Groq directly.
+- Place the Groq card adjacent/right on wide screens and after Evidence on narrow screens.
+- Support `completed`, `abstained`, `timed_out`, `unavailable`, and `grounding_failed` without
+  changing the successful primary result.
+- Never request synthesis for a primary abstention, repeat, unsafe/block, deadline fallback,
+  dependency failure, or failed state.
+- For a no-answer evidence abstention, retain the Groq-branded card with title/status
+  `Out of context` and body `Groq was not invoked because no verified corpus evidence was
+  available.` Repeat, unsafe/block, dependency, deadline, and failed states use `Not generated`
+  with an outcome-specific reason. These are frontend-authored no-call statuses: show no model
+  badge or generated timing and never imply that Groq produced the fixed message.
+- Identify Groq/model on that implemented secondary card only. Do not turn it into a provider
+  marketplace or a frontend model selector.
+- Disclose that enabling/requesting synthesis sends the final question/transcript and selected
+  evidence to Groq. It does not send raw audio, partial transcripts, credentials, or unrelated
+  corpus content.
 
 ### Guardrail claims
 

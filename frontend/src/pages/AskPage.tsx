@@ -3,6 +3,7 @@ import { TextT, WarningCircle, X } from '@phosphor-icons/react';
 import type { QueryResponse } from '../types/api';
 import { toBackendLanguage } from '../types/api';
 import { useVoiceRecorder } from '../hooks/useVoiceRecorder';
+import { useSynthesis } from '../hooks/useSynthesis';
 import { VoiceStage } from '../components/voice/VoiceStage';
 import { TextInputPanel } from '../components/text/TextInputPanel';
 import { sendTextQuery } from '../services/api';
@@ -18,6 +19,7 @@ export const AskPage: React.FC = () => {
   const canSubmit = ready?.status === 'ready';
   const voice = useVoiceRecorder();
   const activeResult = textResult ?? voice.result;
+  const synthesis = useSynthesis(activeResult);
 
   useEffect(() => {
     if (!showTextModal) return;
@@ -70,6 +72,9 @@ export const AskPage: React.FC = () => {
         detectedLanguage={voice.detectedLanguage}
         partialTranscript={voice.partialTranscript}
         result={activeResult}
+        synthesisLoading={synthesis.isLoading}
+        synthesisResult={synthesis.result}
+        synthesisError={synthesis.error}
         canSubmit={canSubmit}
         onLanguageChange={voice.setSelectedLanguage}
         onStartRecording={voice.startRecording}

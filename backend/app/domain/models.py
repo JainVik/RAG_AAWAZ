@@ -21,12 +21,14 @@ from app.domain.enums import (
     Language,
     PipelineState,
     SttEventType,
+    SynthesisStatus,
 )
 
 NonEmptyText = Annotated[str, StringConstraints(strip_whitespace=True, min_length=1)]
 QueryText = Annotated[
     str, StringConstraints(strip_whitespace=True, min_length=1, max_length=4_096)
 ]
+NonNegativeIndex = Annotated[int, Field(ge=0)]
 
 
 class StrictModel(BaseModel):
@@ -141,6 +143,64 @@ class StageTiming(StrictModel):
     error_code: ErrorCode | None = None
 
 
+class SynthesisOffer(StrictModel):
+    token: str = Field(min_length=32, max_length=128, pattern=r"^[A-Za-z0-9_-]+$")
+    provider: Literal["groq"] = "groq"
+    model: Literal["openai/gpt-oss-20b"] = "openai/gpt-oss-20b"
+    expires_in_ms: int = Field(gt=0, le=600_000)
+
+
+class SynthesisRequest(StrictModel):
+    request_id: str = Field(min_length=1, max_length=128)
+    token: str = Field(min_length=32, max_length=128, pattern=r"^[A-Za-z0-9_-]+$")
+
+
+class SynthesisClaim(StrictModel):
+    text: NonEmptyText
+    citation_indices: list[NonNegativeIndex] = Field(min_length=1, max_length=3)
+
+    @model_validator(mode="after")
+    def validate_unique_indices(self) -> SynthesisClaim:
+        if len(set(self.citation_indices)) != len(self.citation_indices):
+            raise ValueError("citation_indices must be unique")
+        return self
+
+
+class SynthesisResponse(StrictModel):
+    request_id: str = Field(min_length=1, max_length=128)
+    provider: Literal["groq"] = "groq"
+    model: Literal["openai/gpt-oss-20b"] = "openai/gpt-oss-20b"
+    status: SynthesisStatus
+    answer: str | None = None
+    claims: list[SynthesisClaim] = Field(default_factory=list, max_length=3)
+    citations: list[Citation] = Field(default_factory=list, max_length=3)
+    guardrail: GuardrailResult
+    retryable: Literal[False] = False
+    timings_ms: dict[str, float] = Field(default_factory=dict)
+    completed_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
+
+    @model_validator(mode="after")
+    def validate_terminal_shape(self) -> SynthesisResponse:
+        if self.status == SynthesisStatus.COMPLETED:
+            if not self.answer or not self.claims or not self.citations:
+                raise ValueError("completed synthesis requires an answer, claims, and citations")
+            if self.guardrail.decision != GuardrailDecision.ALLOW:
+                raise ValueError("completed synthesis requires an ALLOW guardrail")
+            claim_answer = " ".join(claim.text.strip() for claim in self.claims)
+            if " ".join(self.answer.split()) != " ".join(claim_answer.split()):
+                raise ValueError("completed synthesis answer must equal its ordered claim texts")
+            for claim in self.claims:
+                invalid_index = any(
+                    index < 0 or index >= len(self.citations)
+                    for index in claim.citation_indices
+                )
+                if invalid_index:
+                    raise ValueError("claim citation index is outside the returned citation list")
+        elif self.answer is not None or self.claims or self.citations:
+            raise ValueError("non-completed synthesis must not expose generated content")
+        return self
+
+
 class QueryResponse(StrictModel):
     request_id: str
     transcript: str
@@ -152,6 +212,7 @@ class QueryResponse(StrictModel):
     evidence_agreement: float | None = Field(default=None, ge=0.0, le=1.0)
     state: PipelineState
     timings_ms: dict[str, float] = Field(default_factory=dict)
+    synthesis: SynthesisOffer | None = None
     completed_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
 
 

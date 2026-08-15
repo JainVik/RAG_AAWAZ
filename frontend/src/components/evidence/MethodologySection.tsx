@@ -71,11 +71,7 @@ export const MethodologySection: React.FC<MethodologySectionProps> = ({ provenan
               Cryptographic Artifact Hashes (SHA256)
             </span>
             <div className="p-4 bg-black/40 border border-white/10 rounded-xl space-y-2 font-mono text-[11px]">
-              {Object.entries((provenance as unknown as Record<string, unknown>).artifact_hashes || {
-                'retrieval-eval.json': '6a0f550a70caa8cf43eabbdc4b3b4b26311ea63221a1074155901d0cbcd4cba8',
-                'corpus-manifest.json': '70d0bd95ced0b876490bc0c0edaf5a9bc6f2fb493b30016a233abcdb7a3a25f3',
-                'frozen-thresholds.json': '6a0f550a70caa8cf43eabbdc4b3b4b26311ea63221a1074155901d0cbcd4cba8',
-              }).map(([file, hash]) => (
+              {Object.entries(provenance.artifact_hashes).map(([file, hash]) => (
                 <div key={file} className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 py-1 border-b border-white/5 last:border-0">
                   <span className="text-cyan-300 font-semibold">{file}</span>
                   <span className="text-slate-400 truncate max-w-md" title={String(hash)}>
@@ -83,7 +79,29 @@ export const MethodologySection: React.FC<MethodologySectionProps> = ({ provenan
                   </span>
                 </div>
               ))}
+              {Object.keys(provenance.artifact_hashes).length === 0 && (
+                <span className="text-slate-500">No verified artifact hashes were returned.</span>
+              )}
             </div>
+          </div>
+
+          <div className="space-y-2">
+            <span className="font-bold text-white uppercase tracking-wider text-[11px] block">
+              Current Limitations
+            </span>
+            {provenance.limitations.length > 0 ? (
+              <ul className="space-y-2">
+                {provenance.limitations.map((limitation) => (
+                  <li key={limitation} className="rounded-xl border border-amber-400/10 bg-amber-500/5 px-4 py-3 text-slate-400">
+                    {limitation}
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className="rounded-xl border border-white/8 bg-white/5 px-4 py-3 text-slate-500">
+                No limitations were reported by the evidence endpoint.
+              </p>
+            )}
           </div>
         </div>
       )}

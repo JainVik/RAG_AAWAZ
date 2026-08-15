@@ -46,8 +46,17 @@
   deterministic injected tests only and has not been validated with a credentialed provider event.
 - Character hash collisions are deterministic and aggregated but remain possible.
 - Extractive mode prioritizes verifiable grounding and latency over fluent synthesis.
-- The optional local llama adapter intentionally falls back to extractive mode until a concrete
-  quantized model passes grounding and CPU latency measurements.
+- Optional Groq `openai/gpt-oss-20b` synthesis is a post-primary fluent rendering, not an
+  alternative source of truth. It is disabled by default, is not called for abstentions or other
+  non-completed outcomes, and may independently time out, become unavailable, or fail grounding
+  while the primary extractive result remains usable.
+- Enabling and requesting Groq synthesis discloses the final question/transcript and selected
+  evidence to a third-party processor. It does not disclose raw audio, partial transcripts,
+  credentials, or unrelated corpus passages. Operators must separately review and disclose Groq's
+  applicable retention, regional, privacy, and contractual terms before enabling the feature.
+- No qualifying aggregate Groq latency or generation-quality benchmark is currently claimed.
+  `total_synthesis` is a per-request post-primary duration and must not be mixed with the qualifying
+  voice timer or presented as a percentile.
 - Marathi code paths exist, but Marathi is not a supported submission claim until the Hindi/English
   core and benchmarks pass.
 - The ablation runner currently measures quality and query latency through one shared collection

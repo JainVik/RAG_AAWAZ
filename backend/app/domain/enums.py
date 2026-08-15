@@ -95,6 +95,14 @@ class AnswerMode(StrEnum):
     ABSTENTION = "abstention"
 
 
+class SynthesisStatus(StrEnum):
+    COMPLETED = "completed"
+    ABSTAINED = "abstained"
+    TIMED_OUT = "timed_out"
+    UNAVAILABLE = "unavailable"
+    GROUNDING_FAILED = "grounding_failed"
+
+
 class SttEventType(StrEnum):
     PARTIAL = "partial"
     FINAL = "final"

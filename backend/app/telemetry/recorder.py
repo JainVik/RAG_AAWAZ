@@ -6,7 +6,7 @@ from collections import Counter, deque
 from collections.abc import Sequence
 from typing import Any
 
-from app.domain.models import QueryResponse, VoiceErrorPayload
+from app.domain.models import QueryResponse, SynthesisResponse, VoiceErrorPayload
 
 
 def nearest_rank_percentile(values: Sequence[float], percentile: int) -> float:
@@ -35,6 +35,8 @@ class MetricsRecorder:
         self._max_latency_samples = max_latency_samples
         self._speculative_started = 0
         self._speculative_reused = 0
+        self._synthesis_statuses: Counter[str] = Counter()
+        self._synthesis_latencies: deque[float] = deque(maxlen=max_latency_samples)
 
     def record_response(self, response: QueryResponse) -> None:
         with self._lock:
@@ -69,6 +71,13 @@ class MetricsRecorder:
             if reused:
                 self._speculative_reused += 1
 
+    def record_synthesis(self, response: SynthesisResponse) -> None:
+        with self._lock:
+            self._synthesis_statuses[response.status.value] += 1
+            total = response.timings_ms.get("total_synthesis")
+            if total is not None and math.isfinite(total) and total >= 0:
+                self._synthesis_latencies.append(total)
+
     def snapshot(self) -> dict[str, Any]:
         with self._lock:
             latencies = list(self._latencies)
@@ -87,7 +96,19 @@ class MetricsRecorder:
                         else 0.0
                     ),
                 },
+                "groq_synthesis": {
+                    "statuses": dict(self._synthesis_statuses),
+                    "latency_sample_count": len(self._synthesis_latencies),
+                },
             }
+            synthesis_latencies = list(self._synthesis_latencies)
+            if synthesis_latencies:
+                snapshot["groq_synthesis"]["latency_ms"] = {
+                    "p50": nearest_rank_percentile(synthesis_latencies, 50),
+                    "p70": nearest_rank_percentile(synthesis_latencies, 70),
+                    "p95": nearest_rank_percentile(synthesis_latencies, 95),
+                    "p100": max(synthesis_latencies),
+                }
             if latencies:
                 snapshot["latency_ms"] = {
                     "p50": nearest_rank_percentile(latencies, 50),

@@ -7,6 +7,7 @@ from datetime import timedelta
 from pathlib import Path
 from typing import Any, Literal
 
+import httpx
 from pydantic import AwareDatetime, BaseModel, ConfigDict, Field, field_validator
 
 from app.core.config import Settings
@@ -17,7 +18,9 @@ from app.evaluation.thresholds import (
     frozen_threshold_binding_errors,
     load_frozen_thresholds,
 )
+from app.generation.groq_synthesizer import GroqGroundedSynthesizer
 from app.generation.grounded_generator import ExtractiveGroundedGenerator
+from app.generation.synthesis_context import SynthesisContextStore
 from app.harness.circuit_breaker import CircuitBreaker
 from app.harness.orchestrator import PipelineOrchestrator
 from app.retrieval.hybrid import HybridRetriever
@@ -119,6 +122,9 @@ class DefaultServices:
             reset_on_call_success=False,
         )
         self.qdrant_store: QdrantStore | None = None
+        self.synthesis_contexts: SynthesisContextStore | None = None
+        self.groq_synthesizer: GroqGroundedSynthesizer | None = None
+        self._groq_client: httpx.AsyncClient | None = None
         self._manifest: dict[str, Any] | None = None
         self._checks: dict[str, dict[str, Any]] = {}
 
@@ -136,6 +142,7 @@ class DefaultServices:
 
     async def initialize(self) -> None:
         self._configure_sarvam()
+        self._configure_groq()
         if not self.index_manifest_path.exists():
             self._checks["index"] = {
                 "ready": False,
@@ -310,6 +317,7 @@ class DefaultServices:
                 self.settings.dense_candidate_limit,
                 self.settings.sparse_candidate_limit,
             ),
+            synthesis_contexts=self.synthesis_contexts,
         )
         try:
             await self.qdrant_store.initialize()
@@ -441,6 +449,77 @@ class DefaultServices:
                 }
             )
 
+    def _configure_groq(self) -> None:
+        if not self.settings.rag_enable_groq_synthesis:
+            self._checks["groq"] = {
+                "ready": False,
+                "required": False,
+                "enabled": False,
+                "reason": "groq_synthesis_disabled",
+            }
+            return
+        if not self.settings.groq_configured:
+            self._checks["groq"] = {
+                "ready": False,
+                "required": False,
+                "enabled": True,
+                "reason": "GROQ_API_KEY_not_configured",
+            }
+            return
+        try:
+            base_url = self.settings.groq_base_url.rstrip("/") + "/"
+            parsed_url = httpx.URL(base_url)
+            if parsed_url.scheme != "https":
+                raise ValueError("GROQ_BASE_URL must use HTTPS")
+            api_key = self.settings.groq_api_key
+            assert api_key is not None
+            self._groq_client = httpx.AsyncClient(
+                base_url=base_url,
+                headers={
+                    "Authorization": f"Bearer {api_key.get_secret_value()}",
+                    "Content-Type": "application/json",
+                    "Accept": "application/json",
+                },
+                timeout=httpx.Timeout(self.settings.groq_timeout_s),
+                limits=httpx.Limits(
+                    max_connections=self.settings.groq_max_concurrency,
+                    max_keepalive_connections=self.settings.groq_max_concurrency,
+                ),
+                follow_redirects=False,
+            )
+            self.synthesis_contexts = SynthesisContextStore(
+                ttl_s=self.settings.rag_synthesis_context_ttl_s,
+                max_entries=self.settings.rag_synthesis_context_max_entries,
+            )
+            self.groq_synthesizer = GroqGroundedSynthesizer(
+                self._groq_client,
+                model=self.settings.groq_model,
+                timeout_s=self.settings.groq_timeout_s,
+                max_completion_tokens=self.settings.groq_max_completion_tokens,
+                max_concurrency=self.settings.groq_max_concurrency,
+            )
+        except Exception as exc:
+            self._checks["groq"] = {
+                "ready": False,
+                "required": False,
+                "enabled": True,
+                "reason": "invalid_groq_configuration",
+                "error_type": type(exc).__name__,
+            }
+            self.synthesis_contexts = None
+            self.groq_synthesizer = None
+            self._groq_client = None
+            return
+        self._checks["groq"] = {
+            "ready": True,
+            "required": False,
+            "enabled": True,
+            "configured": True,
+            "model": self.settings.groq_model,
+            "base_url": base_url,
+            "credentialed_smoke_verified": False,
+        }
+
     def _expected_point_count(self) -> int | None:
         if self._manifest is None:
             return None
@@ -465,5 +544,7 @@ class DefaultServices:
         return {"status": "ready" if all_ready else "not_ready", "checks": checks}
 
     async def close(self) -> None:
+        if self._groq_client is not None:
+            await self._groq_client.aclose()
         if self.qdrant_store is not None:
             await self.qdrant_store.close()

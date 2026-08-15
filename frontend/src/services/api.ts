@@ -1,17 +1,22 @@
 import type {
   EvidenceSummary,
   HealthResponse,
+  OperationalMetrics,
   PipelineErrorResponse,
   QueryResponse,
   ReadyResponse,
+  SynthesisRequest,
+  SynthesisResponse,
   TextQueryRequest,
 } from '../types/api';
 import {
   parseEvidenceSummary,
   parseHealthResponse,
+  parseOperationalMetrics,
   parsePipelineError,
   parseQueryResponse,
   parseReadyResponse,
+  parseSynthesisResponse,
 } from '../types/api';
 
 const API_BASE = (import.meta.env.VITE_API_BASE_URL || '/api').replace(/\/$/, '');
@@ -110,6 +115,29 @@ export async function sendTextQuery(payload: TextQueryRequest): Promise<QueryRes
   return parseQueryResponse(body);
 }
 
+export async function sendSynthesis(payload: SynthesisRequest): Promise<SynthesisResponse> {
+  const response = await fetch(`${API_BASE}/v1/query/synthesis`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+    body: JSON.stringify(payload),
+  });
+  const body = await readJson(response);
+  if (!response.ok) {
+    let structured: PipelineErrorResponse | null = null;
+    try {
+      structured = parsePipelineError(body);
+    } catch {
+      // Do not expose an unvalidated error payload.
+    }
+    throw new ApiError(
+      structured?.message || `Grounded synthesis failed with HTTP ${response.status}`,
+      response.status,
+      structured
+    );
+  }
+  return parseSynthesisResponse(body);
+}
+
 export async function getEvidenceSummary(): Promise<EvidenceSummary> {
   const response = await fetch(`${API_BASE}/v1/evidence/summary`, {
     headers: { Accept: 'application/json' },
@@ -118,4 +146,14 @@ export async function getEvidenceSummary(): Promise<EvidenceSummary> {
     throw new ApiError(`Evidence endpoint returned HTTP ${response.status}`, response.status);
   }
   return parseEvidenceSummary(await readJson(response));
+}
+
+export async function getOperationalMetrics(): Promise<OperationalMetrics> {
+  const response = await fetch(`${API_BASE}/metrics`, {
+    headers: { Accept: 'application/json' },
+  });
+  if (!response.ok) {
+    throw new ApiError(`Metrics endpoint returned HTTP ${response.status}`, response.status);
+  }
+  return parseOperationalMetrics(await readJson(response));
 }

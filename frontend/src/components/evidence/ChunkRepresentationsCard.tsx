@@ -28,7 +28,7 @@ export const ChunkRepresentationsCard: React.FC<ChunkRepresentationsCardProps> =
               Chunk Representation Specifications
             </h2>
             <p className="text-xs text-slate-400">
-              5 verified multi-strategy representations indexed into Qdrant collection
+              {representations.length} measured multi-strategy representation{representations.length === 1 ? '' : 's'} in the active index manifest
             </p>
           </div>
         </div>
@@ -41,23 +41,23 @@ export const ChunkRepresentationsCard: React.FC<ChunkRepresentationsCardProps> =
 
       {/* Comparison Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-        {representations.map((rep, idx) => (
+        {representations.map((rep) => (
           <div
-            key={idx}
+            key={rep.strategy}
             className="p-4 bg-white/5 border border-white/8 hover:border-purple-400/30 rounded-xl flex flex-col justify-between space-y-3 transition-colors"
           >
             <div className="space-y-1.5">
               <div className="flex items-center justify-between">
                 <span className="text-sm font-bold text-white tracking-tight">{rep.name}</span>
-                <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-300 border border-emerald-500/20">
+                <span className={`inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full border ${rep.enabled ? 'bg-emerald-500/10 text-emerald-300 border-emerald-500/20' : 'bg-slate-500/10 text-slate-400 border-white/10'}`}>
                   <CheckCircle size={11} weight="fill" />
-                  <span>ACTIVE</span>
+                  <span>{rep.enabled ? 'ACTIVE' : 'DISABLED'}</span>
                 </span>
               </div>
               <p className="text-xs text-slate-400 leading-relaxed font-sans">{rep.description}</p>
             </div>
 
-            <div className="pt-3 border-t border-white/10 grid grid-cols-3 gap-1 text-center font-mono">
+            <div className="pt-3 border-t border-white/10 grid grid-cols-2 sm:grid-cols-4 gap-1 text-center font-mono">
               <div className="p-1.5 bg-black/20 rounded-lg">
                 <span className="block text-[9px] uppercase text-slate-500 font-sans">Points</span>
                 <span className="text-xs font-bold text-cyan-300 font-mono-tabular">
@@ -74,6 +74,12 @@ export const ChunkRepresentationsCard: React.FC<ChunkRepresentationsCardProps> =
                 <span className="block text-[9px] uppercase text-slate-500 font-sans">Size</span>
                 <span className="text-xs font-bold text-slate-300 font-mono-tabular">
                   {(rep.artifact_bytes / (1024 * 1024)).toFixed(1)} MB
+                </span>
+              </div>
+              <div className="p-1.5 bg-black/20 rounded-lg">
+                <span className="block text-[9px] uppercase text-slate-500 font-sans">Build</span>
+                <span className="text-xs font-bold text-slate-300 font-mono-tabular">
+                  {rep.build_duration_seconds.toFixed(2)} s
                 </span>
               </div>
             </div>

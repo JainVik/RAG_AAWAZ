@@ -14,6 +14,29 @@ cannot be reused, request-time late chunking, generation, citation verification,
 serialization. It is completed-output latency, not time to first token. A separate timer may report
 audio-start-to-response user-perceived duration.
 
+Here, `generation` means the primary extractive answer. Optional Groq synthesis is deliberately
+post-primary: the primary result is materialized before a synthesis offer can be redeemed. Groq
+time is therefore not part of `total_after_final_audio` and cannot delay or invalidate that result.
+
+## Optional post-primary synthesis timing
+
+When Groq synthesis is enabled and an eligible offer is requested, its response reports two
+separate values:
+
+- `total_synthesis`: the canonical end-to-end duration for the secondary request and the only
+  synthesis duration shown on its UI card;
+- `groq_synthesis`: the provider-call portion, useful in diagnostics but not a substitute for the
+  total.
+
+These values must not be added to primary voice latency, silently substituted for
+`total_after_final_audio`, or included in the qualifying voice percentiles described below. The
+secondary status denominator includes `completed`, `abstained`, `timed_out`, `unavailable`, and
+`grounding_failed`; reporting only successful Groq calls would hide failure cost and coverage.
+
+A single card badge is one request duration, not an aggregate percentile. Any future Groq
+P50/P70/P95/P100 report must use a distinct measured sample and disclose model/provider identity,
+sample count, concurrency, context/output bounds, timing coverage, and every failure status.
+
 ## Benchmark policy
 
 - Primary voice run: at least 100 and target 300 distinct clips; concurrency 1.
@@ -46,6 +69,17 @@ requirement.
 Stage percentiles describe the distribution of each reported stage. They are not summed to
 reconstruct the total because retrieval branches and other work may overlap. The client timer and
 server `total_after_final_audio` remain the two headline measurements.
+
+The query UI may additionally show a per-request **Core RAG stage subtotal** when, and only when,
+all five sequential orchestrator measurements are present and finite: `input_guarded`, `retrieved`,
+`evidence_selected`, `answered`, and `verified`. That subtotal is explicitly labelled post-transcript
+and is never presented as end-to-end latency, a budget result, or an aggregate percentile. Missing
+stages produce a partial-path display with no subtotal. Speech finalization, speculative work,
+serialization, transport/browser time, and optional Groq synthesis are excluded.
+
+The Evidence page may show `/metrics` as **live process telemetry — non-qualifying**. These values
+combine primary text and voice outcomes in the current backend process and reset on restart; they do
+not replace the frozen retrieval artifact or a qualifying real-provider voice benchmark.
 
 ## Cold-start integrity and warm primary evidence
 
@@ -90,6 +124,10 @@ in order:
 1. a fully verified concise extractive answer;
 2. a direct cited evidence span if available;
 3. a structured abstention or repeat request.
+
+Progressive Groq synthesis begins only after outcome 1 and uses its own timeout. It is not attempted
+on a deadline fallback or abstention. A secondary timeout returns `timed_out` for the Groq card
+while leaving the primary response unchanged.
 
 Retries run only when the remaining budget can accommodate both backoff and useful work. Sarvam
 does not document resumable realtime sessions or safe in-flight audio replay, so an abnormal voice

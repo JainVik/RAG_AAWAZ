@@ -165,6 +165,44 @@ export interface Citation {
   sparse_score: number | null;
 }
 
+export interface SynthesisOffer {
+  token: string;
+  provider: 'groq';
+  model: 'openai/gpt-oss-20b';
+  expires_in_ms: number;
+}
+
+export type SynthesisStatus =
+  | 'completed'
+  | 'abstained'
+  | 'timed_out'
+  | 'unavailable'
+  | 'grounding_failed';
+
+export interface SynthesisClaim {
+  text: string;
+  citation_indices: number[];
+}
+
+export interface SynthesisResponse {
+  request_id: string;
+  provider: 'groq';
+  model: 'openai/gpt-oss-20b';
+  status: SynthesisStatus;
+  answer: string | null;
+  claims: SynthesisClaim[];
+  citations: Citation[];
+  guardrail: GuardrailResult;
+  retryable: false;
+  timings_ms: Record<string, number>;
+  completed_at: string;
+}
+
+export interface SynthesisRequest {
+  request_id: string;
+  token: string;
+}
+
 export interface QueryResponse {
   request_id: string;
   transcript: string;
@@ -177,6 +215,7 @@ export interface QueryResponse {
   state: BackendPipelineState;
   timings_ms: Record<string, number>;
   completed_at: string;
+  synthesis?: SynthesisOffer | null;
 }
 
 export interface PipelineErrorResponse {
@@ -393,6 +432,28 @@ export interface VoiceLatencyReport {
   source_artifact_sha256: string | null;
 }
 
+export interface LatencyPercentiles {
+  p50: number;
+  p70: number;
+  p95: number;
+  p100: number;
+}
+
+export interface StageLatencyPercentiles extends LatencyPercentiles {
+  count: number;
+}
+
+export interface OperationalMetrics {
+  requests_total: number;
+  latency_sample_count: number;
+  latency_ms: LatencyPercentiles | null;
+  timings_ms: Record<string, StageLatencyPercentiles>;
+  groq_synthesis: {
+    latency_sample_count: number;
+    latency_ms: LatencyPercentiles | null;
+  };
+}
+
 export interface ProvenanceDetails {
   evaluation_split: string | null;
   manifest_verified: boolean;
@@ -491,6 +552,52 @@ function parseCitation(value: unknown): Citation {
   return value as unknown as Citation;
 }
 
+function parseSynthesisOffer(value: unknown): SynthesisOffer {
+  assertProtocol(isRecord(value), 'synthesis must be an object or null');
+  assertProtocol(
+    isString(value.token) &&
+      value.token.length >= 32 &&
+      value.token.length <= 128 &&
+      /^[A-Za-z0-9_-]+$/.test(value.token),
+    'synthesis.token is invalid'
+  );
+  assertProtocol(value.provider === 'groq', 'synthesis.provider is invalid');
+  assertProtocol(value.model === 'openai/gpt-oss-20b', 'synthesis.model is invalid');
+  assertProtocol(
+    isNumber(value.expires_in_ms) &&
+      Number.isInteger(value.expires_in_ms) &&
+      value.expires_in_ms > 0 &&
+      value.expires_in_ms <= 600_000,
+    'synthesis.expires_in_ms must be a positive bounded integer'
+  );
+  return value as unknown as SynthesisOffer;
+}
+
+function parseSynthesisClaim(value: unknown, citationCount: number): SynthesisClaim {
+  assertProtocol(isRecord(value), 'synthesis claim must be an object');
+  assertProtocol(isString(value.text) && value.text.trim().length > 0, 'synthesis claim text is required');
+  assertProtocol(
+    Array.isArray(value.citation_indices),
+    'synthesis claim citation_indices must be an array'
+  );
+  const citationIndices = value.citation_indices.map((item) => {
+    assertProtocol(
+      isNumber(item) && Number.isInteger(item) && item >= 0 && item < citationCount,
+      'synthesis claim citation index is invalid'
+    );
+    return item;
+  });
+  assertProtocol(
+    citationIndices.length > 0 && citationIndices.length <= 3,
+    'synthesis claim must cite between one and three evidence spans'
+  );
+  assertProtocol(
+    new Set(citationIndices).size === citationIndices.length,
+    'synthesis claim citation indices must be unique'
+  );
+  return { text: value.text.trim(), citation_indices: citationIndices };
+}
+
 function parseGuardrail(value: unknown): GuardrailResult {
   assertProtocol(isRecord(value), 'guardrail must be an object');
   assertProtocol(
@@ -533,7 +640,74 @@ export function parseQueryResponse(value: unknown): QueryResponse {
   assertProtocol(isPipelineState(value.state), 'state is invalid');
   const timings = parseNumberMap(value.timings_ms, 'timings_ms');
   assertProtocol(isString(value.completed_at), 'completed_at is required');
-  return { ...(value as unknown as QueryResponse), citations, guardrail, timings_ms: timings };
+  const synthesis = value.synthesis === undefined || value.synthesis === null
+    ? value.synthesis
+    : parseSynthesisOffer(value.synthesis);
+  return {
+    ...(value as unknown as QueryResponse),
+    citations,
+    guardrail,
+    timings_ms: timings,
+    synthesis,
+  };
+}
+
+export function parseSynthesisResponse(value: unknown): SynthesisResponse {
+  assertProtocol(isRecord(value), 'synthesis response must be an object');
+  assertProtocol(
+    isString(value.request_id) && value.request_id.length > 0 && value.request_id.length <= 128,
+    'synthesis request_id is invalid'
+  );
+  assertProtocol(value.provider === 'groq', 'synthesis provider is invalid');
+  assertProtocol(value.model === 'openai/gpt-oss-20b', 'synthesis model is invalid');
+  assertProtocol(
+    value.status === 'completed' ||
+      value.status === 'abstained' ||
+      value.status === 'timed_out' ||
+      value.status === 'unavailable' ||
+      value.status === 'grounding_failed',
+    'synthesis status is invalid'
+  );
+  assertProtocol(value.answer === null || isString(value.answer), 'synthesis answer is invalid');
+  assertProtocol(Array.isArray(value.citations), 'synthesis citations must be an array');
+  const citations = value.citations.map(parseCitation);
+  assertProtocol(Array.isArray(value.claims), 'synthesis claims must be an array');
+  assertProtocol(value.claims.length <= 3, 'synthesis claims must contain at most three items');
+  const claims = value.claims.map((claim) => parseSynthesisClaim(claim, citations.length));
+  assertProtocol(citations.length <= 3, 'synthesis citations must contain at most three items');
+  const guardrail = parseGuardrail(value.guardrail);
+  assertProtocol(isBoolean(value.retryable), 'synthesis retryable is required');
+  assertProtocol(value.retryable === false, 'synthesis offers cannot be retried');
+  const timings = parseNumberMap(value.timings_ms, 'synthesis timings_ms');
+  assertProtocol(isString(value.completed_at), 'synthesis completed_at is required');
+  if (value.status === 'completed') {
+    assertProtocol(
+      isString(value.answer) && value.answer.trim().length > 0,
+      'completed synthesis answer is required'
+    );
+    assertProtocol(claims.length > 0, 'completed synthesis claims are required');
+    assertProtocol(citations.length > 0, 'completed synthesis citations are required');
+    assertProtocol(guardrail.decision === 'ALLOW', 'completed synthesis must pass its guardrail');
+    const normalizedAnswer = value.answer.split(/\s+/u).filter(Boolean).join(' ');
+    const normalizedClaims = claims
+      .map((claim) => claim.text.trim())
+      .join(' ')
+      .split(/\s+/u)
+      .filter(Boolean)
+      .join(' ');
+    assertProtocol(normalizedAnswer === normalizedClaims, 'completed synthesis answer must equal its ordered claim texts');
+  } else {
+    assertProtocol(value.answer === null, 'non-completed synthesis answer must be null');
+    assertProtocol(claims.length === 0, 'non-completed synthesis claims must be empty');
+    assertProtocol(citations.length === 0, 'non-completed synthesis citations must be empty');
+  }
+  return {
+    ...(value as unknown as SynthesisResponse),
+    citations,
+    claims,
+    guardrail,
+    timings_ms: timings,
+  };
 }
 
 export function parsePipelineError(value: unknown): PipelineErrorResponse {
@@ -633,4 +807,66 @@ export function parseEvidenceSummary(value: unknown): EvidenceSummary {
   assertProtocol(isBoolean(value.provenance.audit_trail_valid), 'provenance audit state is invalid');
   assertProtocol(isStringArray(value.provenance.limitations), 'provenance limitations are invalid');
   return value as unknown as EvidenceSummary;
+}
+
+function parseLatencyPercentiles(value: unknown, field: string): LatencyPercentiles | null {
+  if (value === undefined || value === null) return null;
+  assertProtocol(isRecord(value), `${field} must be an object`);
+  for (const percentile of ['p50', 'p70', 'p95', 'p100'] as const) {
+    assertProtocol(
+      isNumber(value[percentile]) && value[percentile] >= 0,
+      `${field}.${percentile} must be a non-negative finite number`,
+    );
+  }
+  return value as unknown as LatencyPercentiles;
+}
+
+export function parseOperationalMetrics(value: unknown): OperationalMetrics {
+  assertProtocol(isRecord(value), 'operational metrics must be an object');
+  assertProtocol(
+    isNumber(value.requests_total) && Number.isInteger(value.requests_total) && value.requests_total >= 0,
+    'operational metrics requests_total is invalid',
+  );
+  assertProtocol(
+    isNumber(value.latency_sample_count) &&
+      Number.isInteger(value.latency_sample_count) &&
+      value.latency_sample_count >= 0,
+    'operational metrics latency_sample_count is invalid',
+  );
+  const latency = parseLatencyPercentiles(value.latency_ms, 'operational metrics latency_ms');
+  assertProtocol(isRecord(value.timings_ms), 'operational metrics timings_ms must be an object');
+  const timings: Record<string, StageLatencyPercentiles> = {};
+  for (const [name, item] of Object.entries(value.timings_ms)) {
+    assertProtocol(isRecord(item), `operational metrics timings_ms.${name} must be an object`);
+    assertProtocol(
+      isNumber(item.count) && Number.isInteger(item.count) && item.count >= 0,
+      `operational metrics timings_ms.${name}.count is invalid`,
+    );
+    const percentiles = parseLatencyPercentiles(
+      item,
+      `operational metrics timings_ms.${name}`,
+    );
+    assertProtocol(percentiles !== null, `operational metrics timings_ms.${name} is invalid`);
+    timings[name] = { count: item.count, ...percentiles };
+  }
+  assertProtocol(isRecord(value.groq_synthesis), 'operational metrics groq_synthesis must be an object');
+  assertProtocol(
+    isNumber(value.groq_synthesis.latency_sample_count) &&
+      Number.isInteger(value.groq_synthesis.latency_sample_count) &&
+      value.groq_synthesis.latency_sample_count >= 0,
+    'operational metrics groq_synthesis.latency_sample_count is invalid',
+  );
+  return {
+    requests_total: value.requests_total,
+    latency_sample_count: value.latency_sample_count,
+    latency_ms: latency,
+    timings_ms: timings,
+    groq_synthesis: {
+      latency_sample_count: value.groq_synthesis.latency_sample_count,
+      latency_ms: parseLatencyPercentiles(
+        value.groq_synthesis.latency_ms,
+        'operational metrics groq_synthesis.latency_ms',
+      ),
+    },
+  };
 }

@@ -13,6 +13,7 @@ generic refusal.
 | Freshness | Today/current/latest/live prices/current office-holder terms in English/Hindi | `STALE_CORPUS`; static corpus warning/abstention |
 | Answerability | Frozen score, margin, and branch-agreement thresholds | `NO_RELEVANT_EVIDENCE` or `RETRIEVAL_DISAGREEMENT` |
 | Grounding | Citation on each final extract; normalized answer containment in exact cited spans | `UNSUPPORTED_CLAIM`; fallback or abstain |
+| Optional synthesis | Strict output schema, offered evidence IDs, verbatim support quotes, and normalized claim support | Secondary `grounding_failed` or `abstained`; primary result is unchanged |
 | Deadline | Absolute monotonic expiration and 170 ms optional cutoff | cited `DEADLINE_FALLBACK` or explicit `DEADLINE_EXCEEDED` |
 
 The safety gate is deliberately conservative and rule-based; it is not described as a complete
@@ -33,3 +34,13 @@ The retained live-ready run is 13/13 correct and includes an active-pipeline uns
 remains nonqualifying because the bundled fixture lacks successful active-pipeline supported and
 contradiction rows; its synthetic conflict case remains a deterministic regression test, not
 live-corpus contradiction evidence.
+
+Groq progressive synthesis is never an answerability fallback. The backend creates an offer only
+after the primary response reaches `COMPLETED`; abstentions and every other non-completed outcome
+make no Groq request. Returned claim evidence IDs and exact support quotes are checked against the
+bounded offered passages. Invalid, invented, or unsupported model output fails only the secondary
+card and cannot weaken the verified primary answer.
+
+The frontend maps a no-answer evidence abstention to a fixed Groq-branded `Out of context` card;
+repeat, unsafe/block, dependency, deadline, and failed outcomes map to `Not generated`. This UI copy
+is not provider output and does not weaken the no-offer/no-call rule above.

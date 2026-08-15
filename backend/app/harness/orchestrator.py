@@ -17,6 +17,7 @@ from app.domain.models import (
     GuardrailResult,
     QueryResponse,
     SearchHit,
+    SynthesisOffer,
     Transcript,
 )
 from app.generation.grounded_generator import (
@@ -24,6 +25,7 @@ from app.generation.grounded_generator import (
     citation_from_evidence,
     extract_first_evidence_sentence,
 )
+from app.generation.synthesis_context import SynthesisContext, SynthesisContextStore
 from app.guardrails.answerability_gate import check_answerability
 from app.guardrails.evidence_agreement import check_evidence_agreement
 from app.guardrails.evidence_conflict import check_evidence_conflict
@@ -67,6 +69,7 @@ class PipelineOrchestrator:
         generator: GroundedAnswerGenerator,
         router: TideRouter | None = None,
         recorder: MetricsRecorder = metrics_recorder,
+        synthesis_contexts: SynthesisContextStore | None = None,
     ) -> None:
         self.settings = settings
         self.retriever = retriever
@@ -82,6 +85,7 @@ class PipelineOrchestrator:
             enable_sparse=settings.rag_enable_sparse,
         )
         self.recorder = recorder
+        self.synthesis_contexts = synthesis_contexts
 
     async def process_text(
         self,
@@ -365,6 +369,28 @@ class PipelineOrchestrator:
                     )
 
             context.transition(PipelineState.COMPLETED)
+            synthesis_offer = None
+            if (
+                self.settings.rag_enable_groq_synthesis
+                and self.synthesis_contexts is not None
+            ):
+                try:
+                    token = await self.synthesis_contexts.put(
+                        SynthesisContext(
+                            request_id=resolved_request_id,
+                            query=transcript.text,
+                            language=transcript.language,
+                            evidence=tuple(evidence[:3]),
+                        )
+                    )
+                    synthesis_offer = SynthesisOffer(
+                        token=token,
+                        model=self.settings.groq_model,
+                        expires_in_ms=self.synthesis_contexts.expires_in_ms,
+                    )
+                except Exception:
+                    # Optional synthesis must never weaken or delay the verified primary result.
+                    synthesis_offer = None
             return finish(
                 QueryResponse(
                     request_id=resolved_request_id,
@@ -377,6 +403,7 @@ class PipelineOrchestrator:
                     evidence_agreement=agreement,
                     state=PipelineState.COMPLETED,
                     timings_ms=context.timing_map(),
+                    synthesis=synthesis_offer,
                 )
             )
         except DeadlineExceeded:

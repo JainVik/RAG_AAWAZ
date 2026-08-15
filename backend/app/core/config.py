@@ -30,6 +30,13 @@ class Settings(BaseSettings):
     sarvam_model: Literal["saaras:v3-realtime"] = "saaras:v3-realtime"
     sarvam_language_code: str = "auto"
 
+    groq_api_key: SecretStr | None = None
+    groq_model: Literal["openai/gpt-oss-20b"] = "openai/gpt-oss-20b"
+    groq_base_url: str = "https://api.groq.com/openai/v1"
+    groq_timeout_s: float = Field(default=8.0, ge=0.25, le=30.0)
+    groq_max_completion_tokens: int = Field(default=384, ge=64, le=2_048)
+    groq_max_concurrency: int = Field(default=4, ge=1, le=32)
+
     qdrant_url: str = "http://localhost:6333"
     qdrant_api_key: SecretStr | None = None
     qdrant_collection: str = "awaaz_tiderag_v1"
@@ -52,6 +59,9 @@ class Settings(BaseSettings):
     rag_enable_sparse: bool = True
     rag_enable_late_chunking: bool = True
     rag_enable_speculative_retrieval: bool = True
+    rag_enable_groq_synthesis: bool = False
+    rag_synthesis_context_ttl_s: float = Field(default=60.0, ge=5.0, le=600.0)
+    rag_synthesis_context_max_entries: int = Field(default=256, ge=1, le=10_000)
     rag_store_raw_audio: bool = False
     rag_voice_idle_timeout_s: float = Field(default=30.0, ge=1.0, le=300.0)
     rag_voice_max_session_s: float = Field(default=90.0, ge=1.0, le=600.0)
@@ -122,6 +132,10 @@ class Settings(BaseSettings):
     @property
     def sarvam_configured(self) -> bool:
         return self.sarvam_api_key is not None and bool(self.sarvam_api_key.get_secret_value())
+
+    @property
+    def groq_configured(self) -> bool:
+        return self.groq_api_key is not None and bool(self.groq_api_key.get_secret_value())
 
     @property
     def qdrant_api_key_value(self) -> str | None:

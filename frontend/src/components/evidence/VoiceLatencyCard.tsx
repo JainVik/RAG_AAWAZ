@@ -35,8 +35,8 @@ export const VoiceLatencyCard: React.FC<VoiceLatencyCardProps> = ({ latency }) =
               <h2 className="text-base sm:text-lg font-bold text-white tracking-tight">
                 Post-Final-Audio Voice Latency
               </h2>
-              <span className="px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-amber-500/15 text-amber-300 border border-amber-500/30">
-                Pending qualifying run
+              <span className={`px-2 py-0.5 rounded-full text-[10px] font-mono font-bold border ${isPending ? 'bg-amber-500/15 text-amber-300 border-amber-500/30' : 'bg-emerald-500/15 text-emerald-300 border-emerald-500/30'}`}>
+                {isPending ? 'Pending qualifying run' : 'Qualifying report'}
               </span>
             </div>
             <p className="text-xs text-slate-400 mt-0.5">

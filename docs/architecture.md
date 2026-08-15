@@ -23,7 +23,10 @@ Browser microphone
   -> score / margin / agreement answerability gates
   -> exact evidence extraction with passage IDs and spans
   -> normalized span-containment verification
-  -> complete answer, cited evidence fallback, or explicit abstention
+  -> primary complete answer, cited evidence fallback, or explicit abstention
+       -> completed/eligible only: opaque short-lived synthesis offer
+       -> separate HTTP request -> Groq openai/gpt-oss-20b
+       -> grounded-claim/citation validation -> independent secondary result
 ```
 
 Dense and sparse Qdrant queries are separate concurrent branches. This deliberately keeps each
@@ -79,6 +82,33 @@ Terminal alternatives are `ABSTAINED`, `NEEDS_REPEAT`, `UNSAFE`, `DEADLINE_FALLB
 At the fallback threshold, optional work stops. If verified evidence exists, the response is the
 direct cited span. Otherwise the backend abstains. No partial transcript can become an answer.
 
+## Progressive synthesis
+
+Groq synthesis is disabled by default and is outside the primary deadline controller. A completed,
+verified primary result may register a bounded server-side context and return an opaque offer token.
+The frontend renders the primary Evidence card immediately, then presents that token to
+`POST /v1/query/synthesis`. The browser never receives the Groq key and never sends content
+directly to Groq.
+
+The context store is in-memory, expires entries after `RAG_SYNTHESIS_CONTEXT_TTL_S`, and is bounded
+by `RAG_SYNTHESIS_CONTEXT_MAX_ENTRIES`. Provider work is capped by `GROQ_MAX_CONCURRENCY`. These
+bounds prevent the optional path from becoming an unbounded history or starving the primary query
+pipeline.
+
+Only completed grounded answers are eligible. Abstentions, unsafe/repeat decisions, deadline
+fallbacks, dependency failures, and failed primary requests neither create an offer nor call Groq.
+Without an offer, the frontend may still render a Groq-branded fixed status card: evidence
+abstentions show `Out of context`, while unsafe/repeat, dependency, deadline, and failed outcomes
+show `Not generated`. These are local presentation states, not Groq responses.
+The model receives the final question/transcript plus only the selected evidence, and returned
+source references must resolve to that evidence. A timeout, unavailable provider, invalid output,
+or grounding failure produces an independent secondary status; it cannot mutate a successful
+primary response.
+
+Primary `total_after_final_audio` timing ends before progressive synthesis. The synthesis endpoint
+reports `total_synthesis` separately, with `groq_synthesis` identifying only the provider-call
+portion. See [Optional Groq progressive synthesis](groq-progressive-synthesis.md).
+
 ## Qdrant contract
 
 The pinned production contract is Qdrant server/client 1.19.0. It uses `query_points` (the old
@@ -98,3 +128,7 @@ recreates them. See the official [collection](https://qdrant.tech/documentation/
 - `/metrics` contains aggregate states, reasons, timings, and speculative reuse only.
 - Searchable payload schemas have no query, answer, or relevance fields.
 - Retrieved passages are evidence data, never executable instructions.
+- When optional Groq synthesis is both enabled and requested, the final question/transcript and
+  selected passages cross the Groq third-party boundary. Raw audio, revisable partials, provider
+  frames, credentials, and unrelated passages do not. Operators must disclose and approve this
+  processing before enabling it.

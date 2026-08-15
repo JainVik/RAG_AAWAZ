@@ -22,6 +22,22 @@
 5. Repeat with an English question and a Hinglish/code-mixed question. The latter should show the
    bilingual/sparse route.
 
+## Optional Groq progressive card
+
+Run this section only when the Groq feature is intentionally enabled and its third-party
+question/transcript-and-evidence processing has been disclosed.
+
+1. Show that the primary Evidence card and `total_after_final_audio` badge render before Groq work.
+2. Let the short-lived offer resolve and show the adjacent Groq `openai/gpt-oss-20b` card with its
+   separate `total_synthesis` duration, grounded claims, and backend-authoritative citations.
+3. Demonstrate a secondary timeout/unavailable fixture and show that the primary answer remains
+   intact.
+4. Ask an unsupported question and show the adjacent `Out of context` card with the explanation
+   `Groq was not invoked because no verified corpus evidence was available.` Confirm there is no
+   model badge, synthesis offer, synthesis-endpoint request, or Groq request.
+5. Exercise repeat, unsafe/block, dependency, deadline, and failed fixtures. Their adjacent cards
+   must say `Not generated` with an outcome-specific reason and must not call Groq.
+
 ## Guardrail cases
 
 1. Ask a current/live question. Expect `STALE_CORPUS`, not `UNSAFE_REQUEST`.
@@ -46,7 +62,8 @@
 
 - Say “Hindi, English, and code-mixed tested,” not “all 14 languages.”
 - State measured completed-output latency, not time to first token.
+- Do not add Groq synthesis time to the primary voice timer or present one `total_synthesis` badge
+  as an aggregate latency result.
 - If P100 exceeds 200 ms, state it plainly and show fallback/coverage behavior.
 - Do not call text input, fake STT, or synthetic-only clips the final judged voice path.
 - Do not describe ingestion, evaluation, or threshold calibration as model training.
-

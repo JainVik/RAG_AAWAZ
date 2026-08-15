@@ -4,10 +4,17 @@ from app.domain.enums import (
     AnswerMode,
     ErrorCode,
     GuardrailDecision,
+    GuardrailReason,
     Language,
     PipelineState,
+    SynthesisStatus,
 )
-from app.domain.models import GuardrailResult, QueryResponse, VoiceErrorPayload
+from app.domain.models import (
+    GuardrailResult,
+    QueryResponse,
+    SynthesisResponse,
+    VoiceErrorPayload,
+)
 from app.telemetry.recorder import MetricsRecorder, nearest_rank_percentile
 
 
@@ -61,3 +68,29 @@ def test_recorder_aggregates_each_completed_transport_timing() -> None:
     assert failed_snapshot["requests_total"] == 2
     assert failed_snapshot["error_codes"] == {"SARVAM_ERROR": 1}
     assert failed_snapshot["latency_sample_count"] == 2
+
+
+def test_recorder_keeps_secondary_synthesis_metrics_separate_and_content_free() -> None:
+    recorder = MetricsRecorder()
+    recorder.record_synthesis(
+        SynthesisResponse(
+            request_id="private-request-identifier",
+            status=SynthesisStatus.UNAVAILABLE,
+            answer=None,
+            guardrail=GuardrailResult(
+                decision=GuardrailDecision.ABSTAIN,
+                reason=GuardrailReason.DEPENDENCY_UNAVAILABLE,
+            ),
+            timings_ms={"total_synthesis": 42.0},
+        )
+    )
+
+    snapshot = recorder.snapshot()
+
+    assert snapshot["requests_total"] == 0
+    assert snapshot["groq_synthesis"] == {
+        "statuses": {"unavailable": 1},
+        "latency_sample_count": 1,
+        "latency_ms": {"p50": 42.0, "p70": 42.0, "p95": 42.0, "p100": 42.0},
+    }
+    assert "private-request-identifier" not in str(snapshot)

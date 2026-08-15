@@ -4,7 +4,8 @@ Awaaz TideRAG is a backend-first Hindi/English/code-mixed voice RAG system for H
 streams microphone audio through Sarvam's current Saaras realtime WebSocket API, starts
 speculative retrieval from stable partial transcripts, performs parallel dense and character
 n-gram sparse retrieval in Qdrant, and returns an exact cited answer or a structured abstention
-before an absolute deadline.
+before an absolute deadline. An opt-in progressive layer can then synthesize a separate fluent,
+grounded answer with Groq `openai/gpt-oss-20b` without delaying or replacing that primary result.
 
 This repository contains implementation, deterministic tests, and local integration evidence. The
 pinned Qdrant server holds 112,114 points from 10,005 validation passages, the credentialed Sarvam
@@ -31,6 +32,8 @@ are reference material only, not a design to reproduce.
 - Late chunking is performed at request time over only a few retrieved parents.
 - A typed async harness has explicit states, deadlines, cancellation, bounded retry, circuit
   breakers, stage timings, grounding verification, and distinct failure reasons.
+- Optional Groq synthesis is offered only after a completed grounded primary answer. It uses an
+  opaque short-lived token, separate latency, and failure-isolated secondary response.
 
 ## No training or fine-tuning
 
@@ -45,8 +48,10 @@ no training scripts, checkpoints, learned classifiers, or fine-tuned retrievers/
 - Docker with Compose for Qdrant 1.19.0
 - 32 GB RAM recommended for the target corpus
 - A Sarvam API key with beta realtime access for the real voice smoke/demo
+- Optional: a Groq API key for the disabled-by-default progressive synthesis card
 
 Never paste a key into chat or commit it. Copy `.env.example` to `.env` and populate it locally.
+Sarvam and Groq credentials are backend-only; never place either one in a `VITE_*` variable.
 
 ## Setup
 
@@ -156,20 +161,65 @@ The web client submits only after `GET /ready` reports `ready`. For local develo
 `RAG_VOICE_ALLOWED_ORIGINS=http://localhost:5173,http://127.0.0.1:5173`. Do not put Sarvam,
 Qdrant, Hugging Face, or backend bearer secrets in a `VITE_*` variable.
 
+### Optional Groq answer synthesis
+
+The primary cited Evidence answer is always rendered first. To add a separate fluent answer card,
+set the following only in the local backend `.env`:
+
+```dotenv
+RAG_ENABLE_GROQ_SYNTHESIS=true
+GROQ_API_KEY=<local Groq secret>
+GROQ_MODEL=openai/gpt-oss-20b
+GROQ_BASE_URL=https://api.groq.com/openai/v1
+GROQ_TIMEOUT_S=8
+GROQ_MAX_COMPLETION_TOKENS=384
+GROQ_MAX_CONCURRENCY=4
+RAG_SYNTHESIS_CONTEXT_TTL_S=60
+RAG_SYNTHESIS_CONTEXT_MAX_ENTRIES=256
+```
+
+After pulling the implementation, restart direct-development processes or rebuild the affected
+Docker services:
+
+```powershell
+docker compose build backend frontend
+docker compose up -d qdrant backend frontend
+docker compose ps
+Invoke-RestMethod http://127.0.0.1:8000/ready
+```
+
+For later `.env`-only changes, recreate the backend without rebuilding the image:
+
+```powershell
+docker compose up -d --force-recreate backend
+```
+
+Enabling the feature means an eligible final question/transcript and its selected evidence are
+sent from the backend to Groq. Raw audio, partial transcripts, credentials, and unrelated corpus
+content are not sent. A no-answer evidence abstention still shows the Groq-branded secondary card
+as `Out of context`; repeat, unsafe/block, dependency, deadline, and failed outcomes show
+`Not generated`. These are fixed application status messages, not Groq-generated responses:
+non-completed primary outcomes receive no synthesis offer and never call Groq. Groq failure affects
+only its secondary card; the primary answer remains available. See
+[`docs/groq-progressive-synthesis.md`](docs/groq-progressive-synthesis.md) for the full data,
+grounding, timing, and failure contract.
+
 Endpoints:
 
 - `GET /health`: process liveness only;
 - `GET /ready`: frozen model, manifest, Qdrant schema/count, and Sarvam configuration;
 - `POST /v1/query/text`: development/evaluation path through the same post-transcription harness;
 - `WS /v1/query/voice`: judged audio path;
+- `POST /v1/query/synthesis`: resolve an eligible short-lived offer and request optional Groq
+  synthesis after the primary answer;
 - `GET /v1/evidence/summary`: versioned, sanitized evidence and evaluation metrics;
 - `GET /metrics`: aggregate privacy-safe metrics.
 
 
 Production configuration requires `RAG_API_TOKEN`; send it as an `Authorization: Bearer` token to
-both text and voice endpoints. `RAG_VOICE_API_TOKEN` may override it for voice. Keep the process on
-loopback behind a TLS reverse proxy that enforces rate/concurrency limits; the application also
-bounds query/frame sizes, idle gaps, total audio, and total voice-session wall time.
+the text, synthesis, and voice query endpoints. `RAG_VOICE_API_TOKEN` may override it for voice.
+Keep the process on loopback behind a TLS reverse proxy that enforces rate/concurrency limits; the
+application also bounds query/frame sizes, idle gaps, total audio, and total voice-session wall time.
 
 Text smoke request:
 
@@ -181,7 +231,9 @@ curl -s http://127.0.0.1:8000/v1/query/text \
 
 The voice socket uses version `1` JSON events. Start with mono raw signed 16-bit PCM at 16 kHz,
 send monotonic base64 `audio_chunk` events, then `end_of_stream`. The latter is the primary latency
-start. Server events are `stt_partial`, `pipeline_state`, `answer`, and `error`.
+start. Server events are `stt_partial`, `pipeline_state`, `answer`, and `error`. An eligible
+terminal answer may include a synthesis offer; the separate HTTP synthesis request occurs only
+after the primary event is already materialized.
 
 ## Tests and evaluation
 
@@ -209,6 +261,11 @@ requests completed with zero failures, Recall@5 `0.7043`, Recall@10 `0.8413`, MR
 and nDCG@10 `0.5465`. Direct retrieval latency on this CPU is mean `305 ms`, P50 `292 ms`, P95
 `373 ms`, and P100 `628 ms`; it is not evidence for the separate post-final-audio `<200 ms` voice
 target.
+
+Optional Groq synthesis is post-primary work and is excluded from `total_after_final_audio`.
+Its card uses `timings_ms.total_synthesis`; `timings_ms.groq_synthesis` covers only the provider
+call. Neither a single request nor the current voice benchmark may be relabelled as an aggregate
+Groq latency result.
 
 ### Strict real-Sarvam prerequisite
 
@@ -317,6 +374,7 @@ rename development smoke output as final evidence.
 - [Architecture](docs/architecture.md)
 - [Chunking](docs/chunking.md)
 - [Latency methodology](docs/latency-methodology.md)
+- [Optional Groq progressive synthesis](docs/groq-progressive-synthesis.md)
 - [Guardrails](docs/guardrails.md)
 - [Requirements traceability](docs/requirements-traceability.md)
 - [Demo script](docs/demo-script.md)

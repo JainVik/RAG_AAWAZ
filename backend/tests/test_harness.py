@@ -16,6 +16,7 @@ from app.generation.grounded_generator import (
     ExtractiveGroundedGenerator,
     GeneratedAnswer,
 )
+from app.generation.synthesis_context import SynthesisContextStore
 from app.harness.orchestrator import PipelineOrchestrator
 from app.ingestion.chunk_factory import ChunkFactory
 from app.retrieval.hybrid import HybridRetriever, RetrievalResult
@@ -66,6 +67,48 @@ async def test_final_text_path_returns_only_grounded_cited_answer() -> None:
     assert response.answer
     assert response.citations
     assert response.answer in " ".join(citation.text for citation in response.citations)
+
+
+@pytest.mark.asyncio
+async def test_verified_primary_offers_optional_synthesis_without_running_a_provider() -> None:
+    baseline = await working_orchestrator()
+    contexts = SynthesisContextStore(ttl_s=60, max_entries=2)
+    orchestrator = PipelineOrchestrator(
+        settings=settings(rag_enable_groq_synthesis=True),
+        retriever=baseline.retriever,
+        generator=ExtractiveGroundedGenerator(),
+        synthesis_contexts=contexts,
+    )
+
+    response = await orchestrator.process_text(
+        "Explain Goa statehood", language=Language.ENGLISH, request_id="req-offer"
+    )
+
+    assert response.state == PipelineState.COMPLETED
+    assert response.answer
+    assert response.synthesis is not None
+    assert response.synthesis.provider == "groq"
+    assert response.synthesis.model == "openai/gpt-oss-20b"
+    context = await contexts.take(response.synthesis.token, request_id="req-offer")
+    assert context is not None
+    assert context.query == "Explain Goa statehood"
+    assert context.evidence
+
+
+@pytest.mark.asyncio
+async def test_abstention_never_offers_groq_synthesis() -> None:
+    baseline = await working_orchestrator()
+    orchestrator = PipelineOrchestrator(
+        settings=settings(rag_enable_groq_synthesis=True),
+        retriever=baseline.retriever,
+        generator=ExtractiveGroundedGenerator(),
+        synthesis_contexts=SynthesisContextStore(ttl_s=60, max_entries=2),
+    )
+
+    response = await orchestrator.process_text("Who is the current president?")
+
+    assert response.state == PipelineState.ABSTAINED
+    assert response.synthesis is None
 
 
 @pytest.mark.asyncio

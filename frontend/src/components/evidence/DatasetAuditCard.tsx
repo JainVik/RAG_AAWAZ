@@ -15,6 +15,7 @@ interface DatasetAuditCardProps {
 }
 
 export const DatasetAuditCard: React.FC<DatasetAuditCardProps> = ({ audit }) => {
+  const defectCount = audit.malformed_row_count + audit.duplicate_query_count;
   return (
     <GlassSurface
       borderRadius={20}
@@ -35,7 +36,7 @@ export const DatasetAuditCard: React.FC<DatasetAuditCardProps> = ({ audit }) => 
                   Dataset Audit (Smoke Sample)
                 </h3>
                 <span className="px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-amber-500/15 text-amber-300 border border-amber-500/30">
-                  Live sample audit
+                  Artifact sample audit
                 </span>
               </div>
               <p className="text-xs text-slate-400 mt-0.5">
@@ -61,7 +62,7 @@ export const DatasetAuditCard: React.FC<DatasetAuditCardProps> = ({ audit }) => 
             </span>
             <div className="flex items-center gap-1.5 text-emerald-400 font-bold text-sm">
               <CheckCircle size={16} weight="fill" />
-              <span>{audit.schema_match ? '100% Matched' : 'Mismatch'}</span>
+              <span>{audit.schema_match === null ? 'Not measured' : audit.schema_match ? '100% Matched' : 'Mismatch'}</span>
             </div>
             <span className="text-[10px] text-slate-500 block">Strict type match</span>
           </div>
@@ -74,7 +75,9 @@ export const DatasetAuditCard: React.FC<DatasetAuditCardProps> = ({ audit }) => 
             <span className="text-white font-mono font-bold text-sm block">
               {audit.malformed_row_count} / {audit.duplicate_query_count}
             </span>
-            <span className="text-[10px] text-emerald-400 block font-medium">0 defects detected</span>
+            <span className={`text-[10px] block font-medium ${defectCount === 0 ? 'text-emerald-400' : 'text-amber-300'}`}>
+              {defectCount === 0 ? '0 defects detected' : `${defectCount} observed defect${defectCount === 1 ? '' : 's'}`}
+            </span>
           </div>
 
           {/* Candidate Passages */}
@@ -154,7 +157,9 @@ export const DatasetAuditCard: React.FC<DatasetAuditCardProps> = ({ audit }) => 
             <span className="text-slate-400">SHA256:</span>
             <span className="truncate">{audit.source_artifact_sha256}</span>
           </div>
-          <span className="shrink-0 text-emerald-400">✓ Fixture Verified</span>
+          <span className={`shrink-0 ${audit.qualifying ? 'text-emerald-400' : 'text-amber-300'}`}>
+            {audit.qualifying ? '✓ Qualifying audit' : audit.status.replaceAll('_', ' ')}
+          </span>
         </div>
       </div>
     </GlassSurface>
