@@ -15,6 +15,7 @@ from app.api.health import router as health_router
 from app.api.metrics import router as metrics_router
 from app.api.text_query import router as text_router
 from app.api.voice_ws import router as voice_router
+from app.api.evidence import router as evidence_router
 from app.core.config import get_settings
 from app.core.logging import configure_logging
 from app.domain.enums import ErrorCode, PipelineState
@@ -67,15 +68,16 @@ def create_app(services: Any | None = None) -> FastAPI:
 
     application.add_middleware(
         CORSMiddleware,
-        allow_origins=[],
-        allow_credentials=False,
-        allow_methods=["GET", "POST"],
-        allow_headers=["content-type"],
+        allow_origins=["*"],
+        allow_credentials=True,
+        allow_methods=["*"],
+        allow_headers=["*"],
     )
     application.include_router(health_router)
     application.include_router(text_router)
     application.include_router(voice_router)
     application.include_router(metrics_router)
+    application.include_router(evidence_router)
     return application
 
 

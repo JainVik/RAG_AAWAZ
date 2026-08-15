@@ -1,5 +1,6 @@
 PYTHON ?= python
 BACKEND := backend
+FRONTEND := frontend
 E5_MODEL := intfloat/multilingual-e5-small
 E5_REVISION := 614241f622f53c4eeff9890bdc4f31cfecc418b3
 SARVAM_PCM ?= evaluation/fixtures/sarvam-smoke.pcm
@@ -16,13 +17,22 @@ FINAL_RETRIEVAL_PREFIX ?= evaluation/reports/final/retrieval-eval
 CORPUS_COMPARISON_REPORTS ?=
 CORPUS_COMPARISON_PREFIX ?= evaluation/reports/final/corpus-scaling-comparison
 
-.PHONY: dev audit-data download-e5 build-corpus build-index partition-evaluation \
+.PHONY: dev dev-frontend build-frontend install-frontend audit-data download-e5 build-corpus build-index partition-evaluation \
 	score-development calibrate-thresholds check test lint typecheck \
 	sarvam-smoke eval-retrieval eval-guardrails eval-guardrails-smoke ablation \
 	compare-corpus-sizes benchmark benchmark-text-smoke benchmark-cold benchmark-final
 
 dev:
 	cd $(BACKEND) && $(PYTHON) -m uvicorn app.main:app --reload --host 127.0.0.1 --port 8000
+
+dev-frontend:
+	cd $(FRONTEND) && npm run dev
+
+build-frontend:
+	cd $(FRONTEND) && npm run build
+
+install-frontend:
+	cd $(FRONTEND) && npm install
 
 audit-data:
 	cd $(BACKEND) && $(PYTHON) scripts/inspect_dataset.py --max-rows 500
@@ -45,7 +55,7 @@ score-development:
 calibrate-thresholds:
 	cd $(BACKEND) && $(PYTHON) scripts/calibrate_thresholds.py --fixture $(DEVELOPMENT_SCORE_PREFIX).jsonl
 
-check: lint typecheck test
+check: lint typecheck test build-frontend
 
 test:
 	cd $(BACKEND) && $(PYTHON) -m pytest
