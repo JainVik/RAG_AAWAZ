@@ -478,6 +478,36 @@ class SarvamRealtimeProvider(SpeechToTextProvider):
     def audio_chunks_sent(self) -> int:
         return self._audio_chunks_sent
 
+    def configure_session(self, language: Language) -> None:
+        """Bind a fresh provider to the language selected for this voice session.
+
+        Saaras ``codemix`` preserves Indic text in its native script while retaining
+        embedded English words.  Auto-detected sessions use the same output mode so
+        Hindi speech is not unnecessarily romanized.  This must run before connect
+        because these values are part of the provider WebSocket URL.
+        """
+
+        if self._state is not ProviderState.NEW:
+            raise RuntimeError("Sarvam session language must be configured before connect")
+
+        if language in {Language.HINDI, Language.CODE_MIXED}:
+            language_code = SarvamLanguageCode.HINDI
+            mode = SarvamMode.CODEMIX
+        elif language is Language.ENGLISH:
+            language_code = SarvamLanguageCode.ENGLISH
+            mode = SarvamMode.TRANSCRIBE
+        elif language is Language.UNKNOWN:
+            language_code = SarvamLanguageCode.AUTO
+            mode = SarvamMode.CODEMIX
+        else:
+            return
+
+        self.config = self.config.model_copy(
+            update={"language_code": language_code, "mode": mode}
+        )
+        self._effective_language_code = language_code
+        self._effective_mode = mode
+
     async def connect(self) -> None:
         if self._state is ProviderState.CONNECTED:
             return

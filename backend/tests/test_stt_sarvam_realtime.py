@@ -66,6 +66,40 @@ def message(payload: dict[str, Any]) -> str:
     return json.dumps(payload)
 
 
+@pytest.mark.parametrize(
+    ("language", "expected_code", "expected_mode"),
+    [
+        (Language.HINDI, "hi-IN", "codemix"),
+        (Language.CODE_MIXED, "hi-IN", "codemix"),
+        (Language.ENGLISH, "en-IN", "transcribe"),
+        (Language.UNKNOWN, "auto", "codemix"),
+    ],
+)
+def test_session_language_selects_saaras_language_and_output_mode(
+    language: Language, expected_code: str, expected_mode: str
+) -> None:
+    provider = SarvamRealtimeProvider(SarvamRealtimeConfig(api_key="test-secret"))
+
+    provider.configure_session(language)
+
+    query = parse_qs(urlsplit(provider.config.websocket_url()).query)
+    assert query["language_code"] == [expected_code]
+    assert query["mode"] == [expected_mode]
+
+
+@pytest.mark.asyncio
+async def test_session_language_cannot_change_after_connect() -> None:
+    socket = FakeSocket([message({"event": "session.begin", "request_id": "req-bound"})])
+    provider = SarvamRealtimeProvider(
+        SarvamRealtimeConfig(api_key="test-secret"),
+        connector=RecordingConnector([socket]),
+    )
+    await provider.connect()
+
+    with pytest.raises(RuntimeError, match="before connect"):
+        provider.configure_session(Language.HINDI)
+
+
 @pytest.mark.asyncio
 async def test_connect_uses_verified_endpoint_query_and_header() -> None:
     socket = FakeSocket(

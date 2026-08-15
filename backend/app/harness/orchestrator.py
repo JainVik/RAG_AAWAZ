@@ -48,6 +48,7 @@ from app.harness.stages import (
 )
 from app.retrieval.hybrid import HybridRetriever, RetrievalResult
 from app.retrieval.late_chunking import select_evidence_windows
+from app.retrieval.query_variants import build_retrieval_query
 from app.retrieval.router import TideRouter
 from app.telemetry.recorder import MetricsRecorder, metrics_recorder
 
@@ -211,6 +212,10 @@ class PipelineOrchestrator:
             )
             if transcript.language == Language.UNKNOWN:
                 transcript = transcript.model_copy(update={"language": plan.language})
+            evidence_selection_query = build_retrieval_query(
+                transcript.text,
+                romanized_hindi=plan.romanized_hindi,
+            )
 
             async with context.stage(PipelineState.RETRIEVED):
                 retrieval_input = RetrievalStageInput(
@@ -279,7 +284,7 @@ class PipelineOrchestrator:
             async with context.stage(PipelineState.EVIDENCE_SELECTED):
                 evidence_input = EvidenceStageInput(
                     **stage_fields,
-                    query=transcript.text,
+                    query=evidence_selection_query,
                     parent_hits=tuple(evidence),
                     evidence_limit=self.settings.final_evidence_limit,
                 )

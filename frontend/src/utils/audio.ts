@@ -10,6 +10,73 @@ export interface AudioCaptureHandle {
   stop: () => void;
 }
 
+export interface SilenceDetectionState {
+  startedAtMs: number;
+  lastSpeechAtMs: number | null;
+  consecutiveSpeechChunks: number;
+  speechDetected: boolean;
+}
+
+export interface SilenceDetectionConfig {
+  silenceMs: number;
+  minimumRecordingMs: number;
+  speechVolumeThreshold: number;
+  speechConfirmationChunks: number;
+}
+
+export const AUTO_STOP_SILENCE_CONFIG: SilenceDetectionConfig = {
+  silenceMs: 1_500,
+  minimumRecordingMs: 1_200,
+  speechVolumeThreshold: 0.06,
+  speechConfirmationChunks: 2,
+};
+
+export function createSilenceDetectionState(startedAtMs: number): SilenceDetectionState {
+  return {
+    startedAtMs,
+    lastSpeechAtMs: null,
+    consecutiveSpeechChunks: 0,
+    speechDetected: false,
+  };
+}
+
+export function markRecognizedSpeech(
+  state: SilenceDetectionState,
+  nowMs: number
+): SilenceDetectionState {
+  return { ...state, speechDetected: true, lastSpeechAtMs: nowMs };
+}
+
+export function observeVolumeForAutoStop(
+  state: SilenceDetectionState,
+  volume: number,
+  nowMs: number,
+  config: SilenceDetectionConfig = AUTO_STOP_SILENCE_CONFIG
+): { state: SilenceDetectionState; shouldStop: boolean } {
+  const isSpeechVolume = volume >= config.speechVolumeThreshold;
+  const consecutiveSpeechChunks = isSpeechVolume
+    ? state.consecutiveSpeechChunks + 1
+    : 0;
+  const speechDetected =
+    state.speechDetected || consecutiveSpeechChunks >= config.speechConfirmationChunks;
+  const lastSpeechAtMs = isSpeechVolume && speechDetected
+    ? nowMs
+    : state.lastSpeechAtMs;
+  const nextState = {
+    ...state,
+    consecutiveSpeechChunks,
+    speechDetected,
+    lastSpeechAtMs,
+  };
+  const recordingLongEnough = nowMs - state.startedAtMs >= config.minimumRecordingMs;
+  const silentLongEnough =
+    lastSpeechAtMs !== null && nowMs - lastSpeechAtMs >= config.silenceMs;
+  return {
+    state: nextState,
+    shouldStop: speechDetected && recordingLongEnough && silentLongEnough,
+  };
+}
+
 /**
  * Convert Float32Array audio samples (native sample rate) to 16kHz signed 16-bit little-endian PCM base64
  */

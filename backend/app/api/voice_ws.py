@@ -10,7 +10,7 @@ import time
 import uuid
 from collections.abc import Awaitable, Callable
 from functools import partial
-from typing import Any, Literal, Protocol
+from typing import Any, Literal, Protocol, runtime_checkable
 
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect
 from pydantic import ValidationError
@@ -65,6 +65,11 @@ class VoiceServices(Protocol):
     orchestrator: PipelineOrchestrator | None
     stt_factory: Callable[[], SpeechToTextProvider] | None
     sarvam_breaker: CircuitBreaker
+
+
+@runtime_checkable
+class SessionConfigurableStt(Protocol):
+    def configure_session(self, language: Language) -> None: ...
 
 
 router = APIRouter(tags=["query"])
@@ -275,6 +280,8 @@ async def voice_query(websocket: WebSocket) -> None:
             return
 
         provider = services.stt_factory()
+        if isinstance(provider, SessionConfigurableStt):
+            provider.configure_session(start.language)
         sarvam_breaker: CircuitBreaker | None = getattr(services, "sarvam_breaker", None)
         await _bounded_provider_call(
             provider.connect,
@@ -320,6 +327,11 @@ async def voice_query(websocket: WebSocket) -> None:
                 if event.event_type == SttEventType.PARTIAL:
                     if first_partial_ns is None:
                         first_partial_ns = time.perf_counter_ns()
+                    partial_language = (
+                        start.language
+                        if start.language != Language.UNKNOWN
+                        else event.language
+                    )
                     await _send(
                         websocket,
                         send_lock,
@@ -327,7 +339,7 @@ async def voice_query(websocket: WebSocket) -> None:
                         request_id=request_id,
                         payload={
                             "text": event.text,
-                            "language": event.language.value,
+                            "language": partial_language.value,
                             "confidence": None,
                         },
                     )
@@ -637,7 +649,10 @@ def _aggregate_final_events(
     """Join every finalized VAD utterance; the provider emits one final per pause."""
 
     text = " ".join(event.text.strip() for event in events if event.text.strip()).strip()
-    language = fallback_language
+    if fallback_language != Language.UNKNOWN:
+        return text, fallback_language
+
+    language: Language = fallback_language
     for event in reversed(events):
         if event.language != Language.UNKNOWN:
             language = event.language

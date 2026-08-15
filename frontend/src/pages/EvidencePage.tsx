@@ -1,17 +1,8 @@
-import React, { useState, useEffect } from 'react';
-import {
-  ArrowClockwise,
-  Copy,
-  Check,
-  DownloadSimple,
-  ShieldCheck,
-  CircleNotch,
-  CheckCircle,
-  WarningCircle,
-  WarningOctagon,
-} from '@phosphor-icons/react';
-import type { EvidenceSummary } from '../types/api';
+import React, { useEffect, useState } from 'react';
+import { ArrowClockwise, Check, CircleNotch, Copy, DownloadSimple, ShieldCheck, WarningOctagon } from '@phosphor-icons/react';
+import type { EvidenceStatus, EvidenceSummary } from '../types/api';
 import { getEvidenceSummary } from '../services/api';
+import { useShell } from '../components/layout/Shell';
 import { RetrievalEvaluationCard } from '../components/evidence/RetrievalEvaluationCard';
 import { CorpusIndexCard } from '../components/evidence/CorpusIndexCard';
 import { ChunkRepresentationsCard } from '../components/evidence/ChunkRepresentationsCard';
@@ -22,277 +13,60 @@ import { VoiceLatencyCard } from '../components/evidence/VoiceLatencyCard';
 import { MethodologySection } from '../components/evidence/MethodologySection';
 import GlassSurface from '../components/ui/GlassSurface';
 
+const statusTone: Record<EvidenceStatus, string> = {
+  qualifying: 'text-emerald-300 border-emerald-500/30 bg-emerald-500/10',
+  smoke_audit: 'text-cyan-300 border-cyan-500/30 bg-cyan-500/10',
+  partial: 'text-amber-300 border-amber-500/30 bg-amber-500/10',
+  non_qualifying: 'text-amber-300 border-amber-500/30 bg-amber-500/10',
+  not_measured: 'text-slate-300 border-white/15 bg-white/5',
+  invalid: 'text-rose-300 border-rose-500/30 bg-rose-500/10',
+};
+
 export const EvidencePage: React.FC = () => {
   const [evidence, setEvidence] = useState<EvidenceSummary | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState<boolean>(true);
-  const [copiedSummary, setCopiedSummary] = useState<boolean>(false);
+  const [loading, setLoading] = useState(true);
+  const [copied, setCopied] = useState(false);
+  const { ready } = useShell();
 
   const fetchEvidence = async () => {
-    setIsLoading(true);
-    setError(null);
-    try {
-      const data = await getEvidenceSummary();
-      setEvidence(data);
-    } catch (err) {
-      setEvidence(null);
-      setError(
-        err instanceof Error
-          ? err.message
-          : 'Backend evidence endpoint is offline at 127.0.0.1:8000/v1/evidence/summary'
-      );
-    } finally {
-      setIsLoading(false);
-    }
+    setLoading(true); setError(null);
+    try { setEvidence(await getEvidenceSummary()); }
+    catch (cause) { setEvidence(null); setError(cause instanceof Error ? cause.message : 'Evidence request failed.'); }
+    finally { setLoading(false); }
   };
+  useEffect(() => { void fetchEvidence(); }, []);
 
-  useEffect(() => {
-    fetchEvidence();
-  }, []);
-
-  const handleCopySummary = () => {
+  const copySummary = async () => {
     if (!evidence) return;
-    const summaryText = `VANI RAG Evidence & Benchmark Summary:
-1. Operational Readiness: READY (Qdrant online, E5-small 384d loaded, Sarvam STT configured)
-2. Evaluation Qualification:
-   - Retrieval (${evidence.retrieval.sample_count} Queries): Recall@1: ${(evidence.retrieval.recall_at_1 * 100).toFixed(2)}%, Recall@5: ${(evidence.retrieval.recall_at_5 * 100).toFixed(2)}%, Recall@10: ${(evidence.retrieval.recall_at_10 * 100).toFixed(2)}%, MRR@10: ${(evidence.retrieval.mrr_at_10 * 100).toFixed(2)}%, nDCG@10: ${(evidence.retrieval.ndcg_at_10 * 100).toFixed(2)}% [QUALIFYING]
-   - Direct Retrieval Latency: P50: ${evidence.retrieval.direct_p50_ms || 42}ms, P95: ${evidence.retrieval.direct_p95_ms || 118}ms
-   - Guardrails: ${evidence.guardrails.observed_correct_count}/${evidence.guardrails.sample_count} observed correct on smoke sample [NON-QUALIFYING]
-   - Voice Latency: Qualifying run pending
-   - Dataset Audit: 20-row live validation smoke audit
-   - Corpus Scaling: ${evidence.corpus.document_count.toLocaleString()} baseline documents; multi-scale recommendation pending
-3. Corpus Manifest: ${evidence.corpus.document_count.toLocaleString()} docs, ${evidence.corpus.indexed_chunks_count.toLocaleString()} chunks (${evidence.corpus.dense_model}, ${evidence.corpus.sparse_model})
-Generated At: ${evidence.generated_at}`;
-
-    navigator.clipboard.writeText(summaryText);
-    setCopiedSummary(true);
-    setTimeout(() => setCopiedSummary(false), 1500);
+    await navigator.clipboard.writeText(JSON.stringify({ generated_at: evidence.generated_at, runtime_ready: ready?.status === 'ready', retrieval: evidence.retrieval, corpus: evidence.corpus, dataset_audit: evidence.dataset_audit, guardrails: evidence.guardrails, voice_latency: evidence.voice_latency, limitations: evidence.provenance.limitations }, null, 2));
+    setCopied(true); window.setTimeout(() => setCopied(false), 1500);
   };
-
-  const handleDownloadJSON = () => {
+  const download = () => {
     if (!evidence) return;
-    const jsonStr = JSON.stringify(evidence, null, 2);
-    const blob = new Blob([jsonStr], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `vani-rag-evidence-${new Date().toISOString().split('T')[0]}.json`;
-    a.click();
-    URL.revokeObjectURL(url);
+    const url = URL.createObjectURL(new Blob([JSON.stringify(evidence, null, 2)], { type: 'application/json' }));
+    const anchor = document.createElement('a'); anchor.href = url; anchor.download = `vani-rag-evidence-${new Date().toISOString().slice(0, 10)}.json`; anchor.click(); URL.revokeObjectURL(url);
   };
 
-  return (
-    <div className="max-w-6xl mx-auto space-y-8 py-6">
-      {/* Header Context & Action Controls */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-white/10">
-        <div>
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-cyan-500/10 border border-cyan-500/20 text-xs font-mono font-semibold text-cyan-300 mb-2">
-            <ShieldCheck size={14} weight="fill" />
-            <span>Verifiable Provenance Suite</span>
-          </div>
-          <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-white headline-display">
-            Evaluation &amp; System Evidence
-          </h1>
-          <p className="text-xs sm:text-sm text-slate-400 mt-1 max-w-xl leading-relaxed">
-            Deterministic measurements from frozen held-out test fixtures and verified vector index manifests.
-          </p>
-        </div>
-
-        {/* Global Evidence Actions */}
-        <div className="flex flex-wrap items-center gap-2.5 self-start sm:self-auto">
-          <button
-            type="button"
-            onClick={fetchEvidence}
-            disabled={isLoading}
-            className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-white/5 hover:bg-white/10 border border-white/10 text-slate-200 hover:text-white rounded-xl text-xs font-semibold transition-all disabled:opacity-50 cursor-pointer"
-          >
-            {isLoading ? (
-              <CircleNotch size={14} className="animate-spin text-cyan-400" />
-            ) : (
-              <ArrowClockwise size={14} />
-            )}
-            <span>{isLoading ? 'Fetching live data...' : 'Refresh evidence'}</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={handleCopySummary}
-            disabled={!evidence}
-            className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-white/5 hover:bg-white/10 border border-white/10 text-slate-200 hover:text-white rounded-xl text-xs font-semibold transition-all disabled:opacity-40 cursor-pointer"
-          >
-            {copiedSummary ? <Check size={14} className="text-emerald-400" /> : <Copy size={14} />}
-            <span>{copiedSummary ? 'Copied' : 'Copy summary'}</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={handleDownloadJSON}
-            disabled={!evidence}
-            className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-cyan-600 hover:bg-cyan-500 text-white rounded-xl text-xs font-bold shadow-sm transition-all disabled:opacity-40 cursor-pointer"
-          >
-            <DownloadSimple size={14} weight="bold" />
-            <span>Download JSON</span>
-          </button>
-        </div>
-      </div>
-
-      {/* Backend Offline Banner */}
-      {error && !isLoading && (
-        <GlassSurface
-          borderRadius={20}
-          brightness={35}
-          opacity={0.9}
-          className="p-6 border-red-500/40 bg-red-950/20"
-        >
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-            <div className="flex items-start gap-3">
-              <div className="p-2.5 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 shrink-0">
-                <WarningOctagon size={24} weight="bold" />
-              </div>
-              <div className="space-y-1">
-                <h3 className="text-base font-bold text-white tracking-tight">
-                  Backend Evidence Service Offline
-                </h3>
-                <p className="text-xs text-slate-300 leading-relaxed">
-                  Unable to connect to <code className="px-1.5 py-0.5 rounded bg-black/40 text-red-300 font-mono text-[11px]">GET /v1/evidence/summary</code>. Please ensure the backend server is running on <code className="px-1.5 py-0.5 rounded bg-black/40 text-cyan-300 font-mono text-[11px]">127.0.0.1:8000</code> (<code className="font-mono text-slate-200">make dev</code>).
-                </p>
-                <p className="text-[11px] font-mono text-red-400 pt-1">
-                  Error: {error}
-                </p>
-              </div>
-            </div>
-            <button
-              type="button"
-              onClick={fetchEvidence}
-              className="px-4 py-2 bg-red-500 hover:bg-red-400 text-white rounded-xl text-xs font-bold transition-all shrink-0 cursor-pointer"
-            >
-              Retry Connection
-            </button>
-          </div>
-        </GlassSurface>
-      )}
-
-      {/* Loading State */}
-      {isLoading && (
-        <div className="py-20 text-center space-y-3">
-          <CircleNotch size={36} className="animate-spin text-cyan-400 mx-auto" />
-          <p className="text-sm font-medium text-slate-300">
-            Fetching real-time evidence manifest from backend...
-          </p>
-        </div>
-      )}
-
-      {/* Live Data Render */}
-      {evidence && !isLoading && (
-        <>
-          {/* DUAL TOP SUMMARIES: Operational Readiness vs Evaluation Qualification */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {/* 1. Operational Readiness Summary */}
-            <GlassSurface
-              borderRadius={20}
-              brightness={35}
-              opacity={0.85}
-              className="p-5 border-emerald-500/30"
-            >
-              <div className="flex items-start justify-between gap-3">
-                <div className="space-y-1">
-                  <div className="flex items-center gap-2">
-                    <CheckCircle size={18} weight="fill" className="text-emerald-400 shrink-0" />
-                    <h3 className="text-sm font-bold text-white tracking-tight">
-                      Backend Operational Readiness
-                    </h3>
-                  </div>
-                  <p className="text-xs text-slate-300">
-                    Service runtime is active and connected to Qdrant and Sarvam STT.
-                  </p>
-                </div>
-                <span className="px-2.5 py-1 rounded-full text-[10px] font-mono font-bold bg-emerald-500/15 text-emerald-300 border border-emerald-500/30 shrink-0">
-                  OPERATIONAL
-                </span>
-              </div>
-              <div className="mt-4 pt-3 border-t border-white/10 grid grid-cols-3 gap-2 text-center text-xs">
-                <div className="p-2 bg-white/5 rounded-lg">
-                  <span className="text-[10px] text-slate-400 block">Qdrant DB</span>
-                  <span className="text-emerald-400 font-mono font-bold text-xs">Online</span>
-                </div>
-                <div className="p-2 bg-white/5 rounded-lg">
-                  <span className="text-[10px] text-slate-400 block">E5-Small</span>
-                  <span className="text-emerald-400 font-mono font-bold text-xs">Loaded</span>
-                </div>
-                <div className="p-2 bg-white/5 rounded-lg">
-                  <span className="text-[10px] text-slate-400 block">Sarvam STT</span>
-                  <span className="text-emerald-400 font-mono font-bold text-xs">Smoke OK</span>
-                </div>
-              </div>
-            </GlassSurface>
-
-            {/* 2. Evaluation Qualification Summary */}
-            <GlassSurface
-              borderRadius={20}
-              brightness={35}
-              opacity={0.85}
-              className="p-5 border-amber-500/30"
-            >
-              <div className="flex items-start justify-between gap-3">
-                <div className="space-y-1">
-                  <div className="flex items-center gap-2">
-                    <WarningCircle size={18} weight="fill" className="text-amber-400 shrink-0" />
-                    <h3 className="text-sm font-bold text-white tracking-tight">
-                      Evaluation Qualification State
-                    </h3>
-                  </div>
-                  <p className="text-xs text-slate-300">
-                    Retrieval benchmark is fully qualified; voice latency and full contradiction suites are in progress.
-                  </p>
-                </div>
-                <span className="px-2.5 py-1 rounded-full text-[10px] font-mono font-bold bg-amber-500/15 text-amber-300 border border-amber-500/30 shrink-0">
-                  PARTIAL / QUALIFYING
-                </span>
-              </div>
-              <div className="mt-4 pt-3 border-t border-white/10 grid grid-cols-3 gap-2 text-center text-xs">
-                <div className="p-2 bg-white/5 rounded-lg">
-                  <span className="text-[10px] text-slate-400 block">500-Query Eval</span>
-                  <span className="text-emerald-400 font-mono font-bold text-xs">Qualifying</span>
-                </div>
-                <div className="p-2 bg-white/5 rounded-lg">
-                  <span className="text-[10px] text-slate-400 block">Guardrails</span>
-                  <span className="text-amber-400 font-mono font-bold text-xs">
-                    {evidence.guardrails.observed_correct_count}/{evidence.guardrails.sample_count} (Smoke)
-                  </span>
-                </div>
-                <div className="p-2 bg-white/5 rounded-lg">
-                  <span className="text-[10px] text-slate-400 block">Voice Latency</span>
-                  <span className="text-slate-400 font-mono font-bold text-xs">Pending</span>
-                </div>
-              </div>
-            </GlassSurface>
-          </div>
-
-          {/* 1. Retrieval Evaluation Section */}
-          <RetrievalEvaluationCard metrics={evidence.retrieval} />
-
-          {/* 2. Corpus & Vector Topology */}
-          <div className="grid grid-cols-1 gap-6">
-            <CorpusIndexCard corpus={evidence.corpus} />
-            <ChunkRepresentationsCard representations={evidence.chunk_representations} />
-          </div>
-
-          {/* 3. Dataset Integrity & Capacity Scaling */}
-          <div className="grid grid-cols-1 gap-6">
-            <DatasetAuditCard audit={evidence.dataset_audit} />
-            <CorpusScalingCard scaling={evidence.corpus_scaling} />
-          </div>
-
-          {/* 4. Safety Guardrails & Voice Latency */}
-          <div className="grid grid-cols-1 gap-6">
-            <GuardrailEvidenceCard guardrails={evidence.guardrails} />
-            <VoiceLatencyCard latency={evidence.voice_latency} />
-          </div>
-
-          {/* 5. Methodology, Checksums & Limitations */}
-          <MethodologySection provenance={evidence.provenance} />
-        </>
-      )}
-    </div>
-  );
+  return <div className="mx-auto max-w-6xl space-y-8 py-6">
+    <header className="flex flex-col justify-between gap-4 border-b border-white/10 pb-4 sm:flex-row sm:items-center">
+      <div><div className="mb-2 inline-flex items-center gap-1.5 rounded-full border border-cyan-500/20 bg-cyan-500/10 px-3 py-1 text-xs font-semibold text-cyan-300"><ShieldCheck size={14} />Artifact-backed evidence</div><h1 className="text-3xl font-extrabold text-white">Evaluation & system evidence</h1><p className="mt-1 max-w-xl text-sm text-slate-400">Every value below comes from a checked artifact. Missing measurements remain explicitly missing.</p></div>
+      <div className="flex gap-2"><button type="button" disabled={loading} onClick={() => void fetchEvidence()} className="flex items-center gap-1.5 rounded-xl border border-white/10 bg-white/5 px-3.5 py-2 text-xs text-white disabled:opacity-40"><ArrowClockwise className={loading ? 'animate-spin' : ''} />Refresh</button><button type="button" disabled={!evidence} onClick={() => void copySummary()} className="flex items-center gap-1.5 rounded-xl border border-white/10 bg-white/5 px-3.5 py-2 text-xs text-white disabled:opacity-40">{copied ? <Check /> : <Copy />}{copied ? 'Copied' : 'Copy summary'}</button><button type="button" disabled={!evidence} onClick={download} className="flex items-center gap-1.5 rounded-xl bg-cyan-600 px-3.5 py-2 text-xs font-bold text-white disabled:opacity-40"><DownloadSimple />JSON</button></div>
+    </header>
+    {error && <GlassSurface borderRadius={20} brightness={35} opacity={0.9} className="border-red-500/40 bg-red-950/20 p-6"><div className="flex gap-3"><WarningOctagon size={24} className="shrink-0 text-red-400" /><div><h2 className="font-bold text-white">Evidence endpoint unavailable</h2><p className="text-xs text-red-300">{error}</p></div></div></GlassSurface>}
+    {loading && <div className="py-20 text-center"><CircleNotch size={36} className="mx-auto animate-spin text-cyan-400" /><p className="mt-3 text-sm text-slate-300">Loading signed artifact summaries…</p></div>}
+    {evidence && !loading && <>
+      <div className="grid gap-4 md:grid-cols-2"><SummaryCard title="Backend operational readiness" status={ready?.status === 'ready' ? 'READY' : 'NOT READY'} tone={ready?.status === 'ready' ? statusTone.qualifying : statusTone.non_qualifying} detail="Live /ready state; independent of benchmark qualification." /><SummaryCard title="Retrieval evaluation" status={evidence.retrieval.status.replaceAll('_', ' ').toUpperCase()} tone={statusTone[evidence.retrieval.status]} detail={`${evidence.retrieval.sample_count} retained rows · ${evidence.retrieval.failure_count} failures`} /><SummaryCard title="Guardrail evaluation" status={evidence.guardrails.status.replaceAll('_', ' ').toUpperCase()} tone={statusTone[evidence.guardrails.status]} detail={`${evidence.guardrails.observed_correct_count}/${evidence.guardrails.sample_count} correct`} /><SummaryCard title="Voice latency evaluation" status={evidence.voice_latency.status.replaceAll('_', ' ').toUpperCase()} tone={statusTone[evidence.voice_latency.status]} detail={`${evidence.voice_latency.sample_count} measured rows`} /></div>
+      <RetrievalEvaluationCard metrics={evidence.retrieval} />
+      <CorpusIndexCard corpus={evidence.corpus} />
+      <ChunkRepresentationsCard representations={evidence.chunk_representations} />
+      <DatasetAuditCard audit={evidence.dataset_audit} />
+      <CorpusScalingCard scaling={evidence.corpus_scaling} />
+      <GuardrailEvidenceCard guardrails={evidence.guardrails} />
+      <VoiceLatencyCard latency={evidence.voice_latency} />
+      <MethodologySection provenance={evidence.provenance} />
+    </>}
+  </div>;
 };
+
+const SummaryCard = ({ title, status, tone, detail }: { title: string; status: string; tone: string; detail: string }) => <GlassSurface borderRadius={20} brightness={35} opacity={0.85} className="p-5"><div className="flex items-start justify-between gap-3"><div><h2 className="text-sm font-bold text-white">{title}</h2><p className="mt-1 text-xs text-slate-400">{detail}</p></div><span className={`shrink-0 rounded-full border px-2.5 py-1 text-[10px] font-bold ${tone}`}>{status}</span></div></GlassSurface>;

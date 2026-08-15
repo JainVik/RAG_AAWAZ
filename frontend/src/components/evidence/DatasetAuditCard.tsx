@@ -85,7 +85,7 @@ export const DatasetAuditCard: React.FC<DatasetAuditCardProps> = ({ audit }) => 
             <span className="text-white font-mono font-bold text-sm block">
               {audit.candidate_passage_count}
             </span>
-            <span className="text-[10px] text-slate-500 block">Across 20 queries</span>
+            <span className="text-[10px] text-slate-500 block">Across {audit.audited_row_count} audited queries</span>
           </div>
 
           {/* Selected Passage Ratio */}
@@ -94,9 +94,9 @@ export const DatasetAuditCard: React.FC<DatasetAuditCardProps> = ({ audit }) => 
               Passage Hit Ratio
             </span>
             <span className="text-cyan-400 font-mono font-bold text-sm block">
-              {(audit.selected_passage_ratio * 100).toFixed(1)}%
+              {audit.selected_passage_ratio === null ? 'Not measured' : `${(audit.selected_passage_ratio * 100).toFixed(1)}%`}
             </span>
-            <span className="text-[10px] text-slate-500 block">High relevance coverage</span>
+            <span className="text-[10px] text-slate-500 block">Selected candidate ratio</span>
           </div>
         </div>
 
@@ -143,7 +143,7 @@ export const DatasetAuditCard: React.FC<DatasetAuditCardProps> = ({ audit }) => 
         <div className="p-3 rounded-xl bg-amber-500/10 border border-amber-500/20 text-xs text-amber-300 flex items-start gap-2.5">
           <ShieldWarning size={18} className="shrink-0 mt-0.5" />
           <p className="leading-relaxed text-[11px]">
-            <strong>Smoke Audit Notice:</strong> This audit validates format integrity, schema alignment, and passage selection on a 20-row sample. Full-corpus certification requires independent complete split evaluation.
+            <strong>Audit boundary:</strong> This validates format integrity and passage selection on {audit.audited_row_count} retained rows. It is not a full-dataset certification.
           </p>
         </div>
 

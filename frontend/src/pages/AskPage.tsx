@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
-import { X, TextT, WarningCircle } from '@phosphor-icons/react';
-import type { VoiceResultData } from '../types/api';
+import React, { useEffect, useRef, useState } from 'react';
+import { TextT, WarningCircle, X } from '@phosphor-icons/react';
+import type { QueryResponse } from '../types/api';
+import { toBackendLanguage } from '../types/api';
 import { useVoiceRecorder } from '../hooks/useVoiceRecorder';
 import { VoiceStage } from '../components/voice/VoiceStage';
 import { TextInputPanel } from '../components/text/TextInputPanel';
@@ -8,77 +9,44 @@ import { sendTextQuery } from '../services/api';
 import { useShell } from '../components/layout/Shell';
 
 export const AskPage: React.FC = () => {
-  const [showTextModal, setShowTextModal] = useState<boolean>(false);
+  const [showTextModal, setShowTextModal] = useState(false);
   const [textError, setTextError] = useState<string | null>(null);
-  const [textResult, setTextResult] = useState<VoiceResultData | null>(null);
-  const { openSystemChecks } = useShell();
+  const [textResult, setTextResult] = useState<QueryResponse | null>(null);
+  const [isTextLoading, setIsTextLoading] = useState(false);
+  const closeButtonRef = useRef<HTMLButtonElement>(null);
+  const { openSystemChecks, ready } = useShell();
+  const canSubmit = ready?.status === 'ready';
+  const voice = useVoiceRecorder();
+  const activeResult = textResult ?? voice.result;
 
-  // Text mode execution state
-  const [isTextLoading, setIsTextLoading] = useState<boolean>(false);
+  useEffect(() => {
+    if (!showTextModal) return;
+    closeButtonRef.current?.focus();
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setShowTextModal(false);
+    };
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, [showTextModal]);
 
-  // Voice mode state & WebSocket engine
-  const {
-    state: voiceState,
-    error: voiceError,
-    recordingDuration,
-    audioLevel,
-    partialTranscript,
-    detectedLanguage,
-    result: voiceResult,
-    selectedLanguage,
-    setSelectedLanguage,
-    startRecording,
-    stopAndAsk,
-    cancelRecording,
-    resetToIdle,
-  } = useVoiceRecorder();
-
-  // Unified active result (voice or text)
-  const activeResult = textResult || voiceResult;
-
-  // Handle Text Mode Submission
   const handleTextSubmit = async (queryText: string) => {
+    if (!canSubmit) {
+      setTextError('The backend is not operationally ready. Open System checks for details.');
+      return;
+    }
     setIsTextLoading(true);
     setTextError(null);
-    const requestId = `txt_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
-
     try {
       const response = await sendTextQuery({
         query: queryText,
-        language: selectedLanguage,
-        request_id: requestId,
+        language: toBackendLanguage(voice.selectedLanguage),
+        request_id: crypto.randomUUID(),
         deadline_ms: null,
       });
-
+      setTextResult(response);
       setShowTextModal(false);
-
-      // Map QueryResponse into VoiceResultData display format
-      const formattedResult: VoiceResultData = {
-        request_id: response.request_id || requestId,
-        state: response.state || 'COMPLETED',
-        answer_mode: response.answer_mode || 'grounded_extractive',
-        transcript: response.transcript || queryText,
-        language: response.language || (selectedLanguage as string),
-        answer_text: response.answer_text || response.answer || null,
-        abstention_reason: response.abstention_reason || null,
-        guardrail: response.guardrail || undefined,
-        citations: response.citations || [],
-        timings: response.timings || {
-          audio_received_ms: 0,
-          stt_final_ms: 0,
-          retrieval_ms: 0,
-          answer_ms: 0,
-          total_ms: 0,
-        },
-      };
-
-      setTextResult(formattedResult);
-    } catch (err) {
-      setTextError(
-        err instanceof Error
-          ? err.message
-          : 'Backend query failed. Please ensure FastAPI server is running on 127.0.0.1:8000.'
-      );
+    } catch (error) {
+      setTextError(error instanceof Error ? error.message : 'The text query failed.');
     } finally {
       setIsTextLoading(false);
     }
@@ -87,25 +55,26 @@ export const AskPage: React.FC = () => {
   const handleReset = () => {
     setTextResult(null);
     setTextError(null);
-    resetToIdle();
+    voice.resetToIdle();
   };
 
   return (
-    <div className="w-full flex-1 flex flex-col justify-between">
-      {/* Central Immersive Voice Stage */}
+    <div className="flex w-full flex-1 flex-col justify-between">
       <VoiceStage
-        state={voiceState}
-        error={voiceError}
-        recordingDuration={recordingDuration}
-        audioLevel={audioLevel}
-        selectedLanguage={selectedLanguage}
-        detectedLanguage={detectedLanguage}
-        partialTranscript={partialTranscript}
+        state={voice.state}
+        pipelineState={voice.pipelineState}
+        error={voice.error}
+        recordingDuration={voice.recordingDuration}
+        audioLevel={voice.audioLevel}
+        selectedLanguage={voice.selectedLanguage}
+        detectedLanguage={voice.detectedLanguage}
+        partialTranscript={voice.partialTranscript}
         result={activeResult}
-        onLanguageChange={setSelectedLanguage}
-        onStartRecording={startRecording}
-        onStopAndAsk={stopAndAsk}
-        onCancelRecording={cancelRecording}
+        canSubmit={canSubmit}
+        onLanguageChange={voice.setSelectedLanguage}
+        onStartRecording={voice.startRecording}
+        onStopAndAsk={voice.stopAndAsk}
+        onCancelRecording={voice.cancelRecording}
         onReset={handleReset}
         onToggleTextMode={() => {
           setTextError(null);
@@ -113,53 +82,23 @@ export const AskPage: React.FC = () => {
         }}
         onOpenDiagnostics={openSystemChecks}
         onSelectSamplePrompt={(prompt) => {
+          setTextError(null);
           setShowTextModal(true);
-          handleTextSubmit(prompt);
+          void handleTextSubmit(prompt);
         }}
       />
 
-      {/* Text Test Mode Modal Overlay */}
       {showTextModal && (
-        <div
-          role="dialog"
-          aria-modal="true"
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-md"
-        >
-          <div className="w-full max-w-2xl bg-[#0e1424] border border-white/12 rounded-2xl shadow-2xl overflow-hidden animate-fade-in space-y-0">
-            <div className="p-4 border-b border-white/10 flex items-center justify-between">
-              <div className="flex items-center gap-2 text-cyan-400 font-bold text-xs">
-                <TextT size={18} />
-                <span>Text Test Mode (Real Direct Backend Query)</span>
-              </div>
-              <button
-                type="button"
-                onClick={() => {
-                  setShowTextModal(false);
-                  setTextError(null);
-                }}
-                className="p-1 rounded-lg text-slate-400 hover:text-white transition-colors cursor-pointer"
-              >
-                <X size={18} />
-              </button>
+        <div role="dialog" aria-modal="true" aria-labelledby="text-dialog-title" className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 p-4 backdrop-blur-md">
+          <div className="w-full max-w-2xl overflow-hidden rounded-2xl border border-white/12 bg-[#0e1424] shadow-2xl">
+            <div className="flex items-center justify-between border-b border-white/10 p-4">
+              <div id="text-dialog-title" className="flex items-center gap-2 text-xs font-bold text-cyan-400"><TextT size={18} /><span>Text query</span></div>
+              <button ref={closeButtonRef} type="button" aria-label="Close text query dialog" onClick={() => setShowTextModal(false)} className="rounded-lg p-1 text-slate-400 hover:text-white"><X size={18} /></button>
             </div>
-
-            <div className="p-6 space-y-4">
-              {textError && (
-                <div className="p-3.5 rounded-xl bg-red-500/10 border border-red-500/30 text-xs text-red-300 flex items-start gap-2.5">
-                  <WarningCircle size={18} className="shrink-0 mt-0.5" />
-                  <div className="space-y-0.5">
-                    <span className="font-bold block">Backend Request Failed:</span>
-                    <p className="leading-relaxed font-mono text-[11px]">{textError}</p>
-                  </div>
-                </div>
-              )}
-
-              <TextInputPanel
-                isLoading={isTextLoading}
-                selectedLanguage={selectedLanguage}
-                onLanguageChange={setSelectedLanguage}
-                onSubmit={handleTextSubmit}
-              />
+            <div className="space-y-4 p-6">
+              {!canSubmit && <div className="flex items-start gap-2 rounded-xl border border-amber-500/30 bg-amber-500/10 p-3 text-xs text-amber-200"><WarningCircle size={18} className="shrink-0" />Backend readiness has not passed. Query submission is disabled.</div>}
+              {textError && <div className="rounded-xl border border-red-500/30 bg-red-500/10 p-3 text-xs text-red-300">{textError}</div>}
+              <TextInputPanel isLoading={isTextLoading} disabled={!canSubmit} selectedLanguage={voice.selectedLanguage} onLanguageChange={voice.setSelectedLanguage} onSubmit={handleTextSubmit} />
             </div>
           </div>
         </div>

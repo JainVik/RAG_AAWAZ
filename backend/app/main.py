@@ -11,11 +11,11 @@ from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
+from app.api.evidence import router as evidence_router
 from app.api.health import router as health_router
 from app.api.metrics import router as metrics_router
 from app.api.text_query import router as text_router
 from app.api.voice_ws import router as voice_router
-from app.api.evidence import router as evidence_router
 from app.core.config import get_settings
 from app.core.logging import configure_logging
 from app.domain.enums import ErrorCode, PipelineState

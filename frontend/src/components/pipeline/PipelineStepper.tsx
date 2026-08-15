@@ -5,7 +5,6 @@ import {
   XCircle,
   HandPalm,
   ClockAfternoon,
-  Lightning,
 } from '@phosphor-icons/react';
 import type { BackendPipelineState, UserFacingStatusGroup } from '../../types/api';
 import { PIPELINE_STATE_TO_USER_STATUS } from '../../types/api';
@@ -13,9 +12,11 @@ import { PIPELINE_STATE_TO_USER_STATUS } from '../../types/api';
 interface PipelineStepperProps {
   state: BackendPipelineState | null;
   timingsMs?: Record<string, number>;
+  citationCount?: number;
+  guardrailReason?: string | null;
 }
 
-export const PipelineStepper: React.FC<PipelineStepperProps> = ({ state, timingsMs }) => {
+export const PipelineStepper: React.FC<PipelineStepperProps> = ({ state, timingsMs, citationCount = 0, guardrailReason = null }) => {
   if (!state) return null;
 
   const userStatus: UserFacingStatusGroup = PIPELINE_STATE_TO_USER_STATUS[state] || 'Transcribing';
@@ -35,6 +36,30 @@ export const PipelineStepper: React.FC<PipelineStepperProps> = ({ state, timings
     { id: 'retrieval', label: 'Retrieving evidence', states: ['SPECULATIVE_RETRIEVAL', 'RETRIEVED', 'EVIDENCE_SELECTED'] },
     { id: 'grounding', label: 'Grounding & Answer', states: ['ANSWERED', 'VERIFIED', 'COMPLETED'] },
   ];
+
+  const completedStages = new Set<string>();
+  if (state !== 'AUDIO_RECEIVED' && state !== 'STT_PARTIAL' && state !== 'STT_FINAL') {
+    completedStages.add('stt');
+  }
+  if (['RETRIEVED', 'EVIDENCE_SELECTED', 'ANSWERED', 'VERIFIED', 'COMPLETED'].includes(state)) {
+    completedStages.add('guard');
+  }
+  if (['EVIDENCE_SELECTED', 'ANSWERED', 'VERIFIED', 'COMPLETED'].includes(state)) {
+    completedStages.add('retrieval');
+  }
+  if (state === 'COMPLETED') completedStages.add('grounding');
+
+  if (state === 'ABSTAINED' || state === 'UNSAFE') completedStages.add('guard');
+  if (
+    state === 'ABSTAINED' &&
+    ['NO_RELEVANT_EVIDENCE', 'RETRIEVAL_DISAGREEMENT'].includes(guardrailReason ?? '')
+  ) {
+    completedStages.add('retrieval');
+  }
+  if (state === 'DEADLINE_FALLBACK') {
+    if (timingsMs?.input_guarded !== undefined) completedStages.add('guard');
+    if (timingsMs?.retrieved !== undefined) completedStages.add('retrieval');
+  }
 
   return (
     <div
@@ -83,30 +108,21 @@ export const PipelineStepper: React.FC<PipelineStepperProps> = ({ state, timings
                 : isTerminalAbstain
                 ? 'Truthful abstention: No substantiated evidence found in corpus'
                 : isTerminalFallback
-                ? 'Deadline fallback triggered; returning nearest raw evidence'
+                ? citationCount > 0
+                  ? 'Deadline reached; returning the best available cited evidence'
+                  : 'Deadline reached before a reliable cited answer was available'
                 : 'Pipeline execution finished'}
             </p>
           </div>
         </div>
 
-        {/* Total Duration if available */}
-        {timingsMs?.total_duration_ms && (
-          <div className="hidden sm:flex items-center gap-1 font-mono text-xs text-secondary bg-surface-subtle px-2.5 py-1 rounded-lg border border-subtle">
-            <Lightning size={14} className="text-accent-primary" />
-            <span>{timingsMs.total_duration_ms} ms</span>
-          </div>
-        )}
       </div>
 
       {/* Visual Pipeline Progression (When in happy path) */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-2 border-t border-subtle">
         {standardStages.map((stage) => {
-          const isCurrent = stage.states.includes(state);
-          const isPast =
-            (stage.id === 'stt' && state !== 'AUDIO_RECEIVED' && state !== 'STT_PARTIAL' && state !== 'STT_FINAL') ||
-            (stage.id === 'guard' && (state === 'RETRIEVED' || state === 'EVIDENCE_SELECTED' || state === 'ANSWERED' || state === 'VERIFIED' || state === 'COMPLETED')) ||
-            (stage.id === 'retrieval' && (state === 'ANSWERED' || state === 'VERIFIED' || state === 'COMPLETED')) ||
-            (stage.id === 'grounding' && state === 'COMPLETED');
+          const isCurrent = isInFlight && stage.states.includes(state);
+          const isPast = completedStages.has(stage.id);
 
           return (
             <div

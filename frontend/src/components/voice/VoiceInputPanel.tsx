@@ -63,8 +63,9 @@ export const VoiceInputPanel: React.FC<VoiceInputPanelProps> = ({
           <div className="flex items-center gap-1 bg-surface-subtle p-1 rounded-lg border border-subtle">
             {(
               [
-                { id: 'unknown', label: 'Auto (Code-mixed)' },
+                { id: 'auto', label: 'Auto detect' },
                 { id: 'hi', label: 'Hindi' },
+                { id: 'hi-en', label: 'Hinglish' },
                 { id: 'en', label: 'English' },
                 { id: 'mr', label: 'Marathi' },
               ] as const

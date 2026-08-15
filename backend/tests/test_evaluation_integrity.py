@@ -30,6 +30,18 @@ from scripts._common import (
     raw_dense_score_evidence,
     select_query_and_field,
 )
+from scripts.run_retrieval_eval import build_parser as retrieval_eval_parser
+
+
+def test_retrieval_eval_post_hoc_flag_is_explicit_and_non_default() -> None:
+    parser = retrieval_eval_parser()
+
+    assert parser.parse_args([]).post_hoc_regression_confirmation is False
+    assert (
+        parser.parse_args(["--post-hoc-regression-confirmation"])
+        .post_hoc_regression_confirmation
+        is True
+    )
 
 
 def _sha256(path: Path) -> str:

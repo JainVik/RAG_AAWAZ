@@ -71,9 +71,10 @@ def test_explicit_language_hint_supports_romanized_indic_queries() -> None:
     )
 
     assert plan.language == Language.HINDI
-    assert plan.representation_languages == (Language.HINDI,)
+    assert plan.representation_languages == (Language.HINDI, Language.CODE_MIXED)
     assert plan.language_confidence == 0.91
     assert plan.scripts == ("Latin",)
+    assert plan.romanized_hindi is True
 
     tagged = TideRouter().route("Goa rajya kab bana?", language_hint="hin_Deva")
     assert tagged.language == Language.HINDI

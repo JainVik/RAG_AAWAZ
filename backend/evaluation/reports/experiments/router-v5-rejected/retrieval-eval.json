@@ -4,11 +4,11 @@
   "latency": {
     "answer_coverage": 1.0,
     "completed_answer_count": 500,
-    "mean_ms": 306.71268599999996,
-    "p100_ms": 529.2468,
-    "p50_ms": 301.7496,
-    "p70_ms": 310.2788,
-    "p95_ms": 346.1513,
+    "mean_ms": 287.2708356,
+    "p100_ms": 497.2792,
+    "p50_ms": 284.357,
+    "p70_ms": 289.5802,
+    "p95_ms": 303.7433,
     "request_count": 500,
     "sample_count": 500
   },
@@ -139,9 +139,8 @@
       "qualifying": true,
       "status": "verified"
     },
-    "created_at": "2026-08-15T19:53:55.065992+00:00",
+    "created_at": "2026-08-15T19:33:03.660586+00:00",
     "deadline_ms": 5000,
-    "evaluation_interpretation": "post_hoc_regression_confirmation",
     "fixture": {
       "path": "C:\\RAG\\backend\\data\\evaluation\\partition\\final-fixtures.jsonl",
       "sha256": "f2bbc4e915460b83b303dd5e8510c134c2594d475bcfd0bf5a740a220ee8071a"
@@ -166,7 +165,7 @@
         "retrieval_contract_version_bound_and_matching": true,
         "threshold_schema_version_is_3": true
       },
-      "development_fixture_sha256": "9ca63ee41ccb4a9e12d066fa25c72ee39616421fe5b48f8f14dc3099f996a31b",
+      "development_fixture_sha256": "a7b8816c4902e3c685fa8ca88fac6e77fc2a25c16b0676527511fc7d1a921824",
       "development_query_content_count": 518,
       "development_query_content_hashes_sha256": "d394dbb8a74f31f22572fb69918f5b035e11961a8d03fd89c2a4ce8961fef90b",
       "development_query_count": 518,
@@ -186,11 +185,11 @@
         "dense_model": "intfloat/multilingual-e5-small",
         "index_manifest_sha256": "3b872e3a2d0775c7bcc63c9305f1c26cd3c37313a46bfee2d4967199b33da3d5",
         "model_revision": "614241f622f53c4eeff9890bdc4f31cfecc418b3",
-        "retrieval_contract_sha256": "bc1974d50d11690cbfe6e8c3945cc234833ed946a286caf26418758c2188c189",
-        "retrieval_contract_version": "tide-router-heuristics-v6"
+        "retrieval_contract_sha256": "ea2afe2a06d2722bf5585e5290020182dbdcbb056c773da973bb20f0dda9ce54",
+        "retrieval_contract_version": "tide-router-heuristics-v5"
       },
       "retrieval_runtime_contract": {
-        "contract_version": "tide-router-heuristics-v6",
+        "contract_version": "tide-router-heuristics-v5",
         "dense_candidate_limit": 24,
         "enable_sparse": true,
         "enabled_dense_strategies": [
@@ -205,7 +204,7 @@
         "sparse_candidate_limit": 24
       },
       "schema_version": 3,
-      "sha256": "c8e37a3512ce601bf2194a5cecf99ba32eb474e370ca784018383bd291a3c0c4",
+      "sha256": "2cc27c5733ff947430c73aa57f557ef68a01a590019d886f81329c80a9499efe",
       "status": "verified"
     },
     "hardware": {
@@ -1297,13 +1296,12 @@
       "websockets": "15.0.1"
     },
     "packages_scope": "Python environment running this evaluation command",
-    "qualification": "non_qualifying_fresh_untouched_final_evaluation",
+    "qualification": "qualifying",
     "qualification_checks": {
       "checks": {
         "all_requests_recorded": true,
         "development_thresholds_bound_to_active_index": true,
         "fixture_matches_active_index": true,
-        "fresh_untouched_final_evaluation": false,
         "full_retrieval_coverage": true,
         "minimum_distinct_cases": true,
         "verified_held_out_provenance": true,
@@ -1312,17 +1310,15 @@
       },
       "configuration_failure_count": 0,
       "expected_requests": 500,
-      "failed_checks": [
-        "fresh_untouched_final_evaluation"
-      ],
-      "qualifying": false,
+      "failed_checks": [],
+      "qualifying": true,
       "recorded_requests": 500,
       "request_failure_count": 0,
       "retrieval_completion_coverage": 1.0,
-      "status": "non_qualifying_fresh_untouched_final_evaluation",
+      "status": "qualifying",
       "successful_requests": 500
     },
-    "qualifying": false,
+    "qualifying": true,
     "query_field": "auto",
     "schema_version": 1,
     "score_contract": {
@@ -1352,36 +1348,36 @@
       },
       "short_factual": {
         "answerable_query_count": 207,
-        "mrr_at_10": 0.4678954834751936,
-        "ndcg_at_10": 0.5580770944513711,
+        "mrr_at_10": 0.38553600184034964,
+        "ndcg_at_10": 0.4664517355624205,
         "query_count": 207,
-        "recall_at_1": 0.28019323671497587,
-        "recall_at_10": 0.8429951690821256,
-        "recall_at_5": 0.7415458937198067
+        "recall_at_1": 0.22946859903381642,
+        "recall_at_10": 0.7342995169082126,
+        "recall_at_5": 0.5990338164251208
       }
     },
     "by_language": {
       "hi": {
         "answerable_query_count": 500,
-        "mrr_at_10": 0.45361587301587303,
-        "ndcg_at_10": 0.5464589884375068,
+        "mrr_at_10": 0.4195190476190476,
+        "ndcg_at_10": 0.5085260898574813,
         "query_count": 500,
-        "recall_at_1": 0.266,
-        "recall_at_10": 0.8413333333333334,
-        "recall_at_5": 0.7063333333333334
+        "recall_at_1": 0.245,
+        "recall_at_10": 0.7963333333333333,
+        "recall_at_5": 0.6473333333333333
       }
     },
     "overall": {
       "answerable_query_count": 500,
-      "mrr_at_10": 0.45361587301587303,
-      "ndcg_at_10": 0.5464589884375068,
+      "mrr_at_10": 0.4195190476190476,
+      "ndcg_at_10": 0.5085260898574813,
       "query_count": 500,
-      "recall_at_1": 0.266,
-      "recall_at_10": 0.8413333333333334,
-      "recall_at_5": 0.7063333333333334
+      "recall_at_1": 0.245,
+      "recall_at_10": 0.7963333333333333,
+      "recall_at_5": 0.6473333333333333
     }
   },
   "request_failure_count": 0,
   "retrieval_completion_coverage": 1.0,
-  "retrieval_hit_coverage": 0.846
+  "retrieval_hit_coverage": 0.802
 }

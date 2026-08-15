@@ -81,6 +81,14 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--deadline-ms", type=int, default=5_000)
     parser.add_argument("--allow-small-smoke", action="store_true")
     parser.add_argument(
+        "--post-hoc-regression-confirmation",
+        action="store_true",
+        help=(
+            "Record metrics after a final fixture has already influenced a change. "
+            "The report is retained but cannot qualify as fresh held-out evidence."
+        ),
+    )
+    parser.add_argument(
         "--cache-policy",
         choices=("cold", "warm", "mixed", "uncontrolled"),
         default="uncontrolled",
@@ -292,6 +300,11 @@ async def run(args: argparse.Namespace) -> tuple[dict[str, Any], list[dict[str, 
             successful_requests=successful_requests,
             request_failures=request_failures,
             configuration_failures=configuration_failures,
+            additional_checks={
+                "fresh_untouched_final_evaluation": (
+                    not args.post_hoc_regression_confirmation
+                )
+            },
         )
         metadata = base_metadata(
             command="run_retrieval_eval",
@@ -308,6 +321,11 @@ async def run(args: argparse.Namespace) -> tuple[dict[str, Any], list[dict[str, 
         metadata["qualification_checks"] = qualification
         metadata["query_field"] = args.query_field
         metadata["deadline_ms"] = args.deadline_ms
+        metadata["evaluation_interpretation"] = (
+            "post_hoc_regression_confirmation"
+            if args.post_hoc_regression_confirmation
+            else "fresh_held_out_evaluation"
+        )
         metadata["score_contract"] = {
             key: raw_dense_score_evidence(())[key]
             for key in ("score_kind", "score_contract_version")

@@ -1,15 +1,18 @@
 from __future__ import annotations
 
-import re
 from collections.abc import Sequence
 from dataclasses import dataclass
 
 from app.domain.enums import ChunkStrategy, Language
 from app.domain.languages import analyze_language, language_from_tag
 from app.ingestion.normalize import normalize_text
+from app.retrieval.query_variants import (
+    ROMAN_HINDI_DESCRIPTIVE,
+    ROMAN_HINDI_SHORT_FACTUAL,
+    is_romanized_hindi,
+    unicode_word_tokens,
+)
 
-_NUMBER_OR_DATE = re.compile(r"\b\d+(?:[./:-]\d+)*\b")
-_TOKEN = re.compile(r"\w+", re.UNICODE)
 _SHORT_FACTUAL = {
     "what",
     "when",
@@ -23,7 +26,7 @@ _SHORT_FACTUAL = {
 }
 _DESCRIPTIVE = {"why", "how", "explain", "describe", "क्यों", "कैसे", "समझाइए", "बताइए"}
 
-TIDE_ROUTER_CONTRACT_VERSION = "tide-router-heuristics-v4"
+TIDE_ROUTER_CONTRACT_VERSION = "tide-router-heuristics-v6"
 
 
 @dataclass(frozen=True, slots=True)
@@ -41,6 +44,7 @@ class RoutePlan:
     code_mixed: bool = False
     language_confidence: float | None = None
     language_fallback: bool = False
+    romanized_hindi: bool = False
 
 
 class TideRouter:
@@ -77,7 +81,7 @@ class TideRouter:
         language_confidence: float | None = None,
     ) -> RoutePlan:
         normalized = normalize_text(query).casefold()
-        token_list = _TOKEN.findall(normalized)
+        token_list = unicode_word_tokens(normalized)
         tokens = set(token_list)
         normalized_hint = (
             language_hint
@@ -90,10 +94,20 @@ class TideRouter:
             language_confidence=language_confidence,
         )
         language = language_analysis.language
-        has_number = bool(_NUMBER_OR_DATE.search(normalized))
+        romanized_hindi = is_romanized_hindi(
+            normalized,
+            language_hint=normalized_hint,
+        )
+        has_number = any(any(character.isdigit() for character in token) for token in token_list)
         is_short = len(token_list) <= 8
-        factual = bool(tokens.intersection(_SHORT_FACTUAL)) or has_number
-        descriptive = bool(tokens.intersection(_DESCRIPTIVE))
+        factual = (
+            bool(tokens.intersection(_SHORT_FACTUAL))
+            or (romanized_hindi and not ROMAN_HINDI_SHORT_FACTUAL.isdisjoint(token_list))
+            or has_number
+        )
+        descriptive = bool(tokens.intersection(_DESCRIPTIVE)) or (
+            romanized_hindi and not ROMAN_HINDI_DESCRIPTIVE.isdisjoint(token_list)
+        )
         low_confidence = stt_confidence is not None and stt_confidence < 0.65
         unstable = partial_stability is not None and partial_stability < 0.75
         strategies: tuple[ChunkStrategy, ...]
@@ -108,8 +122,16 @@ class TideRouter:
             dense_weight, sparse_weight = 0.55, 0.45
         elif is_short and factual:
             category = "short_factual"
-            strategies = (ChunkStrategy.SENTENCE_WINDOW, ChunkStrategy.PARENT_CHILD)
-            dense_weight, sparse_weight = 0.45, 0.55
+            if language == Language.HINDI and not romanized_hindi:
+                # Development A/B testing showed that the formerly validated
+                # general plan is materially stronger for native-script Hindi
+                # short questions. Keep the intent label for telemetry while
+                # preserving that retrieval contract.
+                strategies = (ChunkStrategy.ATOMIC, ChunkStrategy.SENTENCE_WINDOW)
+                dense_weight, sparse_weight = 0.65, 0.35
+            else:
+                strategies = (ChunkStrategy.SENTENCE_WINDOW, ChunkStrategy.PARENT_CHILD)
+                dense_weight, sparse_weight = 0.45, 0.55
         elif descriptive:
             category = "descriptive"
             strategies = (
@@ -122,6 +144,12 @@ class TideRouter:
             category = "general"
             strategies = (ChunkStrategy.ATOMIC, ChunkStrategy.SENTENCE_WINDOW)
             dense_weight, sparse_weight = 0.65, 0.35
+
+        if romanized_hindi:
+            category = f"roman_hindi_{category}"
+            strategies = tuple(
+                dict.fromkeys((ChunkStrategy.BILINGUAL_PAIRED, *strategies))
+            )
 
         multiplier = 2 if low_confidence or unstable else 1
         if low_confidence:
@@ -149,6 +177,8 @@ class TideRouter:
             and Language.CODE_MIXED not in representation_languages
         ):
             representation_languages = (*representation_languages, Language.CODE_MIXED)
+        if romanized_hindi:
+            representation_languages = (Language.HINDI, Language.CODE_MIXED)
         return RoutePlan(
             language=language,
             category=category,
@@ -163,4 +193,5 @@ class TideRouter:
             code_mixed=language_analysis.code_mixed,
             language_confidence=language_analysis.confidence,
             language_fallback=language_analysis.fallback_used,
+            romanized_hindi=romanized_hindi,
         )

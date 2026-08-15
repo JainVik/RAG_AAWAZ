@@ -27,11 +27,11 @@ export const GuardrailEvidenceCard: React.FC<GuardrailEvidenceCardProps> = ({ gu
                 Guardrail &amp; Grounding Verification
               </h2>
               <span className="px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-amber-500/15 text-amber-300 border border-amber-500/30">
-                Non-qualifying
+                {guardrails.status.replaceAll('_', ' ')}
               </span>
             </div>
             <p className="text-xs text-slate-400 mt-0.5">
-              13/13 observed cases correct on smoke sample • Active supported-query evidence incomplete
+              {guardrails.observed_correct_count}/{guardrails.sample_count} observed correct · {guardrails.failed_checks.length} failed qualification checks
             </p>
           </div>
         </div>
@@ -40,7 +40,7 @@ export const GuardrailEvidenceCard: React.FC<GuardrailEvidenceCardProps> = ({ gu
         <div className="flex items-center gap-2">
           <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-emerald-500/10 text-emerald-300 border border-emerald-500/30 rounded-full text-xs font-semibold">
             <CheckCircle size={14} weight="fill" className="text-emerald-400" />
-            <span>13/13 Observed Correct</span>
+            <span>{guardrails.observed_correct_count}/{guardrails.sample_count} observed correct</span>
           </span>
         </div>
       </div>
@@ -49,7 +49,7 @@ export const GuardrailEvidenceCard: React.FC<GuardrailEvidenceCardProps> = ({ gu
       <div className="p-3.5 rounded-xl bg-amber-500/10 border border-amber-500/20 text-xs text-amber-300 flex items-start gap-2.5">
         <WarningCircle size={18} className="shrink-0 mt-0.5" />
         <p className="leading-relaxed text-[11px]">
-          <strong>Qualification Notice:</strong> While 100% of tested smoke cases (13/13) behaved correctly, this report is classified as <strong>Non-qualifying</strong> until the comprehensive active supported-query matrix and live-corpus contradiction suites complete qualification.
+          <strong>Qualification notice:</strong> This report is <strong>{guardrails.status.replaceAll('_', ' ')}</strong>. {guardrails.failed_checks.length ? guardrails.failed_checks.join('; ') : 'No failed checks were reported.'}
         </p>
       </div>
 
@@ -84,8 +84,8 @@ export const GuardrailEvidenceCard: React.FC<GuardrailEvidenceCardProps> = ({ gu
       <div className="flex items-center gap-2 text-[10px] text-slate-400 pt-2 border-t border-white/8 font-mono">
         <Hash size={13} className="text-cyan-400 shrink-0" />
         <span className="text-slate-500">Guardrail Artifact SHA256:</span>
-        <span className="truncate text-slate-300" title={guardrails.source_artifact_sha256}>
-          {guardrails.source_artifact_sha256}
+        <span className="truncate text-slate-300" title={guardrails.source_artifact_sha256 ?? undefined}>
+          {guardrails.source_artifact_sha256 ?? 'Not available'}
         </span>
       </div>
     </GlassSurface>

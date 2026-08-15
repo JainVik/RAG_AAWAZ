@@ -147,8 +147,14 @@ npm run dev
 ```
 
 The frontend will be available at `http://localhost:5173`. It features:
-- `/ask`: Interactive multilingual voice RAG with real-time audio streaming, rotating inset-shadow orb, and 16 Indic language support.
-- `/evidence`: Comprehensive evaluation and system evidence portal.
+- `/ask`: Interactive voice/text RAG with real-time 16 kHz audio streaming. English and Hindi
+  corpus paths are validated; other Sarvam language hints are clearly marked experimental.
+- `/evidence`: Artifact-backed evaluation and system evidence. Missing or non-qualifying results
+  are shown as such and are never replaced with demonstration values.
+
+The web client submits only after `GET /ready` reports `ready`. For local development, set
+`RAG_VOICE_ALLOWED_ORIGINS=http://localhost:5173,http://127.0.0.1:5173`. Do not put Sarvam,
+Qdrant, Hugging Face, or backend bearer secrets in a `VITE_*` variable.
 
 Endpoints:
 

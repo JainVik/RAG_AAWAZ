@@ -5,9 +5,10 @@ interface VoiceOrbProps {
   state: VoiceState;
   audioLevel: number; // 0.0 to 1.0
   onClick?: () => void;
+  disabled?: boolean;
 }
 
-export const VoiceOrb: React.FC<VoiceOrbProps> = ({ state, audioLevel, onClick }) => {
+export const VoiceOrb: React.FC<VoiceOrbProps> = ({ state, audioLevel, onClick, disabled = false }) => {
   const isRecording = state === 'recording';
   const isProcessing = state === 'processing';
   const isRequesting = state === 'requesting_permission';
@@ -28,11 +29,11 @@ export const VoiceOrb: React.FC<VoiceOrbProps> = ({ state, audioLevel, onClick }
   const letters = displayText.split('');
 
   return (
-    <div
+    <button
+      type="button"
       onClick={onClick}
-      className="relative flex items-center justify-center w-64 h-64 sm:w-72 sm:h-72 cursor-pointer select-none group"
-      role="button"
-      tabIndex={0}
+      disabled={disabled}
+      className="relative flex items-center justify-center w-64 h-64 sm:w-72 sm:h-72 cursor-pointer select-none group disabled:cursor-not-allowed disabled:opacity-55"
       aria-label={isRecording ? 'Listening. Click to stop and ask.' : 'Click to start voice recording'}
     >
       {/* Outer ambient diffuse glow responding to audioLevel */}
@@ -84,6 +85,6 @@ export const VoiceOrb: React.FC<VoiceOrbProps> = ({ state, audioLevel, onClick }
       {isRecording && (
         <div className="absolute inset-4 rounded-full border border-cyan-400/40 animate-ping pointer-events-none opacity-30" />
       )}
-    </div>
+    </button>
   );
 };

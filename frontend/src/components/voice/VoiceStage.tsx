@@ -1,20 +1,16 @@
 import React, { useState } from 'react';
-import {
-  Quotes,
-  Copy,
-  Check,
-  Lightning,
-  Sparkle,
-  HandPalm,
-  WarningOctagon,
-} from '@phosphor-icons/react';
-import type { LanguageHint, QueryResponse, VoiceState, VoiceErrorState } from '../../types/api';
+import { Check, Copy, HandPalm, Lightning, Quotes, Sparkle, WarningOctagon, X } from '@phosphor-icons/react';
+import type { LanguageHint, PipelineState, QueryResponse, VoiceErrorState, VoiceState } from '../../types/api';
+import { getLanguageDisplayLabel, PIPELINE_STATE_TO_USER_STATUS } from '../../types/api';
 import { VoiceOrb } from './VoiceOrb';
 import { VoicePillControls } from './VoicePillControls';
 import { CitationDrawer } from '../citations/CitationDrawer';
+import { PipelineStepper } from '../pipeline/PipelineStepper';
+import { formatResponseLatency, getResponseLatencyMs } from '../../utils/responseTiming';
 
 interface VoiceStageProps {
   state: VoiceState;
+  pipelineState: PipelineState | null;
   error: VoiceErrorState | null;
   recordingDuration: number;
   audioLevel: number;
@@ -22,7 +18,8 @@ interface VoiceStageProps {
   detectedLanguage: string | null;
   partialTranscript: string;
   result: QueryResponse | null;
-  onLanguageChange: (lang: LanguageHint) => void;
+  canSubmit: boolean;
+  onLanguageChange: (language: LanguageHint) => void;
   onStartRecording: () => void;
   onStopAndAsk: () => void;
   onCancelRecording: () => void;
@@ -32,224 +29,88 @@ interface VoiceStageProps {
   onOpenDiagnostics?: () => void;
 }
 
-export const VoiceStage: React.FC<VoiceStageProps> = ({
-  state,
-  error,
-  recordingDuration,
-  audioLevel,
-  selectedLanguage,
-  detectedLanguage,
-  partialTranscript,
-  result,
-  onLanguageChange,
-  onStartRecording,
-  onStopAndAsk,
-  onCancelRecording,
-  onReset,
-  onToggleTextMode,
-  onSelectSamplePrompt,
-  onOpenDiagnostics,
-}) => {
-  const [isCitationDrawerOpen, setIsCitationDrawerOpen] = useState(false);
-  const [copiedAnswer, setCopiedAnswer] = useState(false);
+const SAMPLE_PROMPTS = [
+  { label: 'English', text: 'What is gold\'s hardness on the Mohs scale?' },
+  { label: 'Hindi', text: 'डायसेफैलिक सिंड्रोम को परिभाषित करें।' },
+  { label: 'English', text: 'What are the symptoms of a strained leg muscle?' },
+];
 
-  const isRecording = state === 'recording';
-  const isProcessing = state === 'processing';
-  const isRequesting = state === 'requesting_permission';
+export const VoiceStage: React.FC<VoiceStageProps> = (props) => {
+  const [drawerOpen, setDrawerOpen] = useState(false);
+  const [copied, setCopied] = useState(false);
+  const isRecording = props.state === 'recording';
+  const isProcessing = props.state === 'processing';
+  const isRequesting = props.state === 'requesting_permission';
+  const effectiveState = props.result?.state ?? props.pipelineState;
+  const responseLatencyMs = getResponseLatencyMs(props.result?.timings_ms);
 
-  const handleCopyAnswer = () => {
-    if (result?.answer_text) {
-      navigator.clipboard.writeText(result.answer_text);
-      setCopiedAnswer(true);
-      setTimeout(() => setCopiedAnswer(false), 1500);
-    }
+  const copyAnswer = async () => {
+    if (!props.result?.answer) return;
+    await navigator.clipboard.writeText(props.result.answer);
+    setCopied(true);
+    window.setTimeout(() => setCopied(false), 1500);
   };
 
-  const samplePrompts = [
-    { text: 'गोवा सरकारची जलसंधारण योजना काय आहे?', label: 'मराठी' },
-    { text: 'मुख्यमंत्री रोजगार योजना के लिए क्या पात्रता है?', label: 'हिंदी' },
-    { text: 'What is the procedure for obtaining a revenue certificate in Goa?', label: 'English' },
-  ];
-
   return (
-    <div className="relative min-h-[calc(100dvh-100px)] flex flex-col items-center justify-between py-6 px-4 select-none">
-      {/* Top Spacer / Detected Language pill */}
-      <div className="h-8 flex items-center justify-center">
-        {detectedLanguage && detectedLanguage !== 'unknown' && (
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-white/5 border border-white/10 backdrop-blur-md rounded-full text-[11px] font-mono font-semibold text-cyan-300 shadow-sm animate-fade-in">
-            <span className="w-1.5 h-1.5 rounded-full bg-cyan-400" />
-            <span>Detected Language: {detectedLanguage.toUpperCase()}</span>
-          </div>
-        )}
+    <div className="relative flex min-h-[calc(100dvh-100px)] select-none flex-col items-center justify-between px-4 py-6">
+      <div className="flex h-8 items-center justify-center">
+        {props.detectedLanguage && props.detectedLanguage !== 'unknown' && <div className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-[11px] font-semibold text-cyan-300">Detected: {getLanguageDisplayLabel(props.detectedLanguage)}</div>}
       </div>
 
-      {/* Main Center Stage with Generous Breathing Room */}
-      <div className="flex flex-col items-center justify-center max-w-2xl mx-auto w-full my-auto text-center space-y-8 py-4">
-        {/* Dynamic Glowing Voice Orb */}
-        <VoiceOrb
-          state={state}
-          audioLevel={audioLevel}
-          onClick={isRecording ? onStopAndAsk : onStartRecording}
-        />
+      <div className={`my-auto flex w-full max-w-2xl flex-col items-center justify-center py-4 text-center ${isRecording ? '-translate-y-4 space-y-4' : 'space-y-6'}`}>
+        <VoiceOrb state={props.state} audioLevel={props.audioLevel} disabled={!props.canSubmit || isProcessing || isRequesting || props.state === 'terminal'} onClick={isRecording ? props.onStopAndAsk : props.onStartRecording} />
 
-        {/* Dynamic Text / Speech Feedback */}
-        <div className="space-y-3 px-4 min-h-[100px] flex flex-col items-center justify-center">
-          {isRecording ? (
-            <div className="space-y-2 animate-fade-in">
-              <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-white headline-display">
-                I&apos;m listening...
-              </h2>
-              <p className="text-base text-cyan-300 font-medium max-w-lg leading-relaxed">
-                {partialTranscript || 'What is on your mind?'}
-              </p>
-            </div>
-          ) : isRequesting ? (
-            <div className="space-y-1">
-              <h2 className="text-2xl font-bold text-white">
-                Requesting microphone...
-              </h2>
-              <p className="text-xs text-slate-400">
-                Please allow microphone access in your browser prompt.
-              </p>
-            </div>
-          ) : isProcessing ? (
-            <div className="space-y-1">
-              <h2 className="text-2xl font-bold text-white">
-                Processing your question...
-              </h2>
-              <p className="text-xs text-slate-400">
-                Transcribing audio &amp; searching verified Goa Governance Index.
-              </p>
-            </div>
-          ) : result ? (
-            <div className="space-y-4 max-w-xl text-left bg-[#0e1529]/90 border border-cyan-500/30 backdrop-blur-xl p-6 rounded-2xl shadow-2xl animate-fade-in">
-              {/* Question Transcript Header */}
-              {result.transcript && (
-                <div className="pb-3 border-b border-white/10 flex items-center justify-between text-xs text-slate-400">
-                  <span className="font-semibold text-cyan-400 flex items-center gap-1.5">
-                    <Sparkle size={14} weight="fill" />
-                    <span>Query Transcript:</span>
-                  </span>
-                  {result.timings_ms?.total_duration_ms && (
-                    <span className="font-mono text-[11px] text-slate-400 flex items-center gap-1">
-                      <Lightning size={13} className="text-cyan-400" />
-                      <span>{result.timings_ms.total_duration_ms} ms</span>
-                    </span>
-                  )}
+        {effectiveState && <div className="w-full"><PipelineStepper state={effectiveState} timingsMs={props.result?.timings_ms} citationCount={props.result?.citations.length ?? 0} guardrailReason={props.result?.guardrail.reason ?? null} /></div>}
+
+        <div className="flex min-h-[100px] flex-col items-center justify-center space-y-3 px-4 pb-3">
+          {isRecording ? <><h2 className="text-3xl font-bold text-white">Listening…</h2><p className="max-w-xl text-base leading-relaxed text-cyan-300">{props.partialTranscript || 'Speak your complete question.'}</p><span className="text-[10px] text-slate-500">Live draft — auto-stops after 1.5 seconds of silence</span></> :
+            isRequesting ? <><h2 className="text-2xl font-bold text-white">Requesting microphone…</h2><p className="text-xs text-slate-400">Allow microphone access in the browser prompt.</p></> :
+            isProcessing ? <><h2 className="text-2xl font-bold text-white">{effectiveState ? PIPELINE_STATE_TO_USER_STATUS[effectiveState] : 'Processing…'}</h2><p className="text-xs text-slate-400">Searching the verified MSMARCO-XI evidence index.</p></> :
+            props.result ? (
+              <div className="w-full max-w-xl space-y-4 rounded-2xl border border-cyan-500/30 bg-[#0e1529]/90 p-6 text-left shadow-2xl">
+                <div className="flex items-center justify-between border-b border-white/10 pb-3 text-xs text-slate-400">
+                  <span className="flex items-center gap-1.5 font-semibold text-cyan-400"><Sparkle size={14} weight="fill" />{props.result.state}</span>
+                  <div className="flex items-center gap-3">
+                    {responseLatencyMs !== null && (
+                      <span
+                        title="Backend-measured processing time after final input; network and browser rendering excluded"
+                        className="inline-flex items-center gap-1 rounded-full border border-emerald-400/25 bg-emerald-500/10 px-2 py-1 font-mono text-[11px] font-semibold text-emerald-300"
+                      >
+                        <Lightning size={13} weight="fill" />
+                        Responded in {formatResponseLatency(responseLatencyMs)}
+                      </span>
+                    )}
+                    <span className="font-mono">{props.result.answer_mode}</span>
+                    <button
+                      type="button"
+                      aria-label="Dismiss answer"
+                      title="Dismiss answer"
+                      onClick={() => {
+                        setDrawerOpen(false);
+                        props.onReset();
+                      }}
+                      className="rounded-md p-1 text-slate-400 transition-colors hover:bg-white/10 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400"
+                    >
+                      <X size={16} />
+                    </button>
+                  </div>
                 </div>
-              )}
-
-              {result.transcript && (
-                <p className="text-xs text-slate-300 italic">
-                  &ldquo;{result.transcript}&rdquo;
-                </p>
-              )}
-
-              {/* Answer Text */}
-              {result.answer_text ? (
-                <p className="text-base text-white leading-relaxed font-sans font-normal">
-                  {result.answer_text}
-                </p>
-              ) : result.guardrail?.decision === 'abstain' ? (
-                <div className="p-3.5 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-300 text-xs flex items-center gap-2.5">
-                  <HandPalm size={18} weight="fill" />
-                  <span>
-                    {result.guardrail.user_message ||
-                      'Truthful Abstention: The corpus does not contain enough verified evidence for this question.'}
-                  </span>
+                <p className="text-xs italic text-slate-300">“{props.result.transcript}”</p>
+                {props.result.answer ? <p className="text-base leading-relaxed text-white">{props.result.answer}</p> : props.result.guardrail.decision === 'ABSTAIN' || props.result.state === 'ABSTAINED' ? <div className="flex gap-2 rounded-xl border border-amber-500/20 bg-amber-500/10 p-3 text-xs text-amber-300"><HandPalm size={18} />{props.result.guardrail.user_message ?? 'The corpus does not contain enough verified evidence.'}</div> : <div className="flex gap-2 rounded-xl border border-rose-500/20 bg-rose-500/10 p-3 text-xs text-rose-300"><WarningOctagon size={18} />{props.result.guardrail.user_message ?? `Request ended in ${props.result.state}.`}</div>}
+                <div className="flex flex-wrap items-center justify-between gap-3 border-t border-white/10 pt-3">
+                  <button type="button" disabled={!props.result.citations.length} onClick={() => setDrawerOpen(true)} className="inline-flex items-center gap-2 rounded-lg border border-cyan-500/30 bg-cyan-500/10 px-3 py-1.5 text-xs font-semibold text-cyan-300 disabled:opacity-40"><Quotes size={15} weight="fill" />{props.result.citations.length} citation{props.result.citations.length === 1 ? '' : 's'}</button>
+                  {props.result.answer && <button type="button" onClick={() => void copyAnswer()} className="inline-flex items-center gap-1 text-xs text-slate-400 hover:text-white">{copied ? <Check size={14} className="text-emerald-400" /> : <Copy size={14} />}{copied ? 'Copied' : 'Copy answer'}</button>}
                 </div>
-              ) : (
-                <div className="p-3.5 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-300 text-xs flex items-center gap-2.5">
-                  <WarningOctagon size={18} weight="fill" />
-                  <span>{result.error?.message || 'Unable to complete answer.'}</span>
-                </div>
-              )}
-
-              {/* Citation & Copy Actions */}
-              <div className="flex flex-wrap items-center justify-between gap-3 pt-3 border-t border-white/10">
-                {result.citations && result.citations.length > 0 ? (
-                  <button
-                    type="button"
-                    onClick={() => setIsCitationDrawerOpen(true)}
-                    className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-cyan-500/10 hover:bg-cyan-500/20 border border-cyan-500/30 text-cyan-300 text-xs font-semibold transition-all cursor-pointer"
-                  >
-                    <Quotes size={15} weight="fill" />
-                    <span>View {result.citations.length} Grounded Citations</span>
-                  </button>
-                ) : (
-                  <span className="text-[11px] text-slate-500 font-mono">0 citations</span>
-                )}
-
-                {result.answer_text && (
-                  <button
-                    type="button"
-                    onClick={handleCopyAnswer}
-                    className="inline-flex items-center gap-1 text-xs text-slate-400 hover:text-white transition-colors cursor-pointer"
-                  >
-                    {copiedAnswer ? <Check size={14} className="text-emerald-400" /> : <Copy size={14} />}
-                    <span>{copiedAnswer ? 'Copied' : 'Copy answer'}</span>
-                  </button>
-                )}
               </div>
-            </div>
-          ) : (
-            <div className="space-y-3">
-              <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-white headline-display">
-                I&apos;m listening...
-              </h2>
-              <p className="text-sm text-slate-400 max-w-md mx-auto leading-relaxed">
-                What is on your mind? Speak in English, हिंदी, or मराठी.
-              </p>
+            ) : <><h2 className="text-3xl font-bold text-white">Ask with voice or text</h2><p className="text-sm text-slate-400">Validated corpus paths: English, Hindi, and Hinglish. Other provider languages remain experimental.</p><div className="flex flex-wrap justify-center gap-2 pt-2">{SAMPLE_PROMPTS.map((prompt) => <button key={prompt.text} type="button" disabled={!props.canSubmit} onClick={() => props.onSelectSamplePrompt(prompt.text)} className="max-w-[280px] truncate rounded-full border border-white/10 bg-white/5 px-3.5 py-1.5 text-xs text-slate-300 disabled:opacity-40"><span className="mr-1.5 font-mono text-[10px] text-cyan-400">[{prompt.label}]</span>{prompt.text}</button>)}</div></>}
 
-              {/* Sample Prompts Chips with proper vertical spacing and breathing room */}
-              <div className="flex flex-wrap items-center justify-center gap-2.5 pt-3 mb-4">
-                {samplePrompts.map((p, idx) => (
-                  <button
-                    key={idx}
-                    type="button"
-                    onClick={() => onSelectSamplePrompt(p.text)}
-                    className="px-3.5 py-1.5 bg-white/5 hover:bg-white/10 border border-white/10 hover:border-cyan-400/40 rounded-full text-xs text-slate-300 hover:text-white transition-all cursor-pointer truncate max-w-[280px] shadow-sm"
-                  >
-                    <span className="text-cyan-400 font-mono text-[10px] mr-1.5">[{p.label}]</span>
-                    <span>{p.text}</span>
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Error Banner */}
-          {error && !result && (
-            <div className="p-3 bg-rose-500/10 border border-rose-500/30 rounded-xl text-rose-300 text-xs text-center max-w-md">
-              {error.message}
-            </div>
-          )}
+          {props.error && !props.result && <div className="max-w-md rounded-xl border border-rose-500/30 bg-rose-500/10 p-3 text-xs text-rose-300">{props.error.message}</div>}
+          {!props.canSubmit && !props.result && <button type="button" onClick={props.onOpenDiagnostics} className="rounded-xl border border-amber-500/30 bg-amber-500/10 px-4 py-2 text-xs text-amber-200">Backend not ready — view checks</button>}
         </div>
       </div>
 
-      {/* Floating Bottom Slim Dock with Clean Lower Margin */}
-      <div className="w-full flex justify-center pt-6 pb-4">
-        <VoicePillControls
-          state={state}
-          selectedLanguage={selectedLanguage}
-          recordingDuration={recordingDuration}
-          onLanguageChange={onLanguageChange}
-          onStartRecording={onStartRecording}
-          onStopAndAsk={onStopAndAsk}
-          onCancelRecording={onCancelRecording}
-          onReset={onReset}
-          onToggleTextMode={onToggleTextMode}
-          onSelectSamplePrompt={onSelectSamplePrompt}
-          onOpenDiagnostics={onOpenDiagnostics}
-        />
-      </div>
-
-      {/* Citations & Evidence Inspector Drawer */}
-      <CitationDrawer
-        isOpen={isCitationDrawerOpen}
-        onClose={() => setIsCitationDrawerOpen(false)}
-        result={result}
-      />
+      <VoicePillControls {...props} state={props.state} onSelectSamplePrompt={props.onSelectSamplePrompt} />
+      <CitationDrawer isOpen={drawerOpen} onClose={() => setDrawerOpen(false)} result={props.result} />
     </div>
   );
 };

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { ChartLineUp, ShieldCheck, CheckCircle, Info, Hash, Clock } from '@phosphor-icons/react';
 import type { RetrievalMetrics } from '../../types/api';
 import GlassSurface from '../ui/GlassSurface';
@@ -8,30 +8,33 @@ interface RetrievalEvaluationCardProps {
 }
 
 export const RetrievalEvaluationCard: React.FC<RetrievalEvaluationCardProps> = ({ metrics }) => {
+  const [openMetricHelp, setOpenMetricHelp] = useState<string | null>(null);
+  const percent = (value: number | null) => value === null ? 'Not measured' : `${(value * 100).toFixed(2)}%`;
+  const latency = (value: number | null) => value === null ? 'Not measured' : `${value.toFixed(1)} ms`;
   const metricItems = [
     {
       label: 'Recall@1',
-      value: (metrics.recall_at_1 * 100).toFixed(2) + '%',
+      value: percent(metrics.recall_at_1),
       desc: 'Relevant passage appears at rank 1',
     },
     {
       label: 'Recall@5',
-      value: (metrics.recall_at_5 * 100).toFixed(2) + '%',
+      value: percent(metrics.recall_at_5),
       desc: 'Relevant passage appears in top 5',
     },
     {
       label: 'Recall@10',
-      value: (metrics.recall_at_10 * 100).toFixed(2) + '%',
+      value: percent(metrics.recall_at_10),
       desc: 'Relevant passage appears in top 10',
     },
     {
       label: 'MRR@10',
-      value: (metrics.mrr_at_10 * 100).toFixed(2) + '%',
-      desc: 'Mean reciprocal rank across 500 test queries',
+      value: percent(metrics.mrr_at_10),
+      desc: 'Mean reciprocal rank across retained test queries',
     },
     {
       label: 'nDCG@10',
-      value: (metrics.ndcg_at_10 * 100).toFixed(2) + '%',
+      value: percent(metrics.ndcg_at_10),
       desc: 'Normalized discounted cumulative gain in top 10',
     },
   ];
@@ -57,7 +60,7 @@ export const RetrievalEvaluationCard: React.FC<RetrievalEvaluationCardProps> = (
               </span>
             </h2>
             <p className="text-xs text-slate-400">
-              Deterministic evaluation on 500 held-out governance test fixtures (0 execution failures)
+              Artifact status: {metrics.status.replaceAll('_', ' ')} · {metrics.failure_count} execution failures
             </p>
           </div>
         </div>
@@ -87,12 +90,19 @@ export const RetrievalEvaluationCard: React.FC<RetrievalEvaluationCardProps> = (
           >
             <div className="flex items-center justify-between text-xs font-semibold text-slate-400">
               <span>{m.label}</span>
-              <div className="group relative cursor-help">
-                <Info size={13} className="text-slate-500 hover:text-slate-300" />
-                <div className="hidden group-hover:block absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-48 p-2 bg-[#141d33] border border-white/15 rounded-lg text-[10px] text-slate-200 shadow-xl z-20 pointer-events-none">
+              <button
+                type="button"
+                aria-label={`Explain ${m.label}`}
+                aria-expanded={openMetricHelp === m.label}
+                onClick={() => setOpenMetricHelp((current) => current === m.label ? null : m.label)}
+                onBlur={() => setOpenMetricHelp(null)}
+                className="group relative cursor-help rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400"
+              >
+                <Info size={13} className="text-slate-500 group-hover:text-slate-300" />
+                <span className={`${openMetricHelp === m.label ? 'block' : 'hidden group-hover:block'} absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-48 p-2 bg-[#141d33] border border-white/15 rounded-lg text-[10px] text-slate-200 shadow-xl z-20 pointer-events-none`}>
                   {m.desc}
-                </div>
-              </div>
+                </span>
+              </button>
             </div>
             <div className="font-mono text-xl sm:text-2xl font-bold text-cyan-300 font-mono-tabular">
               {m.value}
@@ -109,7 +119,7 @@ export const RetrievalEvaluationCard: React.FC<RetrievalEvaluationCardProps> = (
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2 text-xs font-bold text-slate-300">
             <Clock size={16} className="text-cyan-400" />
-            <span>Direct Retrieval Evaluation Latency (500-Query Benchmark)</span>
+            <span>Direct Retrieval Evaluation Latency ({metrics.direct_latency_sample_count ?? 0} rows)</span>
           </div>
           <span className="text-[10px] font-mono text-slate-400">
             Direct index evaluation • Distinct from end-to-end voice latency
@@ -118,19 +128,19 @@ export const RetrievalEvaluationCard: React.FC<RetrievalEvaluationCardProps> = (
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 text-center">
           <div className="p-2.5 bg-white/5 rounded-lg border border-white/5">
             <span className="text-[10px] text-slate-400 uppercase font-bold block">P50 Latency</span>
-            <span className="text-sm font-mono font-bold text-white">{metrics.direct_p50_ms || 42} ms</span>
+            <span className="text-sm font-mono font-bold text-white">{latency(metrics.direct_p50_ms)}</span>
           </div>
           <div className="p-2.5 bg-white/5 rounded-lg border border-white/5">
             <span className="text-[10px] text-slate-400 uppercase font-bold block">P70 Latency</span>
-            <span className="text-sm font-mono font-bold text-white">{metrics.direct_p70_ms || 68} ms</span>
+            <span className="text-sm font-mono font-bold text-white">{latency(metrics.direct_p70_ms)}</span>
           </div>
           <div className="p-2.5 bg-white/5 rounded-lg border border-white/5">
             <span className="text-[10px] text-slate-400 uppercase font-bold block">P95 Latency</span>
-            <span className="text-sm font-mono font-bold text-white">{metrics.direct_p95_ms || 118} ms</span>
+            <span className="text-sm font-mono font-bold text-white">{latency(metrics.direct_p95_ms)}</span>
           </div>
           <div className="p-2.5 bg-white/5 rounded-lg border border-white/5">
             <span className="text-[10px] text-slate-400 uppercase font-bold block">Max Latency</span>
-            <span className="text-sm font-mono font-bold text-cyan-300">{metrics.direct_max_ms || 194} ms</span>
+            <span className="text-sm font-mono font-bold text-cyan-300">{latency(metrics.direct_max_ms)}</span>
           </div>
         </div>
       </div>
@@ -140,14 +150,14 @@ export const RetrievalEvaluationCard: React.FC<RetrievalEvaluationCardProps> = (
         <div className="p-3 bg-white/5 border border-white/8 rounded-xl flex items-center justify-between">
           <span className="text-slate-400">Hit Coverage:</span>
           <span className="font-mono font-bold text-white">
-            {(metrics.retrieval_hit_coverage * 100).toFixed(1)}%
+            {percent(metrics.retrieval_hit_coverage)}
           </span>
         </div>
         <div className="p-3 bg-white/5 border border-white/8 rounded-xl flex items-center justify-between">
           <span className="text-slate-400">Execution Failures:</span>
           <span className="font-mono font-bold text-emerald-400 flex items-center gap-1">
             <CheckCircle size={14} weight="fill" />
-            <span>{metrics.failure_count} (0.00%)</span>
+            <span>{metrics.failure_count}</span>
           </span>
         </div>
         <div className="p-3 bg-white/5 border border-white/8 rounded-xl flex items-center justify-between">
@@ -162,8 +172,8 @@ export const RetrievalEvaluationCard: React.FC<RetrievalEvaluationCardProps> = (
       <div className="flex items-center gap-2 text-[10px] text-slate-400 pt-2 border-t border-white/8 font-mono">
         <Hash size={13} className="text-cyan-400 shrink-0" />
         <span className="text-slate-500">Source Report SHA256:</span>
-        <span className="truncate text-slate-300" title={metrics.source_artifact_sha256}>
-          {metrics.source_artifact_sha256}
+        <span className="truncate text-slate-300" title={metrics.source_artifact_sha256 ?? undefined}>
+          {metrics.source_artifact_sha256 ?? 'Not available'}
         </span>
       </div>
     </GlassSurface>

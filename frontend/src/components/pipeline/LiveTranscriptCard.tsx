@@ -1,4 +1,5 @@
 import { CheckCircle, ChatCenteredText, Info } from '@phosphor-icons/react';
+import { getLanguageDisplayLabel } from '../../types/api';
 
 interface LiveTranscriptCardProps {
   transcript: string;
@@ -77,13 +78,7 @@ export const LiveTranscriptCard: React.FC<LiveTranscriptCardProps> = ({
         <div className="flex items-center gap-2">
           {detectedLanguage && detectedLanguage !== 'unknown' && (
             <span className="px-2 py-0.5 rounded bg-surface-subtle border border-subtle text-[10px] font-mono font-bold text-primary uppercase">
-              {detectedLanguage === 'hi'
-                ? 'Hindi'
-                : detectedLanguage === 'mr'
-                ? 'Marathi'
-                : detectedLanguage === 'en'
-                ? 'English'
-                : detectedLanguage}
+              {getLanguageDisplayLabel(detectedLanguage)}
             </span>
           )}
 

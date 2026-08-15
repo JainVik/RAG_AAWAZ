@@ -1,8 +1,9 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-import { useState, useEffect } from 'react';
+import { lazy, Suspense, useEffect, useState } from 'react';
 import { Shell } from './components/layout/Shell';
-import { AskPage } from './pages/AskPage';
-import { EvidencePage } from './pages/EvidencePage';
+
+const AskPage = lazy(() => import('./pages/AskPage').then((module) => ({ default: module.AskPage })));
+const EvidencePage = lazy(() => import('./pages/EvidencePage').then((module) => ({ default: module.EvidencePage })));
 
 export default function App() {
   const [isDark, setIsDark] = useState<boolean>(() => {
@@ -20,7 +21,7 @@ export default function App() {
   return (
     <BrowserRouter>
       <Shell isDark={isDark} onToggleTheme={() => setIsDark(!isDark)}>
-        <Routes>
+        <Suspense fallback={<div className="py-20 text-center text-sm text-slate-400">Loading workspace…</div>}><Routes>
           <Route path="/" element={<Navigate to="/ask" replace />} />
           <Route path="/ask" element={<AskPage />} />
           <Route path="/evidence" element={<EvidencePage />} />
@@ -39,7 +40,7 @@ export default function App() {
               </div>
             }
           />
-        </Routes>
+        </Routes></Suspense>
       </Shell>
     </BrowserRouter>
   );

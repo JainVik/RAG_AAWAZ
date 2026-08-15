@@ -14,6 +14,7 @@ interface CorpusScalingCardProps {
 }
 
 export const CorpusScalingCard: React.FC<CorpusScalingCardProps> = ({ scaling }) => {
+  const count = (value: number | null) => value === null ? 'Not measured' : value.toLocaleString();
   return (
     <GlassSurface
       borderRadius={20}
@@ -38,7 +39,7 @@ export const CorpusScalingCard: React.FC<CorpusScalingCardProps> = ({ scaling })
                 </span>
               </div>
               <p className="text-xs text-slate-400 mt-0.5">
-                Current 10,005-document baseline index verified • Multi-scale comparison pending
+                Baseline: {scaling.baseline_document_count?.toLocaleString() ?? 'not measured'} documents · comparison: {scaling.scaling_comparison_status}
               </p>
             </div>
           </div>
@@ -56,7 +57,7 @@ export const CorpusScalingCard: React.FC<CorpusScalingCardProps> = ({ scaling })
               Baseline Documents
             </span>
             <span className="text-white font-mono font-bold text-base block">
-              {scaling.baseline_document_count.toLocaleString()}
+              {count(scaling.baseline_document_count)}
             </span>
             <span className="text-[10px] text-slate-500 block">Verified source files</span>
           </div>
@@ -66,9 +67,9 @@ export const CorpusScalingCard: React.FC<CorpusScalingCardProps> = ({ scaling })
               Indexed Points / Chunks
             </span>
             <span className="text-cyan-400 font-mono font-bold text-base block">
-              {scaling.baseline_chunk_count.toLocaleString()}
+              {count(scaling.baseline_chunk_count)}
             </span>
-            <span className="text-[10px] text-slate-500 block">Across 5 representations</span>
+            <span className="text-[10px] text-slate-500 block">Reported baseline point count</span>
           </div>
 
           <div className="p-3.5 bg-white/5 border border-white/8 rounded-xl space-y-1">
@@ -89,7 +90,7 @@ export const CorpusScalingCard: React.FC<CorpusScalingCardProps> = ({ scaling })
             <span>Multi-Corpus Scaling Policy</span>
           </div>
           <p className="text-xs text-slate-400 leading-relaxed">
-            {scaling.notes} When multiple independently qualified corpus sizes (e.g. 25k, 50k, 100k) are built via offline pipeline runners, this view will render an empirical comparison of build duration, index memory footprint, Recall@10, and search latency.
+            {scaling.notes ?? 'No scaling comparison artifact is available.'}
           </p>
         </div>
 
@@ -102,7 +103,7 @@ export const CorpusScalingCard: React.FC<CorpusScalingCardProps> = ({ scaling })
           </div>
           <span className="shrink-0 text-slate-400 flex items-center gap-1">
             <Database size={12} />
-            <span>Baseline v1.4.0</span>
+            <span>{scaling.status.replaceAll('_', ' ')}</span>
           </span>
         </div>
       </div>

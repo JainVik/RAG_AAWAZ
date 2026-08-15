@@ -1,9 +1,10 @@
-import React, { useState, useEffect, useCallback, createContext, useContext } from 'react';
+import React, { Suspense, createContext, lazy, useCallback, useContext, useEffect, useState } from 'react';
 import { Header } from '../common/Header';
 import { SystemChecksDrawer } from '../common/SystemChecksDrawer';
 import type { HealthResponse, ReadyResponse } from '../../types/api';
 import { getHealth, getReady } from '../../services/api';
-import { GradientWaves } from '../ui/GradientWaves';
+
+const GradientWaves = lazy(() => import('../ui/GradientWaves').then((module) => ({ default: module.GradientWaves })));
 
 interface ShellContextType {
   openSystemChecks: () => void;
@@ -34,6 +35,7 @@ export const Shell: React.FC<ShellProps> = ({ children, isDark, onToggleTheme })
   const [ready, setReady] = useState<ReadyResponse | null>(null);
   const [isLoadingStatus, setIsLoadingStatus] = useState<boolean>(true);
   const [isDrawerOpen, setIsDrawerOpen] = useState<boolean>(false);
+  const [reduceMotion, setReduceMotion] = useState(() => window.matchMedia('(prefers-reduced-motion: reduce)').matches);
 
   const fetchStatus = useCallback(async () => {
     setIsLoadingStatus(true);
@@ -55,6 +57,13 @@ export const Shell: React.FC<ShellProps> = ({ children, isDark, onToggleTheme })
     return () => clearInterval(interval);
   }, [fetchStatus]);
 
+  useEffect(() => {
+    const query = window.matchMedia('(prefers-reduced-motion: reduce)');
+    const update = () => setReduceMotion(query.matches);
+    query.addEventListener('change', update);
+    return () => query.removeEventListener('change', update);
+  }, []);
+
   return (
     <ShellContext.Provider
       value={{
@@ -68,7 +77,7 @@ export const Shell: React.FC<ShellProps> = ({ children, isDark, onToggleTheme })
       <div className="relative min-h-[100dvh] flex flex-col text-slate-100 overflow-x-hidden selection:bg-cyan-500/30 selection:text-cyan-200">
         {/* Full-Screen Animated 3D WebGL Gradient Waves Background */}
         <div className="fixed inset-0 z-0 pointer-events-none w-screen h-screen overflow-hidden bg-[#070b14]">
-          <GradientWaves
+          {!reduceMotion && <Suspense fallback={null}><GradientWaves
             horizonColor="#050814"
             waveColor="#1e40af"
             crestColor="#06b6d4"
@@ -89,7 +98,7 @@ export const Shell: React.FC<ShellProps> = ({ children, isDark, onToggleTheme })
             parallaxStrength={0.4}
             grain={true}
             grainIntensity={0.04}
-          />
+          /></Suspense>}
         </div>
 
         {/* Global Application Header */}

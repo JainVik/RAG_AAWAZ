@@ -45,6 +45,15 @@ class StallingSessionEndProvider(FakeSpeechToTextProvider):
             yield SttEvent(event_type=SttEventType.FINAL, text="unreachable")
 
 
+class SessionConfigurableFakeProvider(FakeSpeechToTextProvider):
+    def __init__(self, events: Iterable[SttEvent]) -> None:
+        super().__init__(events)
+        self.configured_language: Language | None = None
+
+    def configure_session(self, language: Language) -> None:
+        self.configured_language = language
+
+
 class VoiceTestServices:
     def __init__(
         self,
@@ -146,22 +155,24 @@ def test_voice_websocket_uses_final_stt_and_same_grounded_harness() -> None:
         assert answer["citations"]
 
 
-def test_voice_websocket_aggregates_all_final_utterances_and_provider_language() -> None:
+def test_voice_websocket_explicit_language_overrides_provider_language() -> None:
     events = (
         SttEvent(
             event_type=SttEventType.FINAL,
-            text="When was",
+            text="गोवा राज्य",
             language=Language.UNKNOWN,
             provider_metadata={"utterance_idx": 0, "detected_language": "en-IN"},
         ),
         SttEvent(
             event_type=SttEventType.FINAL,
-            text="Goa formed",
+            text="कब बना",
             language=Language.ENGLISH,
             provider_metadata={"utterance_idx": 1, "detected_language": "en-IN"},
         ),
     )
     services = asyncio.run(make_services(events))
+    provider = SessionConfigurableFakeProvider(events)
+    services.stt_factory = lambda: provider
     pcm = struct.pack("<8000h", *([1_000] * 8_000))
     with (
         TestClient(create_app(services)) as client,
@@ -193,9 +204,10 @@ def test_voice_websocket_aggregates_all_final_utterances_and_provider_language()
                 answer = event["payload"]
                 break
         assert answer is not None
-        assert answer["transcript"] == "When was Goa formed"
-        assert answer["language"] == "en"
+        assert answer["transcript"] == "गोवा राज्य कब बना"
+        assert answer["language"] == "hi"
         assert answer["state"] == "COMPLETED"
+        assert provider.configured_language is Language.HINDI
 
 
 class CancelAwareRetriever:

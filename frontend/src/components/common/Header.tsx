@@ -47,7 +47,7 @@ export const Header: React.FC<HeaderProps> = ({
               VANI <span className="text-cyan-400">RAG</span>
             </span>
             <span className="text-[9px] font-semibold text-slate-400 tracking-wider uppercase mt-0.5">
-              Goa Governance Corpus
+              MSMARCO-XI Multilingual RAG
             </span>
           </div>
         </div>

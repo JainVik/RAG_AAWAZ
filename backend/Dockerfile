@@ -6,9 +6,11 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 
 WORKDIR /service
 COPY pyproject.toml ./
+ARG TORCH_VERSION=2.13.0
+RUN python -m pip install --upgrade pip \
+    && python -m pip install "torch==${TORCH_VERSION}" --index-url https://download.pytorch.org/whl/cpu \
+    && python -m pip install ".[embeddings]"
 COPY app ./app
-RUN python -m pip install --upgrade pip && python -m pip install ".[embeddings]"
 
 EXPOSE 8000
 CMD ["python", "-m", "uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
-

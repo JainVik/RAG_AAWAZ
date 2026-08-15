@@ -1,22 +1,22 @@
 # Retrieval evaluation
 
-Qualification: **non_qualifying_fresh_untouched_final_evaluation**
+Qualification: **qualifying**
 
 | Queries | Recall@1 | Recall@5 | Recall@10 | MRR@10 | nDCG@10 | Hit coverage | Retrieval completion | Request failures | Configuration failures |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| 500 | 0.266 | 0.706333 | 0.841333 | 0.453616 | 0.546459 | 0.846 | 1 | 0 | 0 |
+| 500 | 0.245 | 0.647333 | 0.796333 | 0.419519 | 0.508526 | 0.802 | 1 | 0 | 0 |
 
 ## End-to-end retrieval latency
 
 | Samples | Mean (ms) | P50 (ms) | P70 (ms) | P95 (ms) | P100 (ms) |
 | --- | --- | --- | --- | --- | --- |
-| 500 | 306.712686 | 301.7496 | 310.2788 | 346.1513 | 529.2468 |
+| 500 | 287.270836 | 284.357 | 289.5802 | 303.7433 | 497.2792 |
 
 ## Per-language metrics
 
 | Language | Queries | Recall@10 | MRR@10 | nDCG@10 |
 | --- | --- | --- | --- | --- |
-| hi | 500 | 0.841333 | 0.453616 | 0.546459 |
+| hi | 500 | 0.796333 | 0.419519 | 0.508526 |
 
 ## Per-category metrics
 
@@ -24,6 +24,6 @@ Qualification: **non_qualifying_fresh_untouched_final_evaluation**
 | --- | --- | --- | --- | --- |
 | descriptive | 18 | 0.888889 | 0.538889 | 0.629857 |
 | general | 275 | 0.83697 | 0.437286 | 0.532255 |
-| short_factual | 207 | 0.842995 | 0.467895 | 0.558077 |
+| short_factual | 207 | 0.7343 | 0.385536 | 0.466452 |
 
 Raw row-level results are in the sibling JSONL and CSV artifacts. Hardware, package, corpus, cache, and concurrency metadata are in the JSON summary.

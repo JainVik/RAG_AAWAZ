@@ -110,7 +110,7 @@
         "sentence_window": 31793
       }
     },
-    "created_at": "2026-08-15T10:36:54.813767+00:00",
+    "created_at": "2026-08-15T19:45:01.940477+00:00",
     "deadline_ms": 5000,
     "fixture": {
       "path": "C:\\RAG\\backend\\data\\evaluation\\partition\\development-fixtures.jsonl",
@@ -151,8 +151,8 @@
       "dense_model": "intfloat/multilingual-e5-small",
       "index_manifest_sha256": "3b872e3a2d0775c7bcc63c9305f1c26cd3c37313a46bfee2d4967199b33da3d5",
       "model_revision": "614241f622f53c4eeff9890bdc4f31cfecc418b3",
-      "retrieval_contract_sha256": "e6fd1b2955911ed8f49f38734de975f2cc5154c6b00d1eb7f73a4b78f794320c",
-      "retrieval_contract_version": "tide-router-heuristics-v4"
+      "retrieval_contract_sha256": "bc1974d50d11690cbfe6e8c3945cc234833ed946a286caf26418758c2188c189",
+      "retrieval_contract_version": "tide-router-heuristics-v6"
     },
     "schema_version": 1,
     "unanswerable_count": 12,

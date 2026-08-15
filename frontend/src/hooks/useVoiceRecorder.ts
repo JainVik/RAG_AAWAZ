@@ -1,13 +1,23 @@
-import { useState, useRef, useCallback, useEffect } from 'react';
-import { startAudioCapture } from '../utils/audio';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import type {
-  VoiceRecorderState,
-  VoiceRecorderError,
-  VoiceResultData,
-  VoiceServerEvent,
+  LanguageHint,
   PipelineState,
-  Language,
+  QueryResponse,
+  VoiceClientFrame,
+  VoiceErrorState,
+  VoiceRecorderState,
 } from '../types/api';
+import { parseVoiceServerEvent, toBackendLanguage } from '../types/api';
+import { getVoiceWebSocketUrl } from '../services/api';
+import {
+  AUTO_STOP_SILENCE_CONFIG,
+  createSilenceDetectionState,
+  markRecognizedSpeech,
+  observeVolumeForAutoStop,
+  startAudioCapture,
+  type AudioCaptureHandle,
+  type SilenceDetectionState,
+} from '../utils/audio';
 
 export interface UseVoiceRecorderReturn {
   state: VoiceRecorderState;
@@ -16,10 +26,10 @@ export interface UseVoiceRecorderReturn {
   partialTranscript: string;
   detectedLanguage: string | null;
   pipelineState: PipelineState | null;
-  result: VoiceResultData | null;
-  error: VoiceRecorderError | null;
-  selectedLanguage: Language;
-  setSelectedLanguage: (lang: Language) => void;
+  result: QueryResponse | null;
+  error: VoiceErrorState | null;
+  selectedLanguage: LanguageHint;
+  setSelectedLanguage: (language: LanguageHint) => void;
   startRecording: () => Promise<void>;
   stopAndAsk: () => void;
   cancelRecording: () => void;
@@ -27,334 +37,371 @@ export interface UseVoiceRecorderReturn {
   isBackendConnected: boolean;
 }
 
+const MAX_RECORDING_SECONDS = 60;
+const MAX_QUEUED_CHUNKS = 100;
+
 export function useVoiceRecorder(): UseVoiceRecorderReturn {
   const [state, setState] = useState<VoiceRecorderState>('idle');
-  const [audioLevel, setAudioLevel] = useState<number>(0);
-  const [recordingDuration, setRecordingDuration] = useState<number>(0);
-  const [partialTranscript, setPartialTranscript] = useState<string>('');
+  const [audioLevel, setAudioLevel] = useState(0);
+  const [recordingDuration, setRecordingDuration] = useState(0);
+  const [partialTranscript, setPartialTranscript] = useState('');
   const [detectedLanguage, setDetectedLanguage] = useState<string | null>(null);
   const [pipelineState, setPipelineState] = useState<PipelineState | null>(null);
-  const [result, setResult] = useState<VoiceResultData | null>(null);
-  const [error, setError] = useState<VoiceRecorderError | null>(null);
-  const [selectedLanguage, setSelectedLanguage] = useState<Language>('auto' as Language);
-  const [isBackendConnected, setIsBackendConnected] = useState<boolean>(false);
+  const [result, setResult] = useState<QueryResponse | null>(null);
+  const [error, setError] = useState<VoiceErrorState | null>(null);
+  const [selectedLanguage, setSelectedLanguage] = useState<LanguageHint>('auto');
+  const [isBackendConnected, setIsBackendConnected] = useState(false);
 
-  // References
+  const stateRef = useRef<VoiceRecorderState>('idle');
   const socketRef = useRef<WebSocket | null>(null);
-  const captureHandleRef = useRef<{ stop: () => void } | null>(null);
+  const captureRef = useRef<AudioCaptureHandle | null>(null);
   const timerRef = useRef<number | null>(null);
-  const sequenceRef = useRef<number>(0);
-  const audioChunksCountRef = useRef<number>(0);
+  const sequenceRef = useRef(0);
+  const chunkCountRef = useRef(0);
+  const queuedChunksRef = useRef<string[]>([]);
+  const pendingEndRef = useRef(false);
+  const intentionalCloseRef = useRef(false);
+  const sessionRef = useRef(0);
+  const recordingStartedRef = useRef(0);
+  const finishRef = useRef<() => void>(() => undefined);
+  const silenceStateRef = useRef<SilenceDetectionState>(createSilenceDetectionState(0));
+  const autoStopTriggeredRef = useRef(false);
+  const lastPartialTextRef = useRef('');
+  const lastPartialChangeAtRef = useRef<number | null>(null);
+  const latestVolumeRef = useRef(0);
+  const peakVolumeRef = useRef(0);
 
-  // Cleanup all audio and socket resources
-  const cleanupAudioAndSocket = useCallback(() => {
-    if (timerRef.current) {
-      clearInterval(timerRef.current);
+  const transition = useCallback((next: VoiceRecorderState) => {
+    stateRef.current = next;
+    setState(next);
+  }, []);
+
+  const stopCapture = useCallback(() => {
+    if (timerRef.current !== null) {
+      window.clearInterval(timerRef.current);
       timerRef.current = null;
     }
-    if (captureHandleRef.current) {
-      try {
-        captureHandleRef.current.stop();
-      } catch {
-        // Ignore audio stop errors
-      }
-      captureHandleRef.current = null;
-    }
-    if (socketRef.current) {
-      try {
-        if (socketRef.current.readyState === WebSocket.OPEN) {
-          socketRef.current.close(1000, 'Session completed or reset');
-        }
-      } catch {
-        // Ignore socket close errors
-      }
-      socketRef.current = null;
-    }
+    captureRef.current?.stop();
+    captureRef.current = null;
     setAudioLevel(0);
   }, []);
 
-  // Cleanup on component unmount
-  useEffect(() => {
-    return () => {
-      cleanupAudioAndSocket();
-    };
-  }, [cleanupAudioAndSocket]);
-
-  /**
-   * Helper to send typed JSON frames over WebSocket
-   */
-  const sendFrame = useCallback((frame: Record<string, unknown>) => {
-    if (socketRef.current && socketRef.current.readyState === WebSocket.OPEN) {
-      try {
-        socketRef.current.send(JSON.stringify(frame));
-      } catch (err) {
-        console.error('Failed to send WebSocket frame:', err);
-      }
+  const closeSocket = useCallback(() => {
+    const socket = socketRef.current;
+    socketRef.current = null;
+    if (socket && socket.readyState !== WebSocket.CLOSED) {
+      intentionalCloseRef.current = true;
+      socket.close(1000, 'Client session complete');
     }
+    setIsBackendConnected(false);
   }, []);
 
-  /**
-   * Handle incoming server events from real FastAPI WebSocket
-   */
-  const handleServerEvent = useCallback(
-    (event: VoiceServerEvent) => {
-      switch (event.type) {
-        case 'stt_partial': {
-          const text = event.transcript || event.payload?.text;
-          const lang = event.language || event.payload?.language;
-          if (text) {
-            setPartialTranscript(text);
-          }
-          if (lang) {
-            setDetectedLanguage(lang);
-          }
-          break;
-        }
+  const cleanup = useCallback(() => {
+    stopCapture();
+    closeSocket();
+    queuedChunksRef.current = [];
+    pendingEndRef.current = false;
+    autoStopTriggeredRef.current = false;
+    silenceStateRef.current = createSilenceDetectionState(0);
+    lastPartialTextRef.current = '';
+    lastPartialChangeAtRef.current = null;
+    latestVolumeRef.current = 0;
+    peakVolumeRef.current = 0;
+  }, [closeSocket, stopCapture]);
 
-        case 'pipeline_state': {
-          const pState = event.state || event.payload?.state;
-          if (pState) {
-            setPipelineState(pState);
-          }
-          break;
-        }
+  const sendFrame = useCallback((frame: VoiceClientFrame): boolean => {
+    const socket = socketRef.current;
+    if (!socket || socket.readyState !== WebSocket.OPEN) return false;
+    socket.send(JSON.stringify(frame));
+    return true;
+  }, []);
 
-        case 'answer': {
-          cleanupAudioAndSocket();
-          setState('terminal');
-          setPipelineState('COMPLETED');
-          setIsBackendConnected(true);
-
-          const answerPayload = event.payload;
-          setResult({
-            request_id: event.request_id || answerPayload?.request_id || `req_${Date.now()}`,
-            state: 'COMPLETED',
-            answer_mode: answerPayload?.answer_mode || event.answer_mode || 'grounded_extractive',
-            transcript: answerPayload?.transcript || event.transcript || partialTranscript || '',
-            language: answerPayload?.language || event.language || detectedLanguage || 'hi',
-            answer_text: answerPayload?.answer_text || answerPayload?.answer || event.answer_text || null,
-            abstention_reason: answerPayload?.abstention_reason || event.abstention_reason || null,
-            guardrail: answerPayload?.guardrail || event.guardrail,
-            citations: answerPayload?.citations || event.citations || [],
-            timings: answerPayload?.timings || event.timings || {
-              audio_received_ms: 0,
-              stt_final_ms: 0,
-              retrieval_ms: 0,
-              answer_ms: 0,
-              total_ms: 0,
-            },
-          });
-          break;
-        }
-
-        case 'error': {
-          cleanupAudioAndSocket();
-          setState('terminal');
-          setPipelineState('FAILED');
-          const errorMsg = event.message || event.payload?.message || 'The server encountered an error processing your query.';
-          setError({
-            type: 'backend_error',
-            message: errorMsg,
-            details: event.details || event.payload?.details,
-            retryable: event.retryable ?? true,
-          });
-          break;
-        }
-      }
+  const failSession = useCallback(
+    (nextError: VoiceErrorState) => {
+      cleanup();
+      setError(nextError);
+      setPipelineState(nextError.state || 'FAILED');
+      transition('terminal');
     },
-    [cleanupAudioAndSocket, partialTranscript, detectedLanguage]
+    [cleanup, transition]
   );
 
-  /**
-   * Start microphone capture and connect real WebSocket
-   */
+  const finishRecording = useCallback(() => {
+    if (stateRef.current !== 'recording') return;
+    const elapsedMs = Date.now() - recordingStartedRef.current;
+    if (chunkCountRef.current < 3 && elapsedMs < 1_000) {
+      failSession({
+        type: 'too_short',
+        code: 'VALIDATION_ERROR',
+        state: 'NEEDS_REPEAT',
+        message: 'Audio was too short. Please speak your complete question and try again.',
+        retryable: true,
+      });
+      return;
+    }
+    stopCapture();
+    transition('processing');
+    setPipelineState('STT_FINAL');
+    if (!sendFrame({ type: 'end_of_stream', version: '1' })) {
+      pendingEndRef.current = true;
+    }
+  }, [failSession, sendFrame, stopCapture, transition]);
+
+  finishRef.current = finishRecording;
+
   const startRecording = useCallback(async () => {
-    cleanupAudioAndSocket();
+    cleanup();
+    sessionRef.current += 1;
+    const session = sessionRef.current;
+    intentionalCloseRef.current = false;
+    sequenceRef.current = 0;
+    chunkCountRef.current = 0;
+    queuedChunksRef.current = [];
+    pendingEndRef.current = false;
     setError(null);
     setResult(null);
     setPartialTranscript('');
+    setDetectedLanguage(null);
     setPipelineState(null);
     setRecordingDuration(0);
-    sequenceRef.current = 0;
-    audioChunksCountRef.current = 0;
-
-    const requestId = `req_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
-
-    setState('requesting_permission');
+    transition('requesting_permission');
 
     try {
-      // Connect WebSocket to real backend
-      const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-      const wsUrl = `${wsProtocol}//${window.location.host}/v1/query/voice`;
+      const capture = await startAudioCapture((base64Chunk, volume) => {
+        if (sessionRef.current !== session || stateRef.current === 'terminal') return;
+        setAudioLevel(volume);
+        latestVolumeRef.current = volume;
+        peakVolumeRef.current = Math.max(peakVolumeRef.current, volume);
+        chunkCountRef.current += 1;
+        if (stateRef.current === 'recording' && !autoStopTriggeredRef.current) {
+          const observation = observeVolumeForAutoStop(
+            silenceStateRef.current,
+            volume,
+            Date.now()
+          );
+          silenceStateRef.current = observation.state;
+          if (observation.shouldStop) {
+            autoStopTriggeredRef.current = true;
+            finishRef.current();
+            return;
+          }
+        }
+        const frame = {
+          type: 'audio_chunk' as const,
+          version: '1' as const,
+          sequence: sequenceRef.current,
+          audio_b64: base64Chunk,
+        };
+        if (sendFrame(frame)) {
+          sequenceRef.current += 1;
+          return;
+        }
+        if (queuedChunksRef.current.length >= MAX_QUEUED_CHUNKS) {
+          failSession({
+            type: 'socket_timeout',
+            code: 'DEPENDENCY_UNAVAILABLE',
+            state: 'DEPENDENCY_UNAVAILABLE',
+            message: 'The voice connection did not become ready in time.',
+            retryable: true,
+          });
+          return;
+        }
+        queuedChunksRef.current.push(base64Chunk);
+      });
+      if (sessionRef.current !== session) {
+        capture.stop();
+        return;
+      }
+      captureRef.current = capture;
+      recordingStartedRef.current = Date.now();
+      silenceStateRef.current = createSilenceDetectionState(recordingStartedRef.current);
+      transition('recording');
+      setPipelineState('AUDIO_RECEIVED');
 
-      const socket = new WebSocket(wsUrl);
+      const socket = new WebSocket(getVoiceWebSocketUrl());
       socketRef.current = socket;
-
       socket.onopen = () => {
+        if (sessionRef.current !== session) return;
         setIsBackendConnected(true);
         sendFrame({
           type: 'start',
           version: '1',
-          request_id: requestId,
+          request_id: crypto.randomUUID(),
           encoding: 'pcm_s16le',
           sample_rate_hz: 16000,
-          language: selectedLanguage,
+          language: toBackendLanguage(selectedLanguage),
         });
-      };
-
-      socket.onmessage = (e) => {
-        try {
-          const data = JSON.parse(e.data) as VoiceServerEvent;
-          handleServerEvent(data);
-        } catch {
-          // Malformed event
+        for (const audio_b64 of queuedChunksRef.current) {
+          sendFrame({
+            type: 'audio_chunk',
+            version: '1',
+            sequence: sequenceRef.current++,
+            audio_b64,
+          });
+        }
+        queuedChunksRef.current = [];
+        if (pendingEndRef.current) {
+          pendingEndRef.current = false;
+          sendFrame({ type: 'end_of_stream', version: '1' });
         }
       };
-
+      socket.onmessage = (message) => {
+        if (sessionRef.current !== session) return;
+        try {
+          const event = parseVoiceServerEvent(JSON.parse(String(message.data)) as unknown);
+          if (event.type === 'stt_partial') {
+            setPartialTranscript(event.payload.text);
+            setDetectedLanguage(event.payload.language);
+            const normalizedPartial = event.payload.text.trim().replace(/\s+/g, ' ').toLocaleLowerCase();
+            if (
+              normalizedPartial &&
+              normalizedPartial !== lastPartialTextRef.current &&
+              stateRef.current === 'recording'
+            ) {
+              lastPartialTextRef.current = normalizedPartial;
+              lastPartialChangeAtRef.current = Date.now();
+              silenceStateRef.current = markRecognizedSpeech(
+                silenceStateRef.current,
+                Date.now()
+              );
+            }
+          } else if (event.type === 'pipeline_state') {
+            setPipelineState(event.payload.state);
+          } else if (event.type === 'answer') {
+            stopCapture();
+            closeSocket();
+            setResult(event.payload);
+            setPartialTranscript(event.payload.transcript);
+            setDetectedLanguage(event.payload.language);
+            setPipelineState(event.payload.state);
+            transition('terminal');
+          } else {
+            failSession({
+              type: 'backend_error',
+              code: event.payload.code,
+              state: event.payload.state,
+              message: event.payload.message,
+              retryable: event.payload.retryable,
+              details: event.payload.details,
+              timingsMs: event.payload.timings_ms,
+            });
+          }
+        } catch (eventError) {
+          failSession({
+            type: 'protocol_error',
+            code: 'VALIDATION_ERROR',
+            state: 'FAILED',
+            message:
+              eventError instanceof Error
+                ? eventError.message
+                : 'The backend returned an invalid voice event.',
+            retryable: false,
+          });
+        }
+      };
       socket.onerror = () => {
-        setIsBackendConnected(false);
-        cleanupAudioAndSocket();
-        setState('terminal');
-        setError({
+        if (sessionRef.current !== session || intentionalCloseRef.current) return;
+        failSession({
           type: 'socket_error',
-          message: 'Backend voice streaming service is unreachable at 127.0.0.1:8000. Please start the backend service (make dev).',
+          code: 'DEPENDENCY_UNAVAILABLE',
+          state: 'DEPENDENCY_UNAVAILABLE',
+          message: 'The backend voice streaming service is unreachable.',
           retryable: true,
         });
       };
-
       socket.onclose = (event) => {
         setIsBackendConnected(false);
-        // If closed prematurely while still recording/processing without result
-        if (state === 'recording' || state === 'processing') {
-          cleanupAudioAndSocket();
-          setState('terminal');
-          setError({
+        if (
+          sessionRef.current === session &&
+          !intentionalCloseRef.current &&
+          stateRef.current !== 'terminal'
+        ) {
+          failSession({
             type: 'socket_error',
-            message: event.reason || 'Voice streaming connection was closed by the backend.',
+            code: 'DEPENDENCY_UNAVAILABLE',
+            state: 'DEPENDENCY_UNAVAILABLE',
+            message: event.reason || 'The voice connection closed before a terminal response.',
             retryable: true,
           });
         }
       };
 
-      // Start capturing 16kHz PCM audio
-      const captureHandle = await startAudioCapture((base64Chunk, volume) => {
-        setAudioLevel(volume);
-        audioChunksCountRef.current += 1;
-
-        if (socket && socket.readyState === WebSocket.OPEN) {
-          sendFrame({
-            type: 'audio_chunk',
-            version: '1',
-            sequence: sequenceRef.current++,
-            audio_b64: base64Chunk,
-          });
-        }
-      });
-
-      captureHandleRef.current = captureHandle;
-      setState('recording');
-      setPipelineState('AUDIO_RECEIVED');
-
-      // Start duration timer
-      const startTime = Date.now();
       timerRef.current = window.setInterval(() => {
-        const elapsed = Math.floor((Date.now() - startTime) / 1000);
+        const now = Date.now();
+        const elapsedMs = now - recordingStartedRef.current;
+        const elapsed = Math.floor(elapsedMs / 1000);
         setRecordingDuration(elapsed);
-
-        // Auto-stop at 60 seconds
-        if (elapsed >= 60) {
-          stopAndAsk();
+        const adaptiveQuietThreshold = Math.max(
+          AUTO_STOP_SILENCE_CONFIG.speechVolumeThreshold,
+          peakVolumeRef.current * 0.35
+        );
+        const transcriptStableForSilenceWindow =
+          lastPartialChangeAtRef.current !== null &&
+          now - lastPartialChangeAtRef.current >= AUTO_STOP_SILENCE_CONFIG.silenceMs;
+        const microphoneIsQuiet = latestVolumeRef.current < adaptiveQuietThreshold;
+        if (
+          stateRef.current === 'recording' &&
+          !autoStopTriggeredRef.current &&
+          elapsedMs >= AUTO_STOP_SILENCE_CONFIG.minimumRecordingMs &&
+          transcriptStableForSilenceWindow &&
+          microphoneIsQuiet
+        ) {
+          autoStopTriggeredRef.current = true;
+          finishRef.current();
+          return;
         }
+        if (elapsed >= MAX_RECORDING_SECONDS) finishRef.current();
       }, 250);
-    } catch (err: unknown) {
-      cleanupAudioAndSocket();
-      setState('idle');
-      if (err instanceof DOMException && err.name === 'NotAllowedError') {
-        setError({
-          type: 'permission_denied',
-          message: 'Microphone permission was denied. Please allow microphone access in browser settings or use Text mode.',
-          retryable: true,
-        });
-      } else if (err instanceof DOMException && err.name === 'NotFoundError') {
-        setError({
-          type: 'no_microphone',
-          message: 'No microphone was detected. Please connect a microphone or use Text mode.',
-          retryable: false,
-        });
-      } else {
-        setError({
-          type: 'unsupported',
-          message: 'Web Audio recording is not supported in this browser. Please switch to Text mode.',
-          retryable: false,
-        });
-      }
-    }
-  }, [selectedLanguage, handleServerEvent, cleanupAudioAndSocket, sendFrame, state]);
-
-  /**
-   * Stop recording and request final answer from backend
-   */
-  const stopAndAsk = useCallback(() => {
-    if (state !== 'recording') return;
-
-    // Check for too short audio (< 0.5s or < 3 chunks)
-    if (audioChunksCountRef.current < 3 && recordingDuration < 1) {
-      cleanupAudioAndSocket();
-      setState('terminal');
-      setPipelineState('NEEDS_REPEAT');
+    } catch (captureError) {
+      cleanup();
+      transition('idle');
+      const permissionDenied =
+        captureError instanceof DOMException && captureError.name === 'NotAllowedError';
+      const noMicrophone = captureError instanceof DOMException && captureError.name === 'NotFoundError';
       setError({
-        type: 'too_short',
-        message: 'Audio was too short to transcribe. Please hold the button and speak your full question.',
-        retryable: true,
-      });
-      return;
-    }
-
-    setState('processing');
-    setPipelineState('STT_PARTIAL');
-
-    // Send end_of_stream frame to backend
-    if (socketRef.current && socketRef.current.readyState === WebSocket.OPEN) {
-      sendFrame({
-        type: 'end_of_stream',
-        version: '1',
-      });
-    } else {
-      // Socket not open — report real connection failure
-      cleanupAudioAndSocket();
-      setState('terminal');
-      setError({
-        type: 'socket_error',
-        message: 'Backend voice streaming connection is offline. Please start the backend service.',
-        retryable: true,
+        type: permissionDenied ? 'permission_denied' : noMicrophone ? 'no_microphone' : 'unsupported',
+        message: permissionDenied
+          ? 'Microphone permission was denied. Allow access or use Text mode.'
+          : noMicrophone
+            ? 'No microphone was detected. Connect one or use Text mode.'
+            : 'This browser could not start compatible microphone capture. Use Text mode.',
+        retryable: permissionDenied,
       });
     }
-  }, [state, recordingDuration, cleanupAudioAndSocket, sendFrame]);
+  }, [cleanup, closeSocket, failSession, selectedLanguage, sendFrame, stopCapture, transition]);
 
-  /**
-   * Cancel the current recording session
-   */
   const cancelRecording = useCallback(() => {
-    cleanupAudioAndSocket();
-    setState('idle');
-    setPipelineState(null);
+    sessionRef.current += 1;
+    cleanup();
+    setError(null);
     setPartialTranscript('');
-    setError(null);
-  }, [cleanupAudioAndSocket]);
+    setPipelineState(null);
+    transition('idle');
+  }, [cleanup, transition]);
 
-  /**
-   * Reset session back to idle
-   */
   const resetToIdle = useCallback(() => {
-    cleanupAudioAndSocket();
-    setState('idle');
-    setResult(null);
+    sessionRef.current += 1;
+    cleanup();
     setError(null);
+    setResult(null);
     setPartialTranscript('');
     setDetectedLanguage(null);
     setPipelineState(null);
     setRecordingDuration(0);
-  }, [cleanupAudioAndSocket]);
+    transition('idle');
+  }, [cleanup, transition]);
+
+  useEffect(() => {
+    const stopOnPageHide = () => {
+      sessionRef.current += 1;
+      cleanup();
+    };
+    window.addEventListener('pagehide', stopOnPageHide);
+    return () => {
+      window.removeEventListener('pagehide', stopOnPageHide);
+      stopOnPageHide();
+    };
+  }, [cleanup]);
 
   return {
     state,
@@ -368,7 +415,7 @@ export function useVoiceRecorder(): UseVoiceRecorderReturn {
     selectedLanguage,
     setSelectedLanguage,
     startRecording,
-    stopAndAsk,
+    stopAndAsk: finishRecording,
     cancelRecording,
     resetToIdle,
     isBackendConnected,

@@ -9,6 +9,7 @@ from app.domain.models import SearchHit
 from app.retrieval.dense_search import DenseSearcher
 from app.retrieval.fusion import evidence_agreement, reciprocal_rank_fusion
 from app.retrieval.parent_dedup import deduplicate_by_parent
+from app.retrieval.query_variants import build_retrieval_query
 from app.retrieval.router import RoutePlan
 from app.retrieval.sparse_search import SparseSearcher
 
@@ -37,9 +38,13 @@ class HybridRetriever:
         self.final_limit = final_limit
 
     async def retrieve(self, query: str, plan: RoutePlan, deadline: Deadline) -> RetrievalResult:
+        retrieval_query = build_retrieval_query(
+            query,
+            romanized_hindi=plan.romanized_hindi,
+        )
         dense_task = asyncio.create_task(
             self.dense_searcher.search_dense(
-                query,
+                retrieval_query,
                 strategies=plan.strategies,
                 limit=plan.dense_limit,
                 languages=plan.representation_languages,
@@ -48,7 +53,7 @@ class HybridRetriever:
         sparse_task = (
             asyncio.create_task(
                 self.sparse_searcher.search_sparse(
-                    query,
+                    retrieval_query,
                     strategies=plan.strategies,
                     limit=plan.sparse_limit,
                     languages=plan.representation_languages,

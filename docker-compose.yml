@@ -26,13 +26,26 @@ services:
     environment:
       QDRANT_URL: http://qdrant:6333
       RAG_DATA_DIR: /service/data
+      HF_HOME: /models/huggingface
     volumes:
       - ./backend/data:/service/data:ro
+      - ./backend/evaluation/reports:/service/evaluation/reports:ro
+      - model_cache:/models
     ports:
       - "127.0.0.1:8000:8000"
     depends_on:
       qdrant:
         condition: service_healthy
 
+  frontend:
+    build:
+      context: ./frontend
+    ports:
+      # LAN-visible UI/proxy. Backend and Qdrant remain loopback-only.
+      - "0.0.0.0:5173:8080"
+    depends_on:
+      - backend
+
 volumes:
   qdrant_storage:
+  model_cache:
