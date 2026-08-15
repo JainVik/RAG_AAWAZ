@@ -1,5 +1,5 @@
 import React from 'react';
-import { Database, Cpu, HardDrives, ShieldCheck, Hash } from '@phosphor-icons/react';
+import { CaretDown, Database, Cpu, HardDrives, ShieldCheck } from '@phosphor-icons/react';
 import type { CorpusIndexInfo } from '../../types/api';
 import GlassSurface from '../ui/GlassSurface';
 
@@ -24,13 +24,10 @@ export const CorpusIndexCard: React.FC<CorpusIndexCardProps> = ({ corpus }) => {
           </div>
           <div>
             <h2 className="text-base sm:text-lg font-bold text-white tracking-tight flex items-center gap-2">
-              <span>Corpus &amp; Vector Index Manifest</span>
-              <span className="text-xs font-normal text-slate-400 font-mono">
-                ({corpus.revision})
-              </span>
+              <span>Corpus → vector index</span>
             </h2>
             <p className="text-xs text-slate-400">
-              Verified corpus counts, embedding bindings, and vector topology
+              Verified source passages expanded into retrieval-ready representations
             </p>
           </div>
         </div>
@@ -83,61 +80,37 @@ export const CorpusIndexCard: React.FC<CorpusIndexCardProps> = ({ corpus }) => {
         </div>
       </div>
 
-      {/* Model & Vector Topology Breakdown */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
-        {/* Dense Embeddings */}
-        <div className="p-4 bg-white/5 border border-white/8 rounded-xl space-y-2.5">
-          <div className="flex items-center gap-2 text-xs font-bold text-cyan-300">
-            <Cpu size={16} />
-            <span>Dense Embedding Specification</span>
-          </div>
-          <div className="space-y-1.5 text-xs">
-            <div className="flex justify-between">
-              <span className="text-slate-400">Model Name:</span>
-              <span className="font-mono text-white font-semibold">{corpus.dense_model}</span>
+      <details className="overflow-hidden rounded-xl border border-white/8 bg-black/15">
+        <summary className="flex cursor-pointer list-none items-center justify-between gap-3 px-4 py-3 text-xs font-bold text-slate-200">
+          <span>Evaluator details · embedding and index bindings</span>
+          <CaretDown size={15} className="text-slate-500" />
+        </summary>
+        <div className="grid grid-cols-1 gap-4 border-t border-white/8 p-4 sm:grid-cols-2">
+          <div className="space-y-2.5 rounded-xl border border-white/8 bg-white/5 p-4">
+            <div className="flex items-center gap-2 text-xs font-bold text-cyan-300">
+              <Cpu size={16} />
+              <span>Dense embedding</span>
             </div>
-            <div className="flex justify-between">
-              <span className="text-slate-400">Dimension &amp; Metric:</span>
-              <span className="font-mono text-cyan-300">{corpus.dense_dim}d ({corpus.dense_distance})</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-slate-400">Corpus Languages:</span>
-              <span className="font-mono text-white">{corpus.language}</span>
+            <div className="space-y-1.5 text-xs">
+              <div className="flex justify-between gap-3"><span className="text-slate-400">Model</span><span className="text-right font-mono font-semibold text-white">{corpus.dense_model}</span></div>
+              <div className="flex justify-between gap-3"><span className="text-slate-400">Dimension / metric</span><span className="font-mono text-cyan-300">{corpus.dense_dim}d / {corpus.dense_distance}</span></div>
+              <div className="flex justify-between gap-3"><span className="text-slate-400">Corpus language</span><span className="font-mono text-white">{corpus.language}</span></div>
             </div>
           </div>
-        </div>
-
-        {/* Vector DB & Sparse Topology */}
-        <div className="p-4 bg-white/5 border border-white/8 rounded-xl space-y-2.5">
-          <div className="flex items-center gap-2 text-xs font-bold text-cyan-300">
-            <Database size={16} />
-            <span>Vector Collection &amp; Sparse Model</span>
-          </div>
-          <div className="space-y-1.5 text-xs">
-            <div className="flex justify-between">
-              <span className="text-slate-400">Qdrant Collection:</span>
-              <span className="font-mono text-white font-semibold">{corpus.qdrant_collection}</span>
+          <div className="space-y-2.5 rounded-xl border border-white/8 bg-white/5 p-4">
+            <div className="flex items-center gap-2 text-xs font-bold text-cyan-300">
+              <Database size={16} />
+              <span>Vector and sparse index</span>
             </div>
-            <div className="flex justify-between">
-              <span className="text-slate-400">Sparse Representation:</span>
-              <span className="font-mono text-white">{corpus.sparse_model} (character n-grams 3-5)</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-slate-400">Index Build ID:</span>
-              <span className="font-mono text-cyan-300">{corpus.index_build_id}</span>
+            <div className="space-y-1.5 text-xs">
+              <div className="flex justify-between gap-3"><span className="text-slate-400">Collection</span><span className="text-right font-mono font-semibold text-white">{corpus.qdrant_collection}</span></div>
+              <div className="flex justify-between gap-3"><span className="text-slate-400">Sparse model</span><span className="text-right font-mono text-white">{corpus.sparse_model}</span></div>
+              <div className="flex justify-between gap-3"><span className="text-slate-400">Revision</span><span className="max-w-52 truncate font-mono text-cyan-300" title={corpus.revision ?? undefined}>{corpus.revision ?? 'Not available'}</span></div>
+              <div className="flex justify-between gap-3"><span className="text-slate-400">Build ID</span><span className="max-w-52 truncate font-mono text-slate-300" title={corpus.index_build_id ?? undefined}>{corpus.index_build_id ?? 'Not available'}</span></div>
             </div>
           </div>
         </div>
-      </div>
-
-      {/* Manifest SHA256 */}
-      <div className="flex items-center gap-2 text-[10px] text-slate-400 pt-2 border-t border-white/8 font-mono">
-        <Hash size={13} className="text-cyan-400 shrink-0" />
-        <span className="text-slate-500">Corpus Manifest SHA256:</span>
-        <span className="truncate text-slate-300" title={corpus.source_artifact_sha256 ?? undefined}>
-          {corpus.source_artifact_sha256 ?? 'Not available'}
-        </span>
-      </div>
+      </details>
     </GlassSurface>
   );
 };

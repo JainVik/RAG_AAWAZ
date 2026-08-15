@@ -96,9 +96,6 @@ export const PipelineStepper: React.FC<PipelineStepperProps> = ({ state, timings
               <span className="text-xs font-bold text-primary">
                 {userStatus}
               </span>
-              <span className="font-mono text-[10px] text-muted px-1.5 py-0.2 rounded bg-surface-subtle border border-subtle">
-                {state}
-              </span>
             </div>
             <p className="text-[11px] text-muted">
               {isInFlight

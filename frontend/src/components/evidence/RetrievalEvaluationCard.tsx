@@ -1,5 +1,12 @@
 import React, { useState } from 'react';
-import { ChartLineUp, ShieldCheck, CheckCircle, Info, Hash, Clock } from '@phosphor-icons/react';
+import {
+  CaretDown,
+  ChartLineUp,
+  CheckCircle,
+  Clock,
+  Info,
+  ShieldCheck,
+} from '@phosphor-icons/react';
 import type { RetrievalMetrics } from '../../types/api';
 import GlassSurface from '../ui/GlassSurface';
 
@@ -9,34 +16,19 @@ interface RetrievalEvaluationCardProps {
 
 export const RetrievalEvaluationCard: React.FC<RetrievalEvaluationCardProps> = ({ metrics }) => {
   const [openMetricHelp, setOpenMetricHelp] = useState<string | null>(null);
-  const percent = (value: number | null) => value === null ? 'Not measured' : `${(value * 100).toFixed(2)}%`;
-  const latency = (value: number | null) => value === null ? 'Not measured' : `${value.toFixed(1)} ms`;
+  const percent = (value: number | null) =>
+    value === null ? 'Not measured' : `${(value * 100).toFixed(2)}%`;
+  const latency = (value: number | null) =>
+    value === null ? 'Not measured' : `${value.toFixed(1)} ms`;
+  const isPostHocRegression = metrics.failed_checks.includes(
+    'fresh_untouched_final_evaluation',
+  );
   const metricItems = [
-    {
-      label: 'Recall@1',
-      value: percent(metrics.recall_at_1),
-      desc: 'Relevant passage appears at rank 1',
-    },
-    {
-      label: 'Recall@5',
-      value: percent(metrics.recall_at_5),
-      desc: 'Relevant passage appears in top 5',
-    },
-    {
-      label: 'Recall@10',
-      value: percent(metrics.recall_at_10),
-      desc: 'Relevant passage appears in top 10',
-    },
-    {
-      label: 'MRR@10',
-      value: percent(metrics.mrr_at_10),
-      desc: 'Mean reciprocal rank across retained test queries',
-    },
-    {
-      label: 'nDCG@10',
-      value: percent(metrics.ndcg_at_10),
-      desc: 'Normalized discounted cumulative gain in top 10',
-    },
+    { label: 'Recall@1', value: percent(metrics.recall_at_1), desc: 'Relevant passage appears at rank 1' },
+    { label: 'Recall@5', value: percent(metrics.recall_at_5), desc: 'Relevant passage appears in the top 5' },
+    { label: 'Recall@10', value: percent(metrics.recall_at_10), desc: 'Relevant passage appears in the top 10' },
+    { label: 'MRR@10', value: percent(metrics.mrr_at_10), desc: 'Mean reciprocal rank across retained queries' },
+    { label: 'nDCG@10', value: percent(metrics.ndcg_at_10), desc: 'Ranking quality within the top 10' },
   ];
 
   return (
@@ -44,144 +36,132 @@ export const RetrievalEvaluationCard: React.FC<RetrievalEvaluationCardProps> = (
       borderRadius={20}
       brightness={35}
       opacity={0.85}
-      className="p-6 sm:p-8 space-y-6 transition-all hover:border-cyan-500/30"
+      className="space-y-6 p-6 transition-all hover:border-cyan-500/30 sm:p-8"
     >
-      {/* Header */}
-      <div className="flex flex-wrap items-center justify-between gap-3 pb-4 border-b border-white/10">
+      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-white/10 pb-4">
         <div className="flex items-center gap-3">
-          <div className="p-2.5 rounded-xl bg-blue-500/10 border border-blue-400/20 text-cyan-400">
+          <div className="rounded-xl border border-blue-400/20 bg-blue-500/10 p-2.5 text-cyan-400">
             <ChartLineUp size={22} weight="bold" />
           </div>
           <div>
-            <h2 className="text-base sm:text-lg font-bold text-white tracking-tight flex items-center gap-2">
-              <span>Final Held-Out Retrieval Evaluation</span>
-              <span className="text-xs font-normal text-slate-400 font-mono">
-                ({metrics.sample_count} queries)
-              </span>
+            <h2 className="text-base font-bold tracking-tight text-white sm:text-lg">
+              {metrics.qualifying
+                ? 'Final held-out retrieval evaluation'
+                : isPostHocRegression
+                  ? 'Retrieval regression evaluation'
+                  : 'Retrieval evaluation'}
             </h2>
             <p className="text-xs text-slate-400">
-              Artifact status: {metrics.status.replaceAll('_', ' ')} · {metrics.failure_count} execution failures
+              {metrics.sample_count} retained queries · {metrics.failure_count} failures ·{' '}
+              {percent(metrics.completion_coverage)} completion
             </p>
           </div>
         </div>
 
-        {/* Qualification Badge */}
-        <div className="flex items-center gap-2">
-          {metrics.qualifying ? (
-            <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-emerald-500/10 text-emerald-300 border border-emerald-500/30 rounded-full text-xs font-semibold">
-              <ShieldCheck size={14} weight="fill" className="text-emerald-400" />
-              <span>Qualifying Held-Out Report</span>
-            </span>
-          ) : (
-            <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-amber-500/10 text-amber-300 border border-amber-500/30 rounded-full text-xs font-semibold">
-              <Info size={14} />
-              <span>Non-Qualifying</span>
-            </span>
-          )}
-        </div>
+        {metrics.qualifying ? (
+          <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-3 py-1 text-xs font-semibold text-emerald-300">
+            <ShieldCheck size={14} weight="fill" className="text-emerald-400" />
+            Qualifying held-out report
+          </span>
+        ) : (
+          <span className="inline-flex items-center gap-1.5 rounded-full border border-amber-500/30 bg-amber-500/10 px-3 py-1 text-xs font-semibold text-amber-300">
+            <Info size={14} />{' '}
+            {isPostHocRegression ? 'Non-qualifying regression evidence' : 'Non-qualifying'}
+          </span>
+        )}
       </div>
 
-      {/* Primary Quality Metrics Grid */}
-      <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
-        {metricItems.map((m, idx) => (
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-5">
+        {metricItems.map((metric) => (
           <div
-            key={idx}
-            className="p-4 bg-white/5 border border-white/8 rounded-xl space-y-1 hover:border-cyan-400/30 transition-colors"
+            key={metric.label}
+            className="space-y-1 rounded-xl border border-white/8 bg-white/5 p-4 transition-colors hover:border-cyan-400/30"
           >
             <div className="flex items-center justify-between text-xs font-semibold text-slate-400">
-              <span>{m.label}</span>
+              <span>{metric.label}</span>
               <button
                 type="button"
-                aria-label={`Explain ${m.label}`}
-                aria-expanded={openMetricHelp === m.label}
-                onClick={() => setOpenMetricHelp((current) => current === m.label ? null : m.label)}
+                aria-label={`Explain ${metric.label}`}
+                aria-expanded={openMetricHelp === metric.label}
+                onClick={() =>
+                  setOpenMetricHelp((current) =>
+                    current === metric.label ? null : metric.label,
+                  )
+                }
                 onBlur={() => setOpenMetricHelp(null)}
-                className="group relative cursor-help rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400"
+                className="group relative rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400"
               >
                 <Info size={13} className="text-slate-500 group-hover:text-slate-300" />
-                <span className={`${openMetricHelp === m.label ? 'block' : 'hidden group-hover:block'} absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-48 p-2 bg-[#141d33] border border-white/15 rounded-lg text-[10px] text-slate-200 shadow-xl z-20 pointer-events-none`}>
-                  {m.desc}
+                <span
+                  className={`${
+                    openMetricHelp === metric.label ? 'block' : 'hidden group-hover:block'
+                  } pointer-events-none absolute bottom-full left-1/2 z-20 mb-2 w-48 -translate-x-1/2 rounded-lg border border-white/15 bg-[#141d33] p-2 text-[10px] text-slate-200 shadow-xl`}
+                >
+                  {metric.desc}
                 </span>
               </button>
             </div>
-            <div className="font-mono text-xl sm:text-2xl font-bold text-cyan-300 font-mono-tabular">
-              {m.value}
+            <div className="font-mono text-xl font-bold text-cyan-300 sm:text-2xl">
+              {metric.value}
             </div>
-            <p className="text-[10px] text-slate-400 truncate" title={m.desc}>
-              {m.desc}
-            </p>
           </div>
         ))}
       </div>
 
-      {/* Direct Retrieval Evaluation Latency Section */}
-      <div className="p-4 rounded-xl bg-white/5 border border-white/8 space-y-3">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2 text-xs font-bold text-slate-300">
+      {!metrics.qualifying && metrics.failed_checks.length > 0 && (
+        <div className="rounded-xl border border-amber-500/20 bg-amber-500/8 px-4 py-3 text-xs text-amber-200">
+          Qualification pending: {metrics.failed_checks.join(', ').replaceAll('_', ' ')}
+        </div>
+      )}
+
+      <details className="overflow-hidden rounded-xl border border-white/8 bg-white/5">
+        <summary className="flex cursor-pointer list-none items-center justify-between gap-3 px-4 py-3 text-xs font-semibold text-slate-300">
+          <span className="inline-flex items-center gap-2">
             <Clock size={16} className="text-cyan-400" />
-            <span>Direct Retrieval Evaluation Latency ({metrics.direct_latency_sample_count ?? 0} rows)</span>
-          </div>
-          <span className="text-[10px] font-mono text-slate-400">
-            Direct index evaluation • Distinct from end-to-end voice latency
+            Evaluator details · direct-index latency and provenance
           </span>
-        </div>
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 text-center">
-          <div className="p-2.5 bg-white/5 rounded-lg border border-white/5">
-            <span className="text-[10px] text-slate-400 uppercase font-bold block">P50 Latency</span>
-            <span className="text-sm font-mono font-bold text-white">{latency(metrics.direct_p50_ms)}</span>
+          <CaretDown size={16} className="text-slate-400" />
+        </summary>
+        <div className="space-y-4 border-t border-white/8 p-4">
+          <p className="text-[10px] text-slate-400">
+            Direct retrieval evaluation ({metrics.direct_latency_sample_count ?? 0} rows). This is
+            distinct from end-to-end voice latency.
+          </p>
+          <div className="grid grid-cols-2 gap-2.5 text-center sm:grid-cols-4">
+            {[
+              ['P50', metrics.direct_p50_ms],
+              ['P70', metrics.direct_p70_ms],
+              ['P95', metrics.direct_p95_ms],
+              ['Maximum', metrics.direct_max_ms],
+            ].map(([label, value]) => (
+              <div key={String(label)} className="rounded-lg border border-white/5 bg-white/5 p-2.5">
+                <span className="block text-[10px] font-bold uppercase text-slate-400">{label}</span>
+                <span className="font-mono text-sm font-bold text-white">
+                  {latency(value as number | null)}
+                </span>
+              </div>
+            ))}
           </div>
-          <div className="p-2.5 bg-white/5 rounded-lg border border-white/5">
-            <span className="text-[10px] text-slate-400 uppercase font-bold block">P70 Latency</span>
-            <span className="text-sm font-mono font-bold text-white">{latency(metrics.direct_p70_ms)}</span>
+          <div className="grid grid-cols-1 gap-3 text-xs sm:grid-cols-3">
+            <div className="flex items-center justify-between rounded-xl border border-white/8 bg-white/5 p-3">
+              <span className="text-slate-400">Hit coverage</span>
+              <span className="font-mono font-bold text-white">{percent(metrics.retrieval_hit_coverage)}</span>
+            </div>
+            <div className="flex items-center justify-between rounded-xl border border-white/8 bg-white/5 p-3">
+              <span className="text-slate-400">Execution failures</span>
+              <span className="flex items-center gap-1 font-mono font-bold text-emerald-400">
+                <CheckCircle size={14} weight="fill" /> {metrics.failure_count}
+              </span>
+            </div>
+            <div className="flex items-center justify-between rounded-xl border border-white/8 bg-white/5 p-3">
+              <span className="text-slate-400">Split provenance</span>
+              <span className="font-mono font-bold text-cyan-300">
+                {metrics.split_verified ? 'Verified' : 'Unverified'}
+              </span>
+            </div>
           </div>
-          <div className="p-2.5 bg-white/5 rounded-lg border border-white/5">
-            <span className="text-[10px] text-slate-400 uppercase font-bold block">P95 Latency</span>
-            <span className="text-sm font-mono font-bold text-white">{latency(metrics.direct_p95_ms)}</span>
-          </div>
-          <div className="p-2.5 bg-white/5 rounded-lg border border-white/5">
-            <span className="text-[10px] text-slate-400 uppercase font-bold block">Max Latency</span>
-            <span className="text-sm font-mono font-bold text-cyan-300">{latency(metrics.direct_max_ms)}</span>
-          </div>
         </div>
-      </div>
-
-      {/* Detailed Report Attributes */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 text-xs">
-        <div className="p-3 bg-white/5 border border-white/8 rounded-xl flex items-center justify-between">
-          <span className="text-slate-400">Completion Coverage:</span>
-          <span className="font-mono font-bold text-white">
-            {percent(metrics.completion_coverage)}
-          </span>
-        </div>
-        <div className="p-3 bg-white/5 border border-white/8 rounded-xl flex items-center justify-between">
-          <span className="text-slate-400">Hit Coverage:</span>
-          <span className="font-mono font-bold text-white">
-            {percent(metrics.retrieval_hit_coverage)}
-          </span>
-        </div>
-        <div className="p-3 bg-white/5 border border-white/8 rounded-xl flex items-center justify-between">
-          <span className="text-slate-400">Execution Failures:</span>
-          <span className="font-mono font-bold text-emerald-400 flex items-center gap-1">
-            <CheckCircle size={14} weight="fill" />
-            <span>{metrics.failure_count}</span>
-          </span>
-        </div>
-        <div className="p-3 bg-white/5 border border-white/8 rounded-xl flex items-center justify-between">
-          <span className="text-slate-400">Split Provenance:</span>
-          <span className="font-mono font-bold text-cyan-300">
-            {metrics.split_verified ? 'Verified Frozen Split' : 'Unverified'}
-          </span>
-        </div>
-      </div>
-
-      {/* Artifact SHA256 */}
-      <div className="flex items-center gap-2 text-[10px] text-slate-400 pt-2 border-t border-white/8 font-mono">
-        <Hash size={13} className="text-cyan-400 shrink-0" />
-        <span className="text-slate-500">Source Report SHA256:</span>
-        <span className="truncate text-slate-300" title={metrics.source_artifact_sha256 ?? undefined}>
-          {metrics.source_artifact_sha256 ?? 'Not available'}
-        </span>
-      </div>
+      </details>
     </GlassSurface>
   );
 };

@@ -1,25 +1,71 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { TextT, WarningCircle, X } from '@phosphor-icons/react';
-import type { QueryResponse } from '../types/api';
+import type {
+  QueryResponse,
+  ServerLanguageCode,
+  VerifiedPromptCatalog,
+} from '../types/api';
 import { toBackendLanguage } from '../types/api';
 import { useVoiceRecorder } from '../hooks/useVoiceRecorder';
 import { useSynthesis } from '../hooks/useSynthesis';
 import { VoiceStage } from '../components/voice/VoiceStage';
 import { TextInputPanel } from '../components/text/TextInputPanel';
-import { sendTextQuery } from '../services/api';
+import { getVerifiedPrompts, sendTextQuery } from '../services/api';
 import { useShell } from '../components/layout/Shell';
+import {
+  prependSessionQuery,
+  readSessionQueryHistory,
+  removeSessionQueryHistory,
+  toSessionQueryHistoryEntry,
+  writeSessionQueryHistory,
+} from '../utils/sessionQueryHistory';
 
 export const AskPage: React.FC = () => {
   const [showTextModal, setShowTextModal] = useState(false);
   const [textError, setTextError] = useState<string | null>(null);
   const [textResult, setTextResult] = useState<QueryResponse | null>(null);
   const [isTextLoading, setIsTextLoading] = useState(false);
+  const [verifiedPromptCatalog, setVerifiedPromptCatalog] = useState<VerifiedPromptCatalog | null>(null);
+  const [verifiedPromptsLoading, setVerifiedPromptsLoading] = useState(true);
+  const [verifiedPromptsError, setVerifiedPromptsError] = useState<string | null>(null);
+  const [recentQueries, setRecentQueries] = useState(readSessionQueryHistory);
   const closeButtonRef = useRef<HTMLButtonElement>(null);
+  const verifiedPromptsRequestedRef = useRef(false);
   const { openSystemChecks, ready } = useShell();
   const canSubmit = ready?.status === 'ready';
   const voice = useVoiceRecorder();
   const activeResult = textResult ?? voice.result;
   const synthesis = useSynthesis(activeResult);
+
+  const loadVerifiedPromptCatalog = useCallback(async () => {
+    setVerifiedPromptsLoading(true);
+    setVerifiedPromptsError(null);
+    try {
+      setVerifiedPromptCatalog(await getVerifiedPrompts());
+    } catch (error) {
+      setVerifiedPromptCatalog(null);
+      setVerifiedPromptsError(
+        error instanceof Error ? error.message : 'The verified question gallery is unavailable.',
+      );
+    } finally {
+      setVerifiedPromptsLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (verifiedPromptsRequestedRef.current) return;
+    verifiedPromptsRequestedRef.current = true;
+    void loadVerifiedPromptCatalog();
+  }, [loadVerifiedPromptCatalog]);
+
+  useEffect(() => {
+    if (!activeResult?.transcript.trim()) return;
+    setRecentQueries((current) => {
+      const next = prependSessionQuery(current, toSessionQueryHistoryEntry(activeResult));
+      writeSessionQueryHistory(next);
+      return next;
+    });
+  }, [activeResult]);
 
   useEffect(() => {
     if (!showTextModal) return;
@@ -31,17 +77,22 @@ export const AskPage: React.FC = () => {
     return () => window.removeEventListener('keydown', onKeyDown);
   }, [showTextModal]);
 
-  const handleTextSubmit = async (queryText: string) => {
+  const handleTextSubmit = async (
+    queryText: string,
+    languageOverride?: ServerLanguageCode,
+  ) => {
     if (!canSubmit) {
       setTextError('The backend is not operationally ready. Open System checks for details.');
       return;
     }
+    setTextResult(null);
+    voice.resetToIdle();
     setIsTextLoading(true);
     setTextError(null);
     try {
       const response = await sendTextQuery({
         query: queryText,
-        language: toBackendLanguage(voice.selectedLanguage),
+        language: languageOverride ?? toBackendLanguage(voice.selectedLanguage),
         request_id: crypto.randomUUID(),
         deadline_ms: null,
       });
@@ -64,6 +115,7 @@ export const AskPage: React.FC = () => {
     <div className="flex w-full flex-1 flex-col justify-between">
       <VoiceStage
         state={voice.state}
+        textSubmitting={isTextLoading}
         pipelineState={voice.pipelineState}
         error={voice.error}
         recordingDuration={voice.recordingDuration}
@@ -76,8 +128,16 @@ export const AskPage: React.FC = () => {
         synthesisResult={synthesis.result}
         synthesisError={synthesis.error}
         canSubmit={canSubmit}
+        verifiedPromptCatalog={verifiedPromptCatalog}
+        verifiedPromptsLoading={verifiedPromptsLoading}
+        verifiedPromptsError={verifiedPromptsError}
+        recentQueries={recentQueries}
         onLanguageChange={voice.setSelectedLanguage}
-        onStartRecording={voice.startRecording}
+        onStartRecording={() => {
+          setTextResult(null);
+          setTextError(null);
+          voice.startRecording();
+        }}
         onStopAndAsk={voice.stopAndAsk}
         onCancelRecording={voice.cancelRecording}
         onReset={handleReset}
@@ -86,10 +146,15 @@ export const AskPage: React.FC = () => {
           setShowTextModal(true);
         }}
         onOpenDiagnostics={openSystemChecks}
-        onSelectSamplePrompt={(prompt) => {
+        onSelectVerifiedPrompt={(prompt: string, language: ServerLanguageCode) => {
           setTextError(null);
-          setShowTextModal(true);
-          void handleTextSubmit(prompt);
+          setShowTextModal(false);
+          void handleTextSubmit(prompt, language);
+        }}
+        onRetryVerifiedPrompts={() => void loadVerifiedPromptCatalog()}
+        onClearRecentQueries={() => {
+          setRecentQueries([]);
+          removeSessionQueryHistory();
         }}
       />
 

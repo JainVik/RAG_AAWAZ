@@ -25,12 +25,11 @@ const STAGES: ReadonlyArray<{ key: string; label: string; scope?: string }> = [
 function PercentileGrid({ values }: { values: OperationalMetrics['latency_ms'] }) {
   const cells = [
     ['P50', values?.p50],
-    ['P70', values?.p70],
     ['P95', values?.p95],
     ['MAX', values?.p100],
   ] as const;
   return (
-    <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+    <div className="grid grid-cols-3 gap-2">
       {cells.map(([label, value]) => (
         <div key={label} className="rounded-xl border border-white/8 bg-white/5 p-3 text-center">
           <span className="block text-[9px] font-bold uppercase tracking-wider text-slate-500">{label}</span>
@@ -104,9 +103,9 @@ export const OperationalLatencyCard: React.FC<OperationalLatencyCardProps> = ({ 
           <PercentileGrid values={metrics.latency_ms} />
 
           {rows.length > 0 && (
-            <details open className="overflow-x-auto rounded-xl border border-white/8 bg-black/15">
+            <details className="overflow-x-auto rounded-xl border border-white/8 bg-black/15">
               <summary className="cursor-pointer px-3 py-3 text-xs font-bold text-slate-200">
-                Detailed stage percentiles
+                Evaluator details · P50 / P70 / P95 / maximum by stage
               </summary>
               <div className="min-w-[620px]">
                 <div className="grid grid-cols-[minmax(9rem,1.5fr)_repeat(4,minmax(4.2rem,0.7fr))] gap-2 border-t border-white/8 px-3 py-2 text-[9px] font-bold uppercase tracking-wider text-slate-500">

@@ -16,6 +16,7 @@ from app.api.health import router as health_router
 from app.api.metrics import router as metrics_router
 from app.api.synthesis import router as synthesis_router
 from app.api.text_query import router as text_router
+from app.api.verified_prompts import router as verified_prompts_router
 from app.api.voice_ws import router as voice_router
 from app.core.config import get_settings
 from app.core.logging import configure_logging
@@ -80,6 +81,7 @@ def create_app(services: Any | None = None) -> FastAPI:
     application.include_router(voice_router)
     application.include_router(metrics_router)
     application.include_router(evidence_router)
+    application.include_router(verified_prompts_router)
     return application
 
 

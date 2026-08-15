@@ -8,15 +8,17 @@ import {
   TextT,
   ArrowCounterClockwise,
   Sparkle,
-  ShieldCheck,
   Check,
   CaretUp,
 } from '@phosphor-icons/react';
-import type { LanguageHint, VoiceState } from '../../types/api';
+import type { LanguageHint, ServerLanguageCode, VerifiedPromptCatalog, VoiceState } from '../../types/api';
 import { LANGUAGE_REGISTRY } from '../../types/api';
+import type { SessionQueryHistoryEntry } from '../../utils/sessionQueryHistory';
+import { QuestionPalette } from './QuestionPalette';
 
 interface VoicePillControlsProps {
   state: VoiceState;
+  textSubmitting: boolean;
   canSubmit: boolean;
   selectedLanguage: LanguageHint;
   recordingDuration: number;
@@ -26,12 +28,18 @@ interface VoicePillControlsProps {
   onCancelRecording: () => void;
   onReset: () => void;
   onToggleTextMode: () => void;
-  onSelectSamplePrompt: (prompt: string) => void;
-  onOpenDiagnostics?: () => void;
+  verifiedPromptCatalog: VerifiedPromptCatalog | null;
+  verifiedPromptsLoading: boolean;
+  verifiedPromptsError: string | null;
+  recentQueries: SessionQueryHistoryEntry[];
+  onSelectVerifiedPrompt: (prompt: string, language: ServerLanguageCode) => void;
+  onRetryVerifiedPrompts: () => void;
+  onClearRecentQueries: () => void;
 }
 
 export const VoicePillControls: React.FC<VoicePillControlsProps> = ({
   state,
+  textSubmitting,
   canSubmit,
   selectedLanguage,
   recordingDuration,
@@ -41,10 +49,15 @@ export const VoicePillControls: React.FC<VoicePillControlsProps> = ({
   onCancelRecording,
   onReset,
   onToggleTextMode,
-  onSelectSamplePrompt,
-  onOpenDiagnostics,
+  verifiedPromptCatalog,
+  verifiedPromptsLoading,
+  verifiedPromptsError,
+  recentQueries,
+  onSelectVerifiedPrompt,
+  onRetryVerifiedPrompts,
+  onClearRecentQueries,
 }) => {
-  const [openMenu, setOpenMenu] = useState<'language' | 'examples' | 'mode' | null>(null);
+  const [openMenu, setOpenMenu] = useState<'language' | 'questions' | 'mode' | null>(null);
   const controlsRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -63,7 +76,8 @@ export const VoicePillControls: React.FC<VoicePillControlsProps> = ({
   }, []);
 
   const isRecording = state === 'recording';
-  const isProcessing = state === 'processing';
+  const isVoiceProcessing = state === 'processing';
+  const isProcessing = isVoiceProcessing || textSubmitting;
   const isRequesting = state === 'requesting_permission';
   const isTerminal = state === 'terminal';
 
@@ -72,12 +86,6 @@ export const VoicePillControls: React.FC<VoicePillControlsProps> = ({
     const secs = seconds % 60;
     return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
-
-  const samplePrompts = [
-    { text: 'What is gold\'s hardness on the Mohs scale?', label: 'English', cat: 'Materials' },
-    { text: 'डायसेफैलिक सिंड्रोम को परिभाषित करें।', label: 'Hindi', cat: 'Health' },
-    { text: 'What are the symptoms of a strained leg muscle?', label: 'English', cat: 'Health' },
-  ];
 
   const currentLangObj = LANGUAGE_REGISTRY.find((l) => l.code === selectedLanguage) || LANGUAGE_REGISTRY[0];
 
@@ -177,40 +185,20 @@ export const VoicePillControls: React.FC<VoicePillControlsProps> = ({
         </div>
       )}
 
-      {/* Floating Hover Tray 2: Instant Examples Menu */}
-      {openMenu === 'examples' && (
-        <div
-          className="absolute bottom-full mb-3 w-80 sm:w-96 bg-[#0e1424]/95 backdrop-blur-2xl border border-white/15 rounded-2xl p-3 shadow-2xl z-30 animate-fade-in space-y-2"
-        >
-          <div className="flex items-center justify-between text-[10px] font-bold text-slate-400 uppercase tracking-wider px-1">
-            <span className="flex items-center gap-1">
-              <Sparkle size={12} className="text-cyan-400" />
-              <span>Sample factual questions</span>
-            </span>
-            <span className="text-[9px] text-slate-500 font-mono">Click to ask</span>
-          </div>
-          <div className="space-y-1.5 max-h-56 overflow-y-auto pr-1">
-            {samplePrompts.map((p, idx) => (
-              <button
-                key={idx}
-                type="button"
-                onClick={() => {
-                  onSelectSamplePrompt(p.text);
-                  setOpenMenu(null);
-                }}
-                className="w-full p-2.5 rounded-xl bg-white/5 hover:bg-white/10 hover:border-cyan-400/40 border border-white/5 text-left transition-all cursor-pointer group"
-              >
-                <div className="flex items-center justify-between text-[10px] font-mono mb-1">
-                  <span className="text-cyan-400 font-bold">{p.label}</span>
-                  <span className="text-slate-500">{p.cat}</span>
-                </div>
-                <p className="text-xs text-slate-200 group-hover:text-white line-clamp-2 leading-relaxed">
-                  {p.text}
-                </p>
-              </button>
-            ))}
-          </div>
-        </div>
+      {openMenu === 'questions' && (
+        <QuestionPalette
+          catalog={verifiedPromptCatalog}
+          loading={verifiedPromptsLoading}
+          error={verifiedPromptsError}
+          recentQueries={recentQueries}
+          canSubmit={canSubmit && !isProcessing && !isRecording && !isRequesting}
+          onAsk={(query, language) => {
+            onSelectVerifiedPrompt(query, language);
+            setOpenMenu(null);
+          }}
+          onRetry={onRetryVerifiedPrompts}
+          onClearRecent={onClearRecentQueries}
+        />
       )}
 
       {/* Floating Hover Tray 3: Input Mode Switcher Menu */}
@@ -267,18 +255,18 @@ export const VoicePillControls: React.FC<VoicePillControlsProps> = ({
           </button>
         </div>
 
-        {/* GROUP 2: Quick Examples Tray Button (Hover Reveal) */}
+        {/* GROUP 2: Verified question gallery and private session history */}
         <div className="relative">
           <button
             type="button"
-            onClick={() => setOpenMenu((current) => current === 'examples' ? null : 'examples')}
-            aria-haspopup="menu"
-            aria-expanded={openMenu === 'examples'}
+            onClick={() => setOpenMenu((current) => current === 'questions' ? null : 'questions')}
+            aria-haspopup="dialog"
+            aria-expanded={openMenu === 'questions'}
             className="h-9 px-2.5 rounded-full bg-white/5 hover:bg-white/10 text-slate-300 hover:text-white border border-white/8 flex items-center gap-1.5 text-xs font-medium transition-all cursor-pointer"
-            title="Sample Governance Questions"
+            title="Verified questions and recent session queries"
           >
             <Sparkle size={15} className="text-cyan-400" />
-            <span className="hidden sm:inline text-[11px]">Examples</span>
+            <span className="hidden sm:inline text-[11px]">Questions</span>
             <CaretUp size={11} className="text-slate-500" />
           </button>
         </div>
@@ -289,7 +277,7 @@ export const VoicePillControls: React.FC<VoicePillControlsProps> = ({
         {/* GROUP 3: Central Core Actions (Cancel / Glowing Mic / Reset) */}
         <div className="flex items-center gap-1.5">
           {/* Cancel or Reset Button */}
-          {(isRecording || isRequesting || isProcessing || isTerminal) && (
+          {(isRecording || isRequesting || isVoiceProcessing || isTerminal) && (
             <button
               type="button"
               onClick={isTerminal ? onReset : onCancelRecording}
@@ -356,17 +344,6 @@ export const VoicePillControls: React.FC<VoicePillControlsProps> = ({
           </button>
         </div>
 
-        {/* GROUP 5: Diagnostics Quick Trigger */}
-        {onOpenDiagnostics && (
-          <button
-            type="button"
-            onClick={onOpenDiagnostics}
-            className="w-9 h-9 rounded-full bg-white/5 hover:bg-white/10 text-slate-400 hover:text-white border border-white/8 flex items-center justify-center transition-all cursor-pointer"
-            title="System Diagnostics & Readiness"
-          >
-            <ShieldCheck size={16} />
-          </button>
-        )}
       </div>
     </div>
   );

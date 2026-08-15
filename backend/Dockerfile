@@ -11,6 +11,7 @@ RUN python -m pip install --upgrade pip \
     && python -m pip install "torch==${TORCH_VERSION}" --index-url https://download.pytorch.org/whl/cpu \
     && python -m pip install ".[embeddings]"
 COPY app ./app
+COPY evaluation/fixtures/voice-recording-plan.csv ./evaluation/fixtures/voice-recording-plan.csv
 
 EXPOSE 8000
 CMD ["python", "-m", "uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]

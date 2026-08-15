@@ -9,8 +9,13 @@ import {
   ShieldCheck,
   WarningOctagon,
 } from '@phosphor-icons/react';
-import type { EvidenceStatus, EvidenceSummary, OperationalMetrics } from '../types/api';
-import { getEvidenceSummary, getOperationalMetrics } from '../services/api';
+import type {
+  EvidenceStatus,
+  EvidenceSummary,
+  OperationalMetrics,
+  VerifiedPromptCatalog,
+} from '../types/api';
+import { getEvidenceSummary, getOperationalMetrics, getVerifiedPrompts } from '../services/api';
 import { useShell } from '../components/layout/Shell';
 import { RetrievalEvaluationCard } from '../components/evidence/RetrievalEvaluationCard';
 import { CorpusIndexCard } from '../components/evidence/CorpusIndexCard';
@@ -21,6 +26,7 @@ import { GuardrailEvidenceCard } from '../components/evidence/GuardrailEvidenceC
 import { VoiceLatencyCard } from '../components/evidence/VoiceLatencyCard';
 import { MethodologySection } from '../components/evidence/MethodologySection';
 import { OperationalLatencyCard } from '../components/evidence/OperationalLatencyCard';
+import { VerifiedPromptCoverageCard } from '../components/evidence/VerifiedPromptCoverageCard';
 import GlassSurface from '../components/ui/GlassSurface';
 
 const statusTone: Record<EvidenceStatus, string> = {
@@ -40,8 +46,10 @@ function displayTimestamp(value: string): string {
 export const EvidencePage: React.FC = () => {
   const [evidence, setEvidence] = useState<EvidenceSummary | null>(null);
   const [operational, setOperational] = useState<OperationalMetrics | null>(null);
+  const [verifiedPrompts, setVerifiedPrompts] = useState<VerifiedPromptCatalog | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [metricsError, setMetricsError] = useState<string | null>(null);
+  const [verifiedPromptsError, setVerifiedPromptsError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [copied, setCopied] = useState(false);
   const { ready } = useShell();
@@ -50,9 +58,11 @@ export const EvidencePage: React.FC = () => {
     setLoading(true);
     setError(null);
     setMetricsError(null);
-    const [evidenceResult, metricsResult] = await Promise.allSettled([
+    setVerifiedPromptsError(null);
+    const [evidenceResult, metricsResult, verifiedPromptsResult] = await Promise.allSettled([
       getEvidenceSummary(),
       getOperationalMetrics(),
+      getVerifiedPrompts(),
     ]);
     if (evidenceResult.status === 'fulfilled') {
       setEvidence(evidenceResult.value);
@@ -72,6 +82,16 @@ export const EvidencePage: React.FC = () => {
         metricsResult.reason instanceof Error
           ? metricsResult.reason.message
           : 'Operational metrics request failed.',
+      );
+    }
+    if (verifiedPromptsResult.status === 'fulfilled') {
+      setVerifiedPrompts(verifiedPromptsResult.value);
+    } else {
+      setVerifiedPrompts(null);
+      setVerifiedPromptsError(
+        verifiedPromptsResult.reason instanceof Error
+          ? verifiedPromptsResult.reason.message
+          : 'Verified questions request failed.',
       );
     }
     setLoading(false);
@@ -128,7 +148,7 @@ export const EvidencePage: React.FC = () => {
           </p>
           {evidence && (
             <p className="mt-2 text-[10px] font-mono text-slate-500">
-              Artifact snapshot generated {displayTimestamp(evidence.generated_at)}
+              Evidence summary refreshed {displayTimestamp(evidence.generated_at)}
             </p>
           )}
         </div>
@@ -161,8 +181,6 @@ export const EvidencePage: React.FC = () => {
         </div>
       )}
 
-      {!loading && <OperationalLatencyCard metrics={operational} error={metricsError} />}
-
       {evidence && !loading && (
         <>
           <div className="grid gap-4 md:grid-cols-2">
@@ -171,9 +189,14 @@ export const EvidencePage: React.FC = () => {
             <SummaryCard title="Guardrail evaluation" status={evidence.guardrails.status.replaceAll('_', ' ').toUpperCase()} tone={statusTone[evidence.guardrails.status]} detail={`${evidence.guardrails.observed_correct_count}/${evidence.guardrails.sample_count} correct`} />
             <SummaryCard title="Voice latency evaluation" status={evidence.voice_latency.status.replaceAll('_', ' ').toUpperCase()} tone={statusTone[evidence.voice_latency.status]} detail={`${evidence.voice_latency.sample_count} measured rows`} />
           </div>
+          <OperationalLatencyCard metrics={operational} error={metricsError} />
           <RetrievalEvaluationCard metrics={evidence.retrieval} />
           <CorpusIndexCard corpus={evidence.corpus} />
           <ChunkRepresentationsCard representations={evidence.chunk_representations} />
+          <VerifiedPromptCoverageCard
+            catalog={verifiedPrompts}
+            error={verifiedPromptsError}
+          />
           <GuardrailEvidenceCard guardrails={evidence.guardrails} />
           <VoiceLatencyCard latency={evidence.voice_latency} />
 
@@ -187,11 +210,7 @@ export const EvidencePage: React.FC = () => {
             </summary>
             <div className="space-y-6 border-t border-white/10 p-4 sm:p-6">
               <DatasetAuditCard audit={evidence.dataset_audit} />
-              {evidence.corpus_scaling.status === 'not_measured' ? (
-                <div className="rounded-xl border border-white/8 bg-white/5 p-4 text-xs text-slate-400">
-                  Corpus scaling comparison is not measured yet; no projected scale result is presented.
-                </div>
-              ) : (
+              {evidence.corpus_scaling.status !== 'not_measured' && (
                 <CorpusScalingCard scaling={evidence.corpus_scaling} />
               )}
             </div>

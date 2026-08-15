@@ -1,5 +1,5 @@
 import React from 'react';
-import { Stack, CheckCircle, Info } from '@phosphor-icons/react';
+import { Stack, CheckCircle, Info, CaretDown } from '@phosphor-icons/react';
 import type { ChunkRepresentation } from '../../types/api';
 import GlassSurface from '../ui/GlassSurface';
 
@@ -10,6 +10,9 @@ interface ChunkRepresentationsCardProps {
 export const ChunkRepresentationsCard: React.FC<ChunkRepresentationsCardProps> = ({
   representations,
 }) => {
+  const totalPoints = representations.reduce((sum, representation) => sum + representation.chunk_count, 0);
+  const segmentTones = ['bg-cyan-400', 'bg-blue-400', 'bg-violet-400', 'bg-fuchsia-400', 'bg-emerald-400'];
+
   return (
     <GlassSurface
       borderRadius={20}
@@ -25,10 +28,10 @@ export const ChunkRepresentationsCard: React.FC<ChunkRepresentationsCardProps> =
           </div>
           <div>
             <h2 className="text-base sm:text-lg font-bold text-white tracking-tight">
-              Chunk Representation Specifications
+              Five retrieval representations
             </h2>
             <p className="text-xs text-slate-400">
-              {representations.length} measured multi-strategy representation{representations.length === 1 ? '' : 's'} in the active index manifest
+              {totalPoints.toLocaleString()} indexed points distributed across {representations.length} active representation types
             </p>
           </div>
         </div>
@@ -39,52 +42,53 @@ export const ChunkRepresentationsCard: React.FC<ChunkRepresentationsCardProps> =
         </div>
       </div>
 
-      {/* Comparison Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-        {representations.map((rep) => (
-          <div
-            key={rep.strategy}
-            className="p-4 bg-white/5 border border-white/8 hover:border-purple-400/30 rounded-xl flex flex-col justify-between space-y-3 transition-colors"
-          >
-            <div className="space-y-1.5">
-              <div className="flex items-center justify-between">
-                <span className="text-sm font-bold text-white tracking-tight">{rep.name}</span>
-                <span className={`inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full border ${rep.enabled ? 'bg-emerald-500/10 text-emerald-300 border-emerald-500/20' : 'bg-slate-500/10 text-slate-400 border-white/10'}`}>
-                  <CheckCircle size={11} weight="fill" />
-                  <span>{rep.enabled ? 'ACTIVE' : 'DISABLED'}</span>
-                </span>
-              </div>
-              <p className="text-xs text-slate-400 leading-relaxed font-sans">{rep.description}</p>
+      <div className="space-y-4">
+        <div className="flex h-3 overflow-hidden rounded-full bg-white/5" aria-label="Indexed point distribution by representation">
+          {representations.map((representation, index) => (
+            <span
+              key={representation.strategy}
+              title={`${representation.name}: ${representation.chunk_count.toLocaleString()} points`}
+              className={segmentTones[index % segmentTones.length]}
+              style={{ width: `${totalPoints > 0 ? (representation.chunk_count / totalPoints) * 100 : 0}%` }}
+            />
+          ))}
+        </div>
+        <div className="grid grid-cols-2 gap-2 sm:grid-cols-5">
+          {representations.map((representation, index) => (
+            <div key={representation.strategy} className="rounded-xl border border-white/8 bg-white/5 p-3">
+              <span className={`mb-2 block h-1.5 w-8 rounded-full ${segmentTones[index % segmentTones.length]}`} />
+              <p className="truncate text-[10px] font-semibold text-slate-300" title={representation.name}>{representation.name}</p>
+              <p className="mt-1 font-mono text-sm font-bold text-white">{representation.chunk_count.toLocaleString()}</p>
             </div>
+          ))}
+        </div>
 
-            <div className="pt-3 border-t border-white/10 grid grid-cols-2 sm:grid-cols-4 gap-1 text-center font-mono">
-              <div className="p-1.5 bg-black/20 rounded-lg">
-                <span className="block text-[9px] uppercase text-slate-500 font-sans">Points</span>
-                <span className="text-xs font-bold text-cyan-300 font-mono-tabular">
-                  {rep.chunk_count.toLocaleString()}
-                </span>
+        <details className="overflow-hidden rounded-xl border border-white/8 bg-black/15">
+          <summary className="flex cursor-pointer list-none items-center justify-between gap-3 px-4 py-3 text-xs font-bold text-slate-200">
+            <span>Evaluator details · representation construction and footprint</span>
+            <CaretDown size={15} className="text-slate-500" />
+          </summary>
+          <div className="grid grid-cols-1 gap-3 border-t border-white/8 p-4 md:grid-cols-2 lg:grid-cols-3">
+            {representations.map((rep) => (
+              <div key={rep.strategy} className="flex flex-col justify-between space-y-3 rounded-xl border border-white/8 bg-white/5 p-4">
+                <div className="space-y-1.5">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-bold text-white">{rep.name}</span>
+                    <span className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] font-bold ${rep.enabled ? 'border-emerald-500/20 bg-emerald-500/10 text-emerald-300' : 'border-white/10 bg-slate-500/10 text-slate-400'}`}>
+                      <CheckCircle size={11} weight="fill" /> {rep.enabled ? 'ACTIVE' : 'DISABLED'}
+                    </span>
+                  </div>
+                  <p className="text-xs leading-relaxed text-slate-400">{rep.description}</p>
+                </div>
+                <div className="grid grid-cols-3 gap-1 border-t border-white/10 pt-3 text-center font-mono">
+                  <div className="rounded-lg bg-black/20 p-1.5"><span className="block text-[9px] uppercase text-slate-500">Avg chars</span><span className="text-xs font-bold text-white">{rep.avg_text_length}</span></div>
+                  <div className="rounded-lg bg-black/20 p-1.5"><span className="block text-[9px] uppercase text-slate-500">Artifact</span><span className="text-xs font-bold text-slate-300">{(rep.artifact_bytes / (1024 * 1024)).toFixed(1)} MB</span></div>
+                  <div className="rounded-lg bg-black/20 p-1.5"><span className="block text-[9px] uppercase text-slate-500">Build</span><span className="text-xs font-bold text-slate-300">{rep.build_duration_seconds.toFixed(2)} s</span></div>
+                </div>
               </div>
-              <div className="p-1.5 bg-black/20 rounded-lg">
-                <span className="block text-[9px] uppercase text-slate-500 font-sans">Avg Len</span>
-                <span className="text-xs font-bold text-white font-mono-tabular">
-                  {rep.avg_text_length} ch
-                </span>
-              </div>
-              <div className="p-1.5 bg-black/20 rounded-lg">
-                <span className="block text-[9px] uppercase text-slate-500 font-sans">Size</span>
-                <span className="text-xs font-bold text-slate-300 font-mono-tabular">
-                  {(rep.artifact_bytes / (1024 * 1024)).toFixed(1)} MB
-                </span>
-              </div>
-              <div className="p-1.5 bg-black/20 rounded-lg">
-                <span className="block text-[9px] uppercase text-slate-500 font-sans">Build</span>
-                <span className="text-xs font-bold text-slate-300 font-mono-tabular">
-                  {rep.build_duration_seconds.toFixed(2)} s
-                </span>
-              </div>
-            </div>
+            ))}
           </div>
-        ))}
+        </details>
       </div>
     </GlassSurface>
   );

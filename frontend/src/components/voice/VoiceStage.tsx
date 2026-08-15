@@ -1,6 +1,16 @@
 import React from 'react';
-import type { LanguageHint, PipelineState, QueryResponse, SynthesisResponse, VoiceErrorState, VoiceState } from '../../types/api';
+import type {
+  LanguageHint,
+  PipelineState,
+  QueryResponse,
+  ServerLanguageCode,
+  SynthesisResponse,
+  VerifiedPromptCatalog,
+  VoiceErrorState,
+  VoiceState,
+} from '../../types/api';
 import { getLanguageDisplayLabel, PIPELINE_STATE_TO_USER_STATUS } from '../../types/api';
+import type { SessionQueryHistoryEntry } from '../../utils/sessionQueryHistory';
 import { VoiceOrb } from './VoiceOrb';
 import { VoicePillControls } from './VoicePillControls';
 import { PipelineStepper } from '../pipeline/PipelineStepper';
@@ -8,6 +18,7 @@ import { AnswerCards } from './AnswerCards';
 
 interface VoiceStageProps {
   state: VoiceState;
+  textSubmitting: boolean;
   pipelineState: PipelineState | null;
   error: VoiceErrorState | null;
   recordingDuration: number;
@@ -20,25 +31,25 @@ interface VoiceStageProps {
   synthesisResult: SynthesisResponse | null;
   synthesisError: string | null;
   canSubmit: boolean;
+  verifiedPromptCatalog: VerifiedPromptCatalog | null;
+  verifiedPromptsLoading: boolean;
+  verifiedPromptsError: string | null;
+  recentQueries: SessionQueryHistoryEntry[];
   onLanguageChange: (language: LanguageHint) => void;
   onStartRecording: () => void;
   onStopAndAsk: () => void;
   onCancelRecording: () => void;
   onReset: () => void;
   onToggleTextMode: () => void;
-  onSelectSamplePrompt: (prompt: string) => void;
+  onSelectVerifiedPrompt: (prompt: string, language: ServerLanguageCode) => void;
+  onRetryVerifiedPrompts: () => void;
+  onClearRecentQueries: () => void;
   onOpenDiagnostics?: () => void;
 }
 
-const SAMPLE_PROMPTS = [
-  { label: 'English', text: 'What is gold\'s hardness on the Mohs scale?' },
-  { label: 'Hindi', text: 'डायसेफैलिक सिंड्रोम को परिभाषित करें।' },
-  { label: 'English', text: 'What are the symptoms of a strained leg muscle?' },
-];
-
 export const VoiceStage: React.FC<VoiceStageProps> = (props) => {
   const isRecording = props.state === 'recording';
-  const isProcessing = props.state === 'processing';
+  const isProcessing = props.state === 'processing' || props.textSubmitting;
   const isRequesting = props.state === 'requesting_permission';
   const effectiveState = props.result?.state ?? props.pipelineState;
 
@@ -49,7 +60,7 @@ export const VoiceStage: React.FC<VoiceStageProps> = (props) => {
       </div>
 
       <div className={`my-auto flex w-full max-w-5xl flex-col items-center justify-center py-4 text-center ${isRecording ? '-translate-y-4 space-y-4' : 'space-y-6'}`}>
-        <VoiceOrb state={props.state} audioLevel={props.audioLevel} disabled={!props.canSubmit || isProcessing || isRequesting || props.state === 'terminal'} onClick={isRecording ? props.onStopAndAsk : props.onStartRecording} />
+        <VoiceOrb state={props.textSubmitting ? 'processing' : props.state} audioLevel={props.audioLevel} disabled={!props.canSubmit || isProcessing || isRequesting || props.state === 'terminal'} onClick={isRecording ? props.onStopAndAsk : props.onStartRecording} />
 
         {effectiveState && !props.result && <div className="w-full max-w-2xl"><PipelineStepper state={effectiveState} /></div>}
 
@@ -65,14 +76,33 @@ export const VoiceStage: React.FC<VoiceStageProps> = (props) => {
                 synthesisError={props.synthesisError}
                 onDismiss={props.onReset}
               />
-            ) : <><h2 className="text-3xl font-bold text-white">Ask with voice or text</h2><p className="text-sm text-slate-400">Validated corpus paths: English, Hindi, and Hinglish. Other provider languages remain experimental.</p><div className="flex flex-wrap justify-center gap-2 pt-2">{SAMPLE_PROMPTS.map((prompt) => <button key={prompt.text} type="button" disabled={!props.canSubmit} onClick={() => props.onSelectSamplePrompt(prompt.text)} className="max-w-[280px] truncate rounded-full border border-white/10 bg-white/5 px-3.5 py-1.5 text-xs text-slate-300 disabled:opacity-40"><span className="mr-1.5 font-mono text-[10px] text-cyan-400">[{prompt.label}]</span>{prompt.text}</button>)}</div></>}
+            ) : <><h2 className="text-3xl font-bold text-white">Ask with voice or text</h2><p className="text-sm text-slate-400">Validated corpus paths: English, Hindi, and Hinglish. Browse the verified question gallery when you want a known corpus-backed example.</p></>}
 
           {props.error && !props.result && <div className="max-w-md rounded-xl border border-rose-500/30 bg-rose-500/10 p-3 text-xs text-rose-300">{props.error.message}</div>}
           {!props.canSubmit && !props.result && <button type="button" onClick={props.onOpenDiagnostics} className="rounded-xl border border-amber-500/30 bg-amber-500/10 px-4 py-2 text-xs text-amber-200">Backend not ready — view checks</button>}
         </div>
       </div>
 
-      <VoicePillControls {...props} state={props.state} onSelectSamplePrompt={props.onSelectSamplePrompt} />
+      <VoicePillControls
+        state={props.state}
+        textSubmitting={props.textSubmitting}
+        canSubmit={props.canSubmit}
+        selectedLanguage={props.selectedLanguage}
+        recordingDuration={props.recordingDuration}
+        onLanguageChange={props.onLanguageChange}
+        onStartRecording={props.onStartRecording}
+        onStopAndAsk={props.onStopAndAsk}
+        onCancelRecording={props.onCancelRecording}
+        onReset={props.onReset}
+        onToggleTextMode={props.onToggleTextMode}
+        verifiedPromptCatalog={props.verifiedPromptCatalog}
+        verifiedPromptsLoading={props.verifiedPromptsLoading}
+        verifiedPromptsError={props.verifiedPromptsError}
+        recentQueries={props.recentQueries}
+        onSelectVerifiedPrompt={props.onSelectVerifiedPrompt}
+        onRetryVerifiedPrompts={props.onRetryVerifiedPrompts}
+        onClearRecentQueries={props.onClearRecentQueries}
+      />
     </div>
   );
 };

@@ -12,6 +12,7 @@ async def test_optional_groq_missing_key_does_not_disable_core_readiness() -> No
         rag_target_unique_passages=10,
         rag_development_passages=1,
         rag_enable_groq_synthesis=True,
+        groq_api_key="",
     )
     services = DefaultServices(settings)
     services._configure_groq()

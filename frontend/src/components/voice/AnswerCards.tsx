@@ -11,10 +11,12 @@ import {
   X,
 } from '@phosphor-icons/react';
 import type { QueryResponse, SynthesisResponse } from '../../types/api';
+import { getLanguageDisplayLabel, PIPELINE_STATE_TO_USER_STATUS } from '../../types/api';
 import { CitationDrawer } from '../citations/CitationDrawer';
 import { QueryLatencySummary } from '../pipeline/QueryLatencySummary';
 import {
   getSynthesisLatencyMs,
+  getResponseLatencyMs,
   formatResponseLatency,
 } from '../../utils/responseTiming';
 
@@ -146,6 +148,11 @@ export const AnswerCards: React.FC<AnswerCardsProps> = ({
   const [drawerSource, setDrawerSource] = useState<DrawerSource>(null);
   const [copied, setCopied] = useState<CopySource>(null);
   const synthesisLatencyMs = getSynthesisLatencyMs(synthesisResult?.timings_ms);
+  const responseLatencyMs = getResponseLatencyMs(result.timings_ms);
+  const primaryOutcome =
+    result.guardrail.decision === 'ALLOW' && result.answer && result.citations.length > 0
+      ? 'Grounded'
+      : PIPELINE_STATE_TO_USER_STATUS[result.state];
   const uninvokedSynthesis =
     !result.answer &&
     !result.synthesis &&
@@ -177,9 +184,6 @@ export const AnswerCards: React.FC<AnswerCardsProps> = ({
           <span className="mt-1 block text-[10px] text-slate-500">Exact answer assembled from retrieved passages</span>
         </div>
         <div className="flex flex-wrap items-center justify-end gap-2">
-          <span className="rounded-full border border-white/10 bg-white/5 px-2 py-1 font-mono text-[10px]">
-            {result.answer_mode}
-          </span>
           <button
             type="button"
             aria-label="Dismiss answers"
@@ -355,6 +359,22 @@ export const AnswerCards: React.FC<AnswerCardsProps> = ({
         <div className={`grid items-stretch gap-4 ${hasSynthesisCard ? 'lg:grid-cols-2' : ''}`}>
           {primaryCard}
           {synthesisCard}
+        </div>
+        <div
+          aria-label="Query outcome summary"
+          className="mx-auto mt-3 flex w-fit max-w-full flex-wrap items-center justify-center gap-x-2 gap-y-1 rounded-full border border-white/10 bg-[#0a0f1d]/85 px-3 py-1.5 font-mono text-[10px] text-slate-400"
+        >
+          <span className="text-cyan-300">{getLanguageDisplayLabel(result.language)}</span>
+          <span aria-hidden="true">·</span>
+          <span className={primaryOutcome === 'Grounded' ? 'text-emerald-300' : 'text-amber-300'}>{primaryOutcome}</span>
+          <span aria-hidden="true">·</span>
+          <span>{result.citations.length} citation{result.citations.length === 1 ? '' : 's'}</span>
+          {responseLatencyMs !== null && (
+            <>
+              <span aria-hidden="true">·</span>
+              <span>{formatResponseLatency(responseLatencyMs)}</span>
+            </>
+          )}
         </div>
         <QueryLatencySummary timingsMs={result.timings_ms} />
       </section>

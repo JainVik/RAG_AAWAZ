@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { getLanguageDisplayLabel, LANGUAGE_REGISTRY, parseEvidenceSummary, parseOperationalMetrics, parseQueryResponse, parseReadyResponse, parseSynthesisResponse, parseVoiceServerEvent, toBackendLanguage } from './api';
+import { getLanguageDisplayLabel, LANGUAGE_REGISTRY, parseEvidenceSummary, parseOperationalMetrics, parseQueryResponse, parseReadyResponse, parseSynthesisResponse, parseVerifiedPromptCatalog, parseVoiceServerEvent, toBackendLanguage } from './api';
 
 const queryResponse = {
   request_id: 'request-1',
@@ -175,6 +175,51 @@ describe('frontend/backend protocol', () => {
       provenance: { manifest_verified: true, audit_trail_valid: true, limitations: [] },
     });
     expect(parsed.corpus.verified).toBe(true);
+  });
+
+  it('strictly parses the verified corpus-backed recording plan', () => {
+    const parsed = parseVerifiedPromptCatalog({
+      schema_version: '1.0.0',
+      catalog_id: 'msmarco-xi-human-voice-v1',
+      status: 'recording_plan',
+      total: 2,
+      live_text_validated_count: 2,
+      coverage: {
+        languages: { hi: 1, en: 1, 'hi-en': 0 },
+        conditions: { 'clean-short': 1, 'clean-long': 0, 'noisy-short': 0, 'noisy-long': 1 },
+        lengths: { short: 1, long: 1 },
+        source_types: { human: 2 },
+      },
+      prompts: [
+        { id: 'hi-1', text: 'सोना कितना कठोर है?', language: 'hi', condition: 'clean-short', length_class: 'short', source_query_id: 'q1' },
+        { id: 'en-1', text: 'What is gold hardness?', language: 'en', condition: 'noisy-long', length_class: 'long', source_query_id: 'q2' },
+      ],
+    });
+    expect(parsed.prompts).toHaveLength(2);
+    expect(parsed.coverage.languages.hi).toBe(1);
+  });
+
+  it('rejects misleading or internally inconsistent prompt catalogs', () => {
+    const base = {
+      schema_version: '1.0.0', catalog_id: 'msmarco-xi-human-voice-v1', status: 'recording_plan',
+      total: 1, live_text_validated_count: 1,
+      coverage: {
+        languages: { hi: 1, en: 0, 'hi-en': 0 },
+        conditions: { 'clean-short': 1, 'clean-long': 0, 'noisy-short': 0, 'noisy-long': 0 },
+        lengths: { short: 1, long: 0 }, source_types: { human: 1 },
+      },
+      prompts: [{ id: 'hi-1', text: 'प्रश्न', language: 'hi', condition: 'clean-short', length_class: 'short', source_query_id: 'q1' }],
+    };
+    expect(() => parseVerifiedPromptCatalog({ ...base, status: 'measured' })).toThrow();
+    expect(() => parseVerifiedPromptCatalog({ ...base, total: 60 })).toThrow();
+    expect(() => parseVerifiedPromptCatalog({
+      ...base,
+      prompts: [{ ...base.prompts[0], condition: 'clean-long' }],
+    })).toThrow();
+    expect(() => parseVerifiedPromptCatalog({
+      ...base,
+      coverage: { ...base.coverage, languages: { ...base.coverage.languages, extra: 0 } },
+    })).toThrow();
   });
 
   it('parses finite process-local latency percentiles and per-stage sample counts', () => {

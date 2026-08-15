@@ -8,6 +8,7 @@ import type {
   SynthesisRequest,
   SynthesisResponse,
   TextQueryRequest,
+  VerifiedPromptCatalog,
 } from '../types/api';
 import {
   parseEvidenceSummary,
@@ -17,6 +18,7 @@ import {
   parseQueryResponse,
   parseReadyResponse,
   parseSynthesisResponse,
+  parseVerifiedPromptCatalog,
 } from '../types/api';
 
 const API_BASE = (import.meta.env.VITE_API_BASE_URL || '/api').replace(/\/$/, '');
@@ -156,4 +158,14 @@ export async function getOperationalMetrics(): Promise<OperationalMetrics> {
     throw new ApiError(`Metrics endpoint returned HTTP ${response.status}`, response.status);
   }
   return parseOperationalMetrics(await readJson(response));
+}
+
+export async function getVerifiedPrompts(): Promise<VerifiedPromptCatalog> {
+  const response = await fetch(`${API_BASE}/v1/prompts/verified`, {
+    headers: { Accept: 'application/json' },
+  });
+  if (!response.ok) {
+    throw new ApiError(`Verified questions endpoint returned HTTP ${response.status}`, response.status);
+  }
+  return parseVerifiedPromptCatalog(await readJson(response));
 }

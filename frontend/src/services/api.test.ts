@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { getOperationalMetrics, sendSynthesis } from './api';
+import { getOperationalMetrics, getVerifiedPrompts, sendSynthesis } from './api';
 
 const completedSynthesis = {
   request_id: 'request-1',
@@ -70,6 +70,35 @@ describe('getOperationalMetrics', () => {
 
     expect(result.latency_ms?.p50).toBe(80);
     expect(fetchMock).toHaveBeenCalledWith('/api/metrics', {
+      headers: { Accept: 'application/json' },
+    });
+  });
+});
+
+describe('getVerifiedPrompts', () => {
+  it('loads and validates the corpus-backed recording plan', async () => {
+    const fetchMock = vi.fn<typeof fetch>().mockResolvedValue(new Response(
+      JSON.stringify({
+        schema_version: '1.0.0', catalog_id: 'msmarco-xi-human-voice-v1', status: 'recording_plan',
+        total: 1, live_text_validated_count: 1,
+        coverage: {
+          languages: { hi: 0, en: 1, 'hi-en': 0 },
+          conditions: { 'clean-short': 1, 'clean-long': 0, 'noisy-short': 0, 'noisy-long': 0 },
+          lengths: { short: 1, long: 0 }, source_types: { human: 1 },
+        },
+        prompts: [{
+          id: 'en-1', text: 'What is gold hardness?', language: 'en',
+          condition: 'clean-short', length_class: 'short', source_query_id: 'q1',
+        }],
+      }),
+      { status: 200, headers: { 'Content-Type': 'application/json' } },
+    ));
+    vi.stubGlobal('fetch', fetchMock);
+
+    const result = await getVerifiedPrompts();
+
+    expect(result.prompts[0].language).toBe('en');
+    expect(fetchMock).toHaveBeenCalledWith('/api/v1/prompts/verified', {
       headers: { Accept: 'application/json' },
     });
   });

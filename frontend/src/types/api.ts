@@ -251,6 +251,42 @@ export interface TextQueryRequest {
   deadline_ms: number | null;
 }
 
+export const VERIFIED_PROMPT_LANGUAGES = ['hi', 'en', 'hi-en'] as const;
+export type VerifiedPromptLanguage = (typeof VERIFIED_PROMPT_LANGUAGES)[number];
+
+export const VERIFIED_PROMPT_CONDITIONS = [
+  'clean-short',
+  'clean-long',
+  'noisy-short',
+  'noisy-long',
+] as const;
+export type VerifiedPromptCondition = (typeof VERIFIED_PROMPT_CONDITIONS)[number];
+export type VerifiedPromptLength = 'short' | 'long';
+
+export interface VerifiedPrompt {
+  id: string;
+  text: string;
+  language: VerifiedPromptLanguage;
+  condition: VerifiedPromptCondition;
+  length_class: VerifiedPromptLength;
+  source_query_id: string;
+}
+
+export interface VerifiedPromptCatalog {
+  schema_version: '1.0.0';
+  catalog_id: 'msmarco-xi-human-voice-v1';
+  status: 'recording_plan';
+  total: number;
+  live_text_validated_count: number;
+  coverage: {
+    languages: Record<VerifiedPromptLanguage, number>;
+    conditions: Record<VerifiedPromptCondition, number>;
+    lengths: Record<VerifiedPromptLength, number>;
+    source_types: { human: number };
+  };
+  prompts: VerifiedPrompt[];
+}
+
 export interface VoiceStartFrame {
   type: 'start';
   version: '1';
@@ -489,6 +525,10 @@ function isNumber(value: unknown): value is number {
   return typeof value === 'number' && Number.isFinite(value);
 }
 
+function isNonNegativeInteger(value: unknown): value is number {
+  return isNumber(value) && Number.isInteger(value) && value >= 0;
+}
+
 function isBoolean(value: unknown): value is boolean {
   return typeof value === 'boolean';
 }
@@ -615,6 +655,124 @@ function parseGuardrail(value: unknown): GuardrailResult {
     'guardrail.user_message is invalid'
   );
   return value as unknown as GuardrailResult;
+}
+
+function parseCoverageCounts<const T extends readonly string[]>(
+  value: unknown,
+  field: string,
+  expectedKeys: T,
+): Record<T[number], number> {
+  assertProtocol(isRecord(value), `${field} must be an object`);
+  const actualKeys = Object.keys(value).sort();
+  const requiredKeys = [...expectedKeys].sort();
+  assertProtocol(
+    actualKeys.length === requiredKeys.length &&
+      actualKeys.every((key, index) => key === requiredKeys[index]),
+    `${field} must contain exactly ${requiredKeys.join(', ')}`,
+  );
+  for (const key of expectedKeys) {
+    assertProtocol(isNonNegativeInteger(value[key]), `${field}.${key} must be a non-negative integer`);
+  }
+  return value as Record<T[number], number>;
+}
+
+export function parseVerifiedPromptCatalog(value: unknown): VerifiedPromptCatalog {
+  assertProtocol(isRecord(value), 'verified prompt catalog must be an object');
+  assertProtocol(value.schema_version === '1.0.0', 'unsupported verified prompt schema version');
+  assertProtocol(
+    value.catalog_id === 'msmarco-xi-human-voice-v1',
+    'verified prompt catalog_id is invalid',
+  );
+  assertProtocol(value.status === 'recording_plan', 'verified prompt status is invalid');
+  assertProtocol(isNonNegativeInteger(value.total), 'verified prompt total is invalid');
+  assertProtocol(
+    isNonNegativeInteger(value.live_text_validated_count),
+    'verified prompt live_text_validated_count is invalid',
+  );
+  assertProtocol(Array.isArray(value.prompts), 'verified prompts must be an array');
+  assertProtocol(value.prompts.length === value.total, 'verified prompt total does not match prompts');
+  assertProtocol(
+    value.live_text_validated_count <= value.total,
+    'verified prompt validated count exceeds total',
+  );
+
+  const seenIds = new Set<string>();
+  const prompts = value.prompts.map((prompt, index): VerifiedPrompt => {
+    assertProtocol(isRecord(prompt), `verified prompts.${index} must be an object`);
+    assertProtocol(isString(prompt.id) && prompt.id.trim().length > 0, `verified prompts.${index}.id is required`);
+    assertProtocol(!seenIds.has(prompt.id), `verified prompts.${index}.id must be unique`);
+    seenIds.add(prompt.id);
+    assertProtocol(
+      isString(prompt.text) && prompt.text.trim().length > 0,
+      `verified prompts.${index}.text is required`,
+    );
+    assertProtocol(
+      isString(prompt.language) &&
+        (VERIFIED_PROMPT_LANGUAGES as readonly string[]).includes(prompt.language),
+      `verified prompts.${index}.language is invalid`,
+    );
+    assertProtocol(
+      isString(prompt.condition) &&
+        (VERIFIED_PROMPT_CONDITIONS as readonly string[]).includes(prompt.condition),
+      `verified prompts.${index}.condition is invalid`,
+    );
+    assertProtocol(
+      prompt.length_class === 'short' || prompt.length_class === 'long',
+      `verified prompts.${index}.length_class is invalid`,
+    );
+    assertProtocol(
+      prompt.condition.endsWith(prompt.length_class),
+      `verified prompts.${index} condition and length_class disagree`,
+    );
+    assertProtocol(
+      isString(prompt.source_query_id) && prompt.source_query_id.trim().length > 0,
+      `verified prompts.${index}.source_query_id is required`,
+    );
+    return prompt as unknown as VerifiedPrompt;
+  });
+
+  assertProtocol(isRecord(value.coverage), 'verified prompt coverage must be an object');
+  const languages = parseCoverageCounts(
+    value.coverage.languages,
+    'verified prompt coverage.languages',
+    VERIFIED_PROMPT_LANGUAGES,
+  );
+  const conditions = parseCoverageCounts(
+    value.coverage.conditions,
+    'verified prompt coverage.conditions',
+    VERIFIED_PROMPT_CONDITIONS,
+  );
+  const lengths = parseCoverageCounts(
+    value.coverage.lengths,
+    'verified prompt coverage.lengths',
+    ['short', 'long'] as const,
+  );
+  const sourceTypes = parseCoverageCounts(
+    value.coverage.source_types,
+    'verified prompt coverage.source_types',
+    ['human'] as const,
+  );
+  for (const [field, counts] of [
+    ['languages', languages],
+    ['conditions', conditions],
+    ['lengths', lengths],
+    ['source_types', sourceTypes],
+  ] as const) {
+    assertProtocol(
+      Object.values(counts).reduce((sum, count) => sum + count, 0) === value.total,
+      `verified prompt coverage.${field} does not match total`,
+    );
+  }
+
+  return {
+    schema_version: '1.0.0',
+    catalog_id: 'msmarco-xi-human-voice-v1',
+    status: 'recording_plan',
+    total: value.total,
+    live_text_validated_count: value.live_text_validated_count,
+    coverage: { languages, conditions, lengths, source_types: sourceTypes },
+    prompts,
+  };
 }
 
 export function parseQueryResponse(value: unknown): QueryResponse {

@@ -89,6 +89,16 @@ describe('AnswerCards', () => {
     expect(markup).toContain('Full latency evidence');
   });
 
+  it('summarizes the user-facing outcome without exposing the raw terminal enum', () => {
+    const markup = render(primary);
+    expect(markup).toContain('Query outcome summary');
+    expect(markup).toContain('English');
+    expect(markup).toContain('Grounded');
+    expect(markup).toContain('1 citation');
+    expect(markup).toContain('120 ms');
+    expect(markup).not.toContain('&gt;COMPLETED&lt;');
+  });
+
   it('shows an adjacent out-of-context Groq card when no verified answer is available', () => {
     const markup = render({
       ...primary,

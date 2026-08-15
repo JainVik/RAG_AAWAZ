@@ -2,7 +2,6 @@ import React from 'react';
 import {
   FileText,
   CheckCircle,
-  Hash,
   ListNumbers,
   ChartPieSlice,
   ShieldWarning,
@@ -150,17 +149,6 @@ export const DatasetAuditCard: React.FC<DatasetAuditCardProps> = ({ audit }) => 
           </p>
         </div>
 
-        {/* SHA256 Verification Footer */}
-        <div className="flex items-center justify-between text-[10px] font-mono text-slate-500 pt-2 border-t border-white/8">
-          <div className="flex items-center gap-1.5 truncate mr-4">
-            <Hash size={12} className="text-slate-400 shrink-0" />
-            <span className="text-slate-400">SHA256:</span>
-            <span className="truncate">{audit.source_artifact_sha256}</span>
-          </div>
-          <span className={`shrink-0 ${audit.qualifying ? 'text-emerald-400' : 'text-amber-300'}`}>
-            {audit.qualifying ? '✓ Qualifying audit' : audit.status.replaceAll('_', ' ')}
-          </span>
-        </div>
       </div>
     </GlassSurface>
   );
