@@ -99,3 +99,19 @@ def test_outbound_websocket_payloads_use_event_specific_schemas() -> None:
                 "payload": {"text": "wrong payload for this event"},
             }
         )
+
+
+def test_evidence_summary_endpoint() -> None:
+    with TestClient(create_app(UnreadyServices())) as client:
+        response = client.get("/v1/evidence/summary")
+        assert response.status_code == 200
+        payload = response.json()
+        assert "retrieval" in payload
+        assert "corpus" in payload
+        assert "chunk_representations" in payload
+        assert "dataset_audit" in payload
+        assert "corpus_scaling" in payload
+        assert "guardrails" in payload
+        assert "voice_latency" in payload
+        assert "provenance" in payload
+

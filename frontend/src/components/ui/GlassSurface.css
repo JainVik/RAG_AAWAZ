@@ -1,0 +1,27 @@
+.glass-surface {
+  position: relative;
+  overflow: hidden;
+  transition: opacity 0.26s ease-out;
+}
+
+.glass-surface-content {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+.glass-surface--fallback {
+  background: rgba(14, 20, 36, 0.75);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.glass-surface-svg {
+  position: absolute;
+  top: 0;
+  left: 0;
+  pointer-events: none;
+  width: 0;
+  height: 0;
+}

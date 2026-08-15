@@ -128,7 +128,9 @@ checkpoint, index manifest, and a fitted sparse state when sparse retrieval is e
 receives the configured named vectors plus complete payloads with deterministic IDs. An
 incompatible existing collection is rejected, never silently recreated.
 
-## Run the API
+## Run the Application
+
+### 1. Run the Backend API
 
 ```bash
 make dev
@@ -136,13 +138,27 @@ make dev
 python -m uvicorn app.main:app --host 127.0.0.1 --port 8000
 ```
 
+### 2. Run the Frontend Web Application
+
+```bash
+make dev-frontend
+# or, from frontend/
+npm run dev
+```
+
+The frontend will be available at `http://localhost:5173`. It features:
+- `/ask`: Interactive multilingual voice RAG with real-time audio streaming, rotating inset-shadow orb, and 16 Indic language support.
+- `/evidence`: Comprehensive evaluation and system evidence portal.
+
 Endpoints:
 
 - `GET /health`: process liveness only;
 - `GET /ready`: frozen model, manifest, Qdrant schema/count, and Sarvam configuration;
 - `POST /v1/query/text`: development/evaluation path through the same post-transcription harness;
 - `WS /v1/query/voice`: judged audio path;
+- `GET /v1/evidence/summary`: versioned, sanitized evidence and evaluation metrics;
 - `GET /metrics`: aggregate privacy-safe metrics.
+
 
 Production configuration requires `RAG_API_TOKEN`; send it as an `Authorization: Bearer` token to
 both text and voice endpoints. `RAG_VOICE_API_TOKEN` may override it for voice. Keep the process on
