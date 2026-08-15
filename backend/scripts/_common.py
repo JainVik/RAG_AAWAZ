@@ -273,19 +273,13 @@ def _partitioned_held_out_provenance(
         else None
     )
     corpus_artifact = (
-        corpus_artifacts.get("corpus")
-        if isinstance(corpus_artifacts, Mapping)
-        else None
+        corpus_artifacts.get("corpus") if isinstance(corpus_artifacts, Mapping) else None
     )
     source = partition_manifest.get("source")
     source_fixture = source.get("fixture") if isinstance(source, Mapping) else None
-    source_corpus_manifest = (
-        source.get("corpus_manifest") if isinstance(source, Mapping) else None
-    )
+    source_corpus_manifest = source.get("corpus_manifest") if isinstance(source, Mapping) else None
     partitions = partition_manifest.get("partitions")
-    development = (
-        partitions.get("development") if isinstance(partitions, Mapping) else None
-    )
+    development = partitions.get("development") if isinstance(partitions, Mapping) else None
     final = partitions.get("final") if isinstance(partitions, Mapping) else None
 
     source_ids, source_ids_valid = _declared_query_ids(
@@ -298,16 +292,10 @@ def _partitioned_held_out_provenance(
         final.get("query_ids") if isinstance(final, Mapping) else None
     )
     source_content_hashes, source_content_hashes_valid = _declared_query_ids(
-        source_fixture.get("content_hashes")
-        if isinstance(source_fixture, Mapping)
-        else None
+        source_fixture.get("content_hashes") if isinstance(source_fixture, Mapping) else None
     )
-    development_content_hashes, development_content_hashes_valid = (
-        _declared_query_ids(
-            development.get("content_hashes")
-            if isinstance(development, Mapping)
-            else None
-        )
+    development_content_hashes, development_content_hashes_valid = _declared_query_ids(
+        development.get("content_hashes") if isinstance(development, Mapping) else None
     )
     final_content_hashes, final_content_hashes_valid = _declared_query_ids(
         final.get("content_hashes") if isinstance(final, Mapping) else None
@@ -325,15 +313,11 @@ def _partitioned_held_out_provenance(
         for item in final_content_hashes
     )
     observed_ids, observed_ids_valid = _record_query_ids(records)
-    observed_content_hashes, observed_content_hashes_valid = (
-        _record_query_content_hashes(records, query_field=query_field)
+    observed_content_hashes, observed_content_hashes_valid = _record_query_content_hashes(
+        records, query_field=query_field
     )
-    row_splits = [
-        str(record.get("split") or "").strip().casefold() for record in records
-    ]
-    row_languages = [
-        str(record.get("language") or "").strip().casefold() for record in records
-    ]
+    row_splits = [str(record.get("split") or "").strip().casefold() for record in records]
+    row_languages = [str(record.get("language") or "").strip().casefold() for record in records]
     dataset_language = (
         str(dataset.get("language") or "").strip().casefold()
         if isinstance(dataset, Mapping)
@@ -363,14 +347,11 @@ def _partitioned_held_out_provenance(
             and metadata.get("query_ids_sha256") == query_ids_sha256(identifiers)
         )
 
-    def metadata_matches_content_hashes(
-        metadata: Any, content_hashes: tuple[str, ...]
-    ) -> bool:
+    def metadata_matches_content_hashes(metadata: Any, content_hashes: tuple[str, ...]) -> bool:
         return bool(
             isinstance(metadata, Mapping)
             and metadata.get("content_hash_count") == len(content_hashes)
-            and metadata.get("content_hashes_sha256")
-            == query_ids_sha256(content_hashes)
+            and metadata.get("content_hashes_sha256") == query_ids_sha256(content_hashes)
         )
 
     algorithm = partition_manifest.get("algorithm")
@@ -382,8 +363,7 @@ def _partitioned_held_out_provenance(
         "partition_artifact_type": partition_manifest.get("artifact_type")
         == "evaluation_fixture_partition",
         "partition_algorithm_is_supported": isinstance(algorithm, Mapping)
-        and algorithm.get("name")
-        == "sha256-seeded-normalized-query-content-v1",
+        and algorithm.get("name") == "sha256-seeded-normalized-query-content-v1",
         "partition_query_field_matches_evaluation": isinstance(algorithm, Mapping)
         and algorithm.get("query_field") == query_field,
         "dataset_identity_declared": bool(
@@ -406,8 +386,7 @@ def _partitioned_held_out_provenance(
         and metadata_matches_ids(source_fixture, source_ids),
         "development_query_ids_valid": development_ids_valid
         and metadata_matches_ids(development, development_ids),
-        "final_query_ids_valid": final_ids_valid
-        and metadata_matches_ids(final, final_ids),
+        "final_query_ids_valid": final_ids_valid and metadata_matches_ids(final, final_ids),
         "source_content_hashes_valid": source_content_hashes_valid
         and metadata_matches_content_hashes(source_fixture, source_content_hashes),
         "development_content_hashes_valid": development_content_hashes_valid
@@ -415,25 +394,22 @@ def _partitioned_held_out_provenance(
         "final_content_hashes_valid": final_content_hashes_valid
         and metadata_matches_content_hashes(final, final_content_hashes),
         "partitions_are_disjoint": not set(development_ids).intersection(final_ids),
-        "partitions_cover_source": set(development_ids).union(final_ids)
-        == set(source_ids),
-        "partition_content_is_disjoint": not set(
-            development_content_hashes
-        ).intersection(final_content_hashes),
+        "partitions_cover_source": set(development_ids).union(final_ids) == set(source_ids),
+        "partition_content_is_disjoint": not set(development_content_hashes).intersection(
+            final_content_hashes
+        ),
         "partition_content_covers_source": set(development_content_hashes).union(
             final_content_hashes
         )
         == set(source_content_hashes),
-        "all_fixture_rows_are_final": bool(row_splits)
-        and set(row_splits) == {"final"},
+        "all_fixture_rows_are_final": bool(row_splits) and set(row_splits) == {"final"},
         "all_fixture_rows_declare_one_language": bool(row_languages)
         and all(row_languages)
         and len(set(row_languages)) == 1,
         "fixture_language_matches_source": bool(row_languages)
         and len(set(row_languages)) == 1
         and row_languages[0] == dataset_language,
-        "fixture_query_ids_match_final_partition": observed_ids_valid
-        and observed_ids == final_ids,
+        "fixture_query_ids_match_final_partition": observed_ids_valid and observed_ids == final_ids,
         "fixture_content_matches_final_partition": observed_content_hashes_valid
         and observed_content_hashes == final_content_hashes,
         "fixture_sha256_matches_partition": isinstance(final, Mapping)
@@ -448,9 +424,7 @@ def _partitioned_held_out_provenance(
     evidence.update(
         {
             "qualifying": not failed,
-            "status": (
-                "verified_partitioned_held_out" if not failed else "invalid_provenance"
-            ),
+            "status": ("verified_partitioned_held_out" if not failed else "invalid_provenance"),
             # The active index binds the source corpus manifest, not the derived
             # partition manifest. Preserve that identity for corpus_index_provenance.
             "manifest_sha256": corpus_manifest_hash,
@@ -505,36 +479,26 @@ def held_out_provenance(
     dataset = manifest.get("dataset")
     artifacts = manifest.get("artifacts")
     fixture_artifact = (
-        artifacts.get("evaluation_fixtures")
-        if isinstance(artifacts, Mapping)
-        else None
+        artifacts.get("evaluation_fixtures") if isinstance(artifacts, Mapping) else None
     )
     corpus_artifact = artifacts.get("corpus") if isinstance(artifacts, Mapping) else None
     manifest_split = (
-        str(dataset.get("split") or "").strip().casefold()
-        if isinstance(dataset, Mapping)
-        else ""
+        str(dataset.get("split") or "").strip().casefold() if isinstance(dataset, Mapping) else ""
     )
     manifest_language = (
         str(dataset.get("language") or "").strip().casefold()
         if isinstance(dataset, Mapping)
         else ""
     )
-    row_splits = [
-        str(record.get("split") or "").strip().casefold() for record in records
-    ]
-    row_languages = [
-        str(record.get("language") or "").strip().casefold() for record in records
-    ]
+    row_splits = [str(record.get("split") or "").strip().casefold() for record in records]
+    row_languages = [str(record.get("language") or "").strip().casefold() for record in records]
     expected_fixture_hash = (
         str(fixture_artifact.get("sha256") or "").strip().casefold()
         if isinstance(fixture_artifact, Mapping)
         else ""
     )
     expected_fixture_records = (
-        fixture_artifact.get("records")
-        if isinstance(fixture_artifact, Mapping)
-        else None
+        fixture_artifact.get("records") if isinstance(fixture_artifact, Mapping) else None
     )
     corpus_hash = (
         str(corpus_artifact.get("sha256") or "").strip().casefold()
@@ -563,9 +527,7 @@ def held_out_provenance(
         and row_languages[0] == manifest_language,
         "fixture_sha256_matches_manifest": bool(expected_fixture_hash)
         and expected_fixture_hash == fixture_hash,
-        "fixture_record_count_matches_manifest": isinstance(
-            expected_fixture_records, int
-        )
+        "fixture_record_count_matches_manifest": isinstance(expected_fixture_records, int)
         and not isinstance(expected_fixture_records, bool)
         and expected_fixture_records == len(records),
         "corpus_artifact_sha256_declared": len(corpus_hash) == 64,
@@ -578,9 +540,7 @@ def held_out_provenance(
             "manifest_sha256": file_sha256(manifest_path),
             "dataset": dict(dataset) if isinstance(dataset, Mapping) else None,
             "fixture_artifact": (
-                dict(fixture_artifact)
-                if isinstance(fixture_artifact, Mapping)
-                else None
+                dict(fixture_artifact) if isinstance(fixture_artifact, Mapping) else None
             ),
             "corpus_artifact_sha256": corpus_hash or None,
             "checks": checks,
@@ -593,9 +553,7 @@ def held_out_provenance(
 def service_index_manifest(services: Any) -> tuple[Path, dict[str, Any]]:
     path = getattr(services, "index_manifest_path", None)
     if not isinstance(path, Path) or not path.is_file():
-        raise EvaluationError(
-            "Final evaluation requires DefaultServices.index_manifest_path"
-        )
+        raise EvaluationError("Final evaluation requires DefaultServices.index_manifest_path")
     return path, load_json_object(path)
 
 
@@ -611,9 +569,7 @@ def corpus_index_provenance(
     expected_corpus_hash = provenance.get("corpus_artifact_sha256")
     observed_manifest_hash = index_manifest.get("corpus_manifest_sha256")
     checksums = index_manifest.get("checksums")
-    observed_corpus_hash = (
-        checksums.get("corpus") if isinstance(checksums, Mapping) else None
-    )
+    observed_corpus_hash = checksums.get("corpus") if isinstance(checksums, Mapping) else None
     mismatches: list[str] = []
     if (
         expected_manifest_hash
@@ -702,9 +658,7 @@ def final_threshold_provenance(
     normalized_final_query_ids: list[str] = []
     for identifier in final_query_ids:
         if not isinstance(identifier, str) or not identifier.strip():
-            raise EvaluationError(
-                "Final evaluation requires non-empty string query_id values"
-            )
+            raise EvaluationError("Final evaluation requires non-empty string query_id values")
         normalized_final_query_ids.append(identifier.strip())
     if not normalized_final_query_ids:
         raise EvaluationError("Final evaluation contains no query IDs")
@@ -728,13 +682,9 @@ def final_threshold_provenance(
             sorted({query_content_sha256(query) for query in final_queries})
         )
     except (AttributeError, ValueError) as exc:
-        raise EvaluationError(
-            "Final evaluation contains an invalid selected query text"
-        ) from exc
+        raise EvaluationError("Final evaluation contains an invalid selected query text") from exc
     overlapping_content_hashes = sorted(
-        set(final_content_hashes).intersection(
-            frozen.development_query_content_hashes
-        )
+        set(final_content_hashes).intersection(frozen.development_query_content_hashes)
     )
     if overlapping_content_hashes:
         raise EvaluationError(
@@ -773,9 +723,7 @@ def final_threshold_provenance(
         runtime_settings=settings,
     )
     mismatches = sorted(
-        error.removesuffix("_mismatch")
-        for error in binding_errors
-        if error.endswith("_mismatch")
+        error.removesuffix("_mismatch") for error in binding_errors if error.endswith("_mismatch")
     )
     if mismatches:
         raise EvaluationError(
@@ -810,15 +758,11 @@ def final_threshold_provenance(
         "development_query_count": frozen.development_query_count,
         "development_query_ids_sha256": frozen.development_query_ids_sha256,
         "development_query_content_count": frozen.development_query_content_count,
-        "development_query_content_hashes_sha256": (
-            frozen.development_query_content_hashes_sha256
-        ),
+        "development_query_content_hashes_sha256": (frozen.development_query_content_hashes_sha256),
         "final_query_count": len(final_ids),
         "final_query_ids_sha256": query_ids_sha256(final_ids),
         "final_query_content_count": len(final_content_hashes),
-        "final_query_content_hashes_sha256": query_ids_sha256(
-            final_content_hashes
-        ),
+        "final_query_content_hashes_sha256": query_ids_sha256(final_content_hashes),
         "retrieval_runtime_contract": runtime_contract,
         "retrieval_artifacts": bound or None,
         "binding_errors": binding_errors,
@@ -847,8 +791,7 @@ def evaluation_qualification(
         "minimum_distinct_cases": size_qualification == "qualifying",
         "verified_held_out_provenance": provenance.get("qualifying") is True,
         "fixture_matches_active_index": index_provenance.get("qualifying") is True,
-        "development_thresholds_bound_to_active_index": thresholds.get("qualifying")
-        is True,
+        "development_thresholds_bound_to_active_index": thresholds.get("qualifying") is True,
         "all_requests_recorded": recorded_requests == expected_requests,
         "zero_request_failures": request_failures == 0,
         "zero_configuration_failures": configuration_failures == 0,
@@ -879,11 +822,7 @@ def raw_dense_score_evidence(hits: Sequence[Any]) -> dict[str, Any]:
     )
 
     scores = sorted(
-        (
-            float(score)
-            for hit in hits
-            if (score := getattr(hit, "dense_score", None)) is not None
-        ),
+        (float(score) for hit in hits if (score := getattr(hit, "dense_score", None)) is not None),
         reverse=True,
     )
     top = scores[0] if scores else None
@@ -895,9 +834,7 @@ def raw_dense_score_evidence(hits: Sequence[Any]) -> dict[str, Any]:
         "top_raw_dense_similarity": top,
         "second_raw_dense_similarity": second,
         "raw_dense_similarity_margin": (
-            top - (second if second is not None else 0.0)
-            if top is not None
-            else None
+            top - (second if second is not None else 0.0) if top is not None else None
         ),
     }
 
@@ -1135,6 +1072,7 @@ def corpus_metadata(services: Any) -> dict[str, Any]:
             "collection",
             "point_count",
             "chunk_count",
+            "document_count",
             "chunk_build_id",
             "corpus_manifest_sha256",
             "index_size_bytes",
@@ -1142,6 +1080,8 @@ def corpus_metadata(services: Any) -> dict[str, Any]:
             "disk_bytes",
             "build_time_seconds",
             "dense_model",
+            "model_revision",
+            "dense_vector_size",
             "strategy_counts",
             "strategies",
             "feature_flags",

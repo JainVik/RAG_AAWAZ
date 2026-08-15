@@ -200,7 +200,15 @@ class PipelineOrchestrator:
                             )
                         )
 
-            plan = self.router.route(transcript.text, stt_confidence=transcript.confidence)
+            plan = self.router.route(
+                transcript.text,
+                stt_confidence=transcript.confidence,
+                language_hint=(
+                    transcript.language
+                    if transcript.language != Language.UNKNOWN
+                    else None
+                ),
+            )
             if transcript.language == Language.UNKNOWN:
                 transcript = transcript.model_copy(update={"language": plan.language})
 

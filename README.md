@@ -6,9 +6,12 @@ speculative retrieval from stable partial transcripts, performs parallel dense a
 n-gram sparse retrieval in Qdrant, and returns an exact cited answer or a structured abstention
 before an absolute deadline.
 
-This repository contains implementation and deterministic tests. It does **not** claim a completed
-submission benchmark yet: the current machine has no Docker/Qdrant runtime and no Sarvam key, and
-no credentialed voice or qualifying 500-query held-out retrieval run has been executed. See
+This repository contains implementation, deterministic tests, and local integration evidence. The
+pinned Qdrant server holds 112,114 points from 10,005 validation passages, the credentialed Sarvam
+realtime smoke is verified, and a zero-failure qualifying 500-query held-out retrieval run is
+retained under `backend/evaluation/reports/final/`. It does **not** yet claim the complete
+submission benchmark: corpus scaling, separate-collection ablations, and the 100/300-request real
+voice latency study remain outstanding. See
 [`docs/requirements-traceability.md`](docs/requirements-traceability.md) for the evidence boundary.
 The future screen scope and exact backend-to-UI mapping are in
 [`docs/frontend-product-contract.md`](docs/frontend-product-contract.md); the supplied screenshots
@@ -99,6 +102,8 @@ python scripts/inspect_dataset.py --languages hi --splits train validation --max
 The source files each contain one very large row group. A cold first row can take several minutes
 even with a small output batch; the batch bounds memory but cannot change the remote physical
 layout. Reports are deterministic JSON and Markdown in `backend/evaluation/reports/`.
+For a restartable Google Colab Free version of the audit/corpus/initial-index workflow, see
+[docs/colab-offline-workflow.md](docs/colab-offline-workflow.md).
 
 ## Phase 2–3: build the corpus and Qdrant index
 
@@ -177,6 +182,12 @@ reused counters. Failed requests and missing timings remain in the denominator. 
 also requires the canonical provider/internal timing fields and complete, consistent binary
 speculative counters; a response containing only the total cannot qualify.
 
+Current retained retrieval evidence is qualifying for the active 10,005-document index: 500/500
+requests completed with zero failures, Recall@5 `0.7043`, Recall@10 `0.8413`, MRR@10 `0.4533`,
+and nDCG@10 `0.5465`. Direct retrieval latency on this CPU is mean `305 ms`, P50 `292 ms`, P95
+`373 ms`, and P100 `628 ms`; it is not evidence for the separate post-final-audio `<200 ms` voice
+target.
+
 ### Strict real-Sarvam prerequisite
 
 The credentialed smoke is an explicit prerequisite, not a test that silently skips. Supply a
@@ -242,6 +253,19 @@ Final evidence is a separate workflow:
    It uses `data/evaluation/partition/final-fixtures.jsonl`, the source corpus manifest, and the
    partition manifest; it rejects development/final ID or normalized-content overlap and any
    active-index/runtime mismatch.
+   After independently building and evaluating a larger corpus in a distinct Qdrant collection,
+   compare compatible reports with:
+
+   ```bash
+   cd backend
+   python scripts/compare_corpus_sizes.py \
+     evaluation/reports/final/retrieval-10k.json \
+     evaluation/reports/final/retrieval-25k.json
+   ```
+
+   The comparison is nonqualifying unless both inputs are qualifying and bind the same final
+   fixture/model/router/deadline/cache policy while using different corpus manifests and
+   collections.
 2. Create the gitignored `backend/evaluation/private/voice-latency.jsonl` with at least 303
    distinct PCM clips:
    three warmups plus the 300-request target. Include explicit distinct expected transcripts,
@@ -262,8 +286,9 @@ Final evidence is a separate workflow:
 6. Run the 500-query retrieval, guardrail, and ablation CLIs against their final fixtures and keep
    every JSONL/CSV/JSON/Markdown bundle.
 
-No qualifying final voice, retrieval, or ablation artifact has been produced on this checkout, so
-acceptance remains pending. Do not rename development smoke output as final evidence.
+A qualifying 500-query retrieval artifact is retained on this checkout. Qualifying final voice,
+corpus-scaling, guardrail, and separate-collection ablation evidence is still pending. Do not
+rename development smoke output as final evidence.
 
 ## Documentation
 

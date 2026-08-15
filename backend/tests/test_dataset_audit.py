@@ -132,6 +132,10 @@ def test_audit_reports_counts_nulls_duplicates_lengths_and_answer_case() -> None
     assert report["schema"]["matches"] is True
     assert report["query_counts"]["query_rows_sampled"] == 2
     assert report["query_counts"]["unique_query_ids"] == 2
+    assert report["query_counts"]["duplicate_query_id_rows"] == 0
+    assert report["query_counts"]["query_type_distribution"] == {"DESCRIPTION": 2}
+    assert report["query_counts"]["passages_per_query"]["p50"] == 2
+    assert report["query_counts"]["selected_passages_per_query"]["p50"] == 1
     assert report["passage_counts"]["english_passage_occurrences"] == 4
     assert report["passage_counts"]["selected_labels"] == 2
     assert report["passage_counts"]["non_selected_labels"] == 2
@@ -142,6 +146,24 @@ def test_audit_reports_counts_nulls_duplicates_lengths_and_answer_case() -> None
     assert report["answer_field_detection"]["presence_counts"] == {"Answer": 2}
     assert report["answer_field_detection"]["answers_field_present"] is False
     assert report["length_distributions"]["english_passages"]["characters"]["count"] == 4
+    assert report["length_distributions"]["english_queries"]["characters"]["count"] == 2
+    assert report["length_distributions"]["translated_answers"]["characters"]["count"] == 1
+    assert report["length_distributions"]["english_passages"]["characters"]["p99"] == len(
+        alpha
+    )
+    assert report["duplicates"]["canonical_passages_reused_across_queries"] == 1
+    estimates = report["corpus_scale_estimates"]
+    assert [row["target_unique_passages"] for row in estimates["candidate_sizes"]] == [
+        10_000,
+        25_000,
+        50_000,
+        100_000,
+    ]
+    assert all(row["estimated_total_vectors"] > 0 for row in estimates["candidate_sizes"])
+    assert "heuristics" in estimates["assumptions"]["note"]
+    assert report["translation_metadata"]["source_target_pair_counts"] == {
+        "eng_Latn->hin_Deva": 2
+    }
     assert "estimate, not a model tokenizer" in report["length_distributions"][
         "token_estimate_method"
     ]

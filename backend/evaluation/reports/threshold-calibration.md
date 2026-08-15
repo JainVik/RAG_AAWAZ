@@ -4,7 +4,7 @@
 
 | Objective | Min answer score | Min score margin | Min evidence agreement | Balanced accuracy | F1 | Accuracy | Answer coverage |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| balanced_accuracy | 0.85172 | 0 | 0 | 0.944664 | 0.941423 | 0.891892 | 0.868726 |
+| balanced_accuracy | 0.853026 | 0 | 0 | 0.938735 | 0.934737 | 0.880309 | 0.857143 |
 
 Evaluated 4096 deterministic threshold combinations. Frozen artifact: `C:\RAG\backend\data\calibration\frozen-thresholds.json`.
 

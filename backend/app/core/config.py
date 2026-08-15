@@ -34,7 +34,9 @@ class Settings(BaseSettings):
     qdrant_api_key: SecretStr | None = None
     qdrant_collection: str = "awaaz_tiderag_v1"
 
-    rag_language: Literal["hi", "en", "mr"] = "hi"
+    rag_language: Literal[
+        "as", "bn", "gu", "hi", "kn", "ml", "mr", "ne", "or", "pa", "sa", "ta", "te", "ur"
+    ] = "hi"
     rag_target_unique_passages: int = Field(default=50_000, ge=1)
     rag_development_passages: int = Field(default=10_000, ge=1)
     rag_deadline_ms: int = Field(default=200, ge=20, le=30_000)

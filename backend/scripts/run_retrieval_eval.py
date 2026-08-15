@@ -15,6 +15,7 @@ from app.core.deadlines import Deadline  # noqa: E402
 from app.evaluation.metrics import (  # noqa: E402
     RetrievalEvaluationRecord,
     grouped_retrieval_metrics,
+    latency_metrics,
     retrieval_metrics,
 )
 from scripts._common import (  # noqa: E402
@@ -47,9 +48,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         description="Evaluate the initialized hybrid retriever on distinct held-out queries."
     )
-    parser.add_argument(
-        "--fixture", type=Path, default=DEFAULT_CORPUS_EVALUATION_FIXTURE
-    )
+    parser.add_argument("--fixture", type=Path, default=DEFAULT_CORPUS_EVALUATION_FIXTURE)
     parser.add_argument(
         "--corpus-manifest",
         type=Path,
@@ -137,9 +136,7 @@ async def run(args: argparse.Namespace) -> tuple[dict[str, Any], list[dict[str, 
         partition_manifest=getattr(args, "partition_manifest", None),
         query_field=args.query_field,
     )
-    fixture_rows = _prepare_fixture(
-        source_records, query_field=args.query_field, limit=args.limit
-    )
+    fixture_rows = _prepare_fixture(source_records, query_field=args.query_field, limit=args.limit)
     size_qualification = require_minimum_cases(
         len(fixture_rows),
         max(DEFAULT_MINIMUM_QUERIES, args.minimum_queries),
@@ -189,7 +186,12 @@ async def run(args: argparse.Namespace) -> tuple[dict[str, Any], list[dict[str, 
             sparse_failed: bool | None = None
             score_evidence = raw_dense_score_evidence(())
             try:
-                plan = orchestrator.router.route(query)
+                language_hint = (
+                    "en"
+                    if fixture["_query_source_field"] == "english_query"
+                    else fixture.get("language")
+                )
+                plan = orchestrator.router.route(query, language_hint=language_hint)
             except Exception as exc:
                 error = {
                     "kind": "configuration",
@@ -205,9 +207,7 @@ async def run(args: argparse.Namespace) -> tuple[dict[str, Any], list[dict[str, 
                         plan,
                         Deadline.after_ms(args.deadline_ms, fallback_ms),
                     )
-                    retrieved_ids = tuple(
-                        hit.canonical_doc_id for hit in result.fused_hits
-                    )
+                    retrieved_ids = tuple(hit.canonical_doc_id for hit in result.fused_hits)
                     agreement = result.agreement
                     sparse_failed = result.sparse_failed
                     score_evidence = raw_dense_score_evidence(result.fused_hits)
@@ -235,8 +235,7 @@ async def run(args: argparse.Namespace) -> tuple[dict[str, Any], list[dict[str, 
                 )
             )
             category = str(
-                fixture.get("category")
-                or (plan.category if plan is not None else "routing_failed")
+                fixture.get("category") or (plan.category if plan is not None else "routing_failed")
             )
             metric_record = RetrievalEvaluationRecord(
                 query_id=query_id,
@@ -272,19 +271,16 @@ async def run(args: argparse.Namespace) -> tuple[dict[str, Any], list[dict[str, 
 
         metrics = grouped_retrieval_metrics(evaluation_records)
         request_failures = sum(
-            row["error"] is not None and row["error"].get("kind") == "request"
-            for row in raw_rows
+            row["error"] is not None and row["error"].get("kind") == "request" for row in raw_rows
         )
         configuration_failures = sum(
-            row["error"] is not None
-            and row["error"].get("kind") == "configuration"
+            row["error"] is not None and row["error"].get("kind") == "configuration"
             for row in raw_rows
         )
         failures = request_failures + configuration_failures
         successful_requests = sum(bool(row["success"]) for row in raw_rows)
         hit_count = sum(
-            bool(set(row["relevant_ids"]) & set(row["retrieved_ids"]))
-            for row in raw_rows
+            bool(set(row["relevant_ids"]) & set(row["retrieved_ids"])) for row in raw_rows
         )
         qualification = evaluation_qualification(
             size_qualification=size_qualification,
@@ -320,10 +316,13 @@ async def run(args: argparse.Namespace) -> tuple[dict[str, Any], list[dict[str, 
     summary: dict[str, Any] = {
         "metadata": metadata,
         "metrics": metrics,
+        "latency": latency_metrics(
+            [float(row["duration_ms"]) for row in raw_rows],
+            total_requests=len(raw_rows),
+            completed_answers=successful_requests,
+        ),
         "retrieval_hit_coverage": hit_count / len(raw_rows),
-        "retrieval_completion_coverage": qualification[
-            "retrieval_completion_coverage"
-        ],
+        "retrieval_completion_coverage": qualification["retrieval_completion_coverage"],
         "failure_count": failures,
         "request_failure_count": request_failures,
         "configuration_failure_count": configuration_failures,
@@ -333,6 +332,7 @@ async def run(args: argparse.Namespace) -> tuple[dict[str, Any], list[dict[str, 
 
 def _markdown(summary: dict[str, Any]) -> str:
     overall = summary["metrics"]["overall"]
+    latency = summary["latency"]
     metadata = summary["metadata"]
     lines = [
         "# Retrieval evaluation",
@@ -364,6 +364,22 @@ def _markdown(summary: dict[str, Any]) -> str:
                     summary["retrieval_completion_coverage"],
                     summary["request_failure_count"],
                     summary["configuration_failure_count"],
+                )
+            ],
+        ),
+        "",
+        "## End-to-end retrieval latency",
+        "",
+        markdown_table(
+            ("Samples", "Mean (ms)", "P50 (ms)", "P70 (ms)", "P95 (ms)", "P100 (ms)"),
+            [
+                (
+                    latency["sample_count"],
+                    latency.get("mean_ms", "n/a"),
+                    latency.get("p50_ms", "n/a"),
+                    latency.get("p70_ms", "n/a"),
+                    latency.get("p95_ms", "n/a"),
+                    latency.get("p100_ms", "n/a"),
                 )
             ],
         ),

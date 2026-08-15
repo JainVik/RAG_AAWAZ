@@ -50,6 +50,15 @@ def _calibration_binding() -> dict[str, str]:
     }
 
 
+def test_calibration_grid_preserves_mandatory_guardrail_anchors() -> None:
+    values = [index / 100 for index in range(100)]
+    grid = calibrate_thresholds._grid(values, 16, anchors=(0.05, 1.0))
+
+    assert len(grid) <= 16
+    assert 0.05 in grid
+    assert 1.0 in grid
+
+
 def _fixture_and_manifest(
     root: Path, *, split: str = "validation"
 ) -> tuple[Path, Path, list[dict[str, object]]]:

@@ -1,9 +1,7 @@
 {
   "metadata": {
-    "answerable_count": 506,
-    "cache_policy": "disabled",
-    "case_count": 518,
-    "command": "score_development",
+    "cache_policy": "uncontrolled",
+    "command": "run_guardrail_eval",
     "concurrency": 1,
     "corpus": {
       "available": true,
@@ -110,11 +108,10 @@
         "sentence_window": 31793
       }
     },
-    "created_at": "2026-08-15T10:36:54.813767+00:00",
-    "deadline_ms": 5000,
+    "created_at": "2026-08-15T10:57:51.916332+00:00",
     "fixture": {
-      "path": "C:\\RAG\\backend\\data\\evaluation\\partition\\development-fixtures.jsonl",
-      "sha256": "66d48bc129341e66e928edb0e08def91ce68b357e7c62c70e1a841fc2f028f14"
+      "path": "C:\\RAG\\backend\\evaluation\\fixtures\\guardrail-cases.jsonl",
+      "sha256": "5299e0ac2d8b65cf98505285f9f874558d55038d895292cc2f15b737b1f1a0b6"
     },
     "hardware": {
       "logical_cpu_count": 8,
@@ -128,7 +125,6 @@
       "system": "Windows"
     },
     "hardware_scope": "machine running this evaluation command",
-    "output_contract": "Pass the sibling JSONL artifact to calibrate_thresholds.py --fixture",
     "packages": {
       "awaaz-tiderag": "0.1.0",
       "fastapi": "0.116.1",
@@ -140,25 +136,109 @@
       "websockets": "15.0.1"
     },
     "packages_scope": "Python environment running this evaluation command",
-    "qualification": "development_score_export",
-    "qualifying": true,
-    "query_field": "auto",
-    "retrieval_artifacts": {
-      "chunk_build_id": "b3e0949e158f55c8b1e60e22621893d9d17368553eca9a0b9f8455ab2603f40a",
-      "collection": "awaaz_tiderag_v1",
-      "corpus_artifact_sha256": "3e966191146684eefa26190c0db5e38939d254962e2b7f20c561ed0f13172166",
-      "corpus_manifest_sha256": "70d0bd95ced0b876490bc0c0edaf5a9bc6f2fb493b30016a233abcdb7a3a25f3",
-      "dense_model": "intfloat/multilingual-e5-small",
-      "index_manifest_sha256": "3b872e3a2d0775c7bcc63c9305f1c26cd3c37313a46bfee2d4967199b33da3d5",
-      "model_revision": "614241f622f53c4eeff9890bdc4f31cfecc418b3",
-      "retrieval_contract_sha256": "e6fd1b2955911ed8f49f38734de975f2cc5154c6b00d1eb7f73a4b78f794320c",
-      "retrieval_contract_version": "tide-router-heuristics-v4"
+    "qualification": "non_qualifying_active_pipeline_supported_case",
+    "qualification_checks": {
+      "checks": {
+        "active_index_ready": true,
+        "active_pipeline_contradictory_case": false,
+        "active_pipeline_supported_case": false,
+        "active_pipeline_unsupported_case": true,
+        "all_cases_correct": true,
+        "all_cases_recorded": true,
+        "all_required_guardrail_labels_present": true,
+        "frozen_bound_thresholds_ready": true,
+        "live_initialized_services": true,
+        "qdrant_ready": true,
+        "synthetic_conflict_gate_regression": true
+      },
+      "expected_case_count": 13,
+      "failed_checks": [
+        "active_pipeline_supported_case",
+        "active_pipeline_contradictory_case"
+      ],
+      "qualifying": false,
+      "recorded_case_count": 13,
+      "status": "non_qualifying_active_pipeline_supported_case"
+    },
+    "qualifying": false,
+    "runtime_feature_flags": {
+      "atomic": true,
+      "bilingual_paired": true,
+      "late_chunking": true,
+      "parent_child": true,
+      "semantic_section": true,
+      "sentence_window": true,
+      "sparse": true
     },
     "schema_version": 1,
-    "unanswerable_count": 12,
-    "unanswerable_fixture": {
-      "path": "C:\\RAG\\backend\\evaluation\\fixtures\\development-unanswerable.jsonl",
-      "sha256": "89d1461492ffb3da5efbf8ed01bb2b1d780ce4b36ac9c4afa98c993c490b52ed"
+    "thresholds": {
+      "minimum_answer_score": 0.85302633,
+      "minimum_evidence_agreement": 0.0,
+      "minimum_score_margin": 0.0,
+      "minimum_stt_confidence": 0.55
     }
+  },
+  "metrics": {
+    "accuracy": 1.0,
+    "case_count": 13,
+    "confusion": {
+      "ALLOW": {
+        "ALLOW": 1
+      },
+      "AUDIO_TOO_SHORT": {
+        "AUDIO_TOO_SHORT": 1
+      },
+      "DEADLINE_EXCEEDED": {
+        "DEADLINE_EXCEEDED": 1
+      },
+      "DEPENDENCY_UNAVAILABLE": {
+        "DEPENDENCY_UNAVAILABLE": 1
+      },
+      "LOW_STT_CONFIDENCE": {
+        "LOW_STT_CONFIDENCE": 1
+      },
+      "NO_RELEVANT_EVIDENCE": {
+        "NO_RELEVANT_EVIDENCE": 2
+      },
+      "PROMPT_INJECTION": {
+        "PROMPT_INJECTION": 1
+      },
+      "RETRIEVAL_DISAGREEMENT": {
+        "RETRIEVAL_DISAGREEMENT": 1
+      },
+      "SILENCE": {
+        "SILENCE": 1
+      },
+      "STALE_CORPUS": {
+        "STALE_CORPUS": 2
+      },
+      "UNSAFE_REQUEST": {
+        "UNSAFE_REQUEST": 1
+      }
+    },
+    "correct": 13
+  },
+  "qualification": {
+    "checks": {
+      "active_index_ready": true,
+      "active_pipeline_contradictory_case": false,
+      "active_pipeline_supported_case": false,
+      "active_pipeline_unsupported_case": true,
+      "all_cases_correct": true,
+      "all_cases_recorded": true,
+      "all_required_guardrail_labels_present": true,
+      "frozen_bound_thresholds_ready": true,
+      "live_initialized_services": true,
+      "qdrant_ready": true,
+      "synthetic_conflict_gate_regression": true
+    },
+    "expected_case_count": 13,
+    "failed_checks": [
+      "active_pipeline_supported_case",
+      "active_pipeline_contradictory_case"
+    ],
+    "qualifying": false,
+    "recorded_case_count": 13,
+    "status": "non_qualifying_active_pipeline_supported_case"
   }
 }

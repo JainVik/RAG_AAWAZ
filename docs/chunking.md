@@ -25,9 +25,10 @@ is emitted as a distinct sentence-window representation with a strategy-specific
 
 This view is skipped unless at least four meaningful sentences exist and an offline sentence
 embedder is available. Adjacent cosine similarities are calculated once during corpus building;
-locally low similarities create boundaries. A word/token cap prevents pathological sections.
-The audit report, not intuition, supplies the submitted cap. If semantic embeddings are not
-configured, the factory emits no falsely labelled semantic chunks.
+locally low similarities create boundaries. The current explicit build default caps emitted
+sections at 180 words and records that value in the index manifest. It remains an ablation input,
+not a data-backed final choice. If semantic embeddings are not configured, the factory emits no
+falsely labelled semantic chunks.
 
 ### Parent-child
 
@@ -66,9 +67,11 @@ evaluation report metadata record the effective flags and enabled dense strategi
 
 ## Required measurements
 
-`build_corpus.py` records, per representation, chunk count, average characters/words, duplicate
+`build_index.py` records, per representation, chunk count, average characters/words, duplicate
 rate, wall build time, and bytes written. `run_ablation.py` adds Recall@1/5/10, MRR@10, nDCG@10,
-retrieval latency, and vector/index size. A submitted default is not considered selected until
+and retrieval latency. Exact per-configuration Qdrant bytes/build time require independent
+collection-build artifacts; the current shared filtered-collection comparison is deliberately
+nonqualifying for per-collection behavior. A submitted default is not considered selected until
 those reports exist over held-out queries.
 
 ## Span invariants

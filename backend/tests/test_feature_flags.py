@@ -136,6 +136,7 @@ async def test_dense_only_services_do_not_require_sparse_state(
     monkeypatch.setattr("app.services.SentenceTransformerDenseEncoder", _DenseFixture)
     monkeypatch.setattr("app.services.QdrantStore", _DenseOnlyStoreFixture)
     settings = Settings(
+        _env_file=None,
         environment="test",
         rag_data_dir=tmp_path,
         rag_thresholds_path=tmp_path / "missing-thresholds.json",

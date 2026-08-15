@@ -20,7 +20,16 @@ content-safety classifier. Thresholds are calibrated on a development split, wri
 artifact with the fixture hash, then loaded unchanged for final evaluation. Code rejects attempts
 to freeze from a split named `final`.
 
+For the current 10k index, 518 development rows selected a raw-dense threshold of `0.85302633` but
+zero score-margin and branch-agreement minima. That is the measured result of the present negative
+set, not proof that those two signals are unnecessary. Add realistic high-similarity hard negatives
+and re-freeze before claiming margin/disagreement calibration; do not impose an unmeasured floor
+that would collapse answer coverage.
+
 The guardrail suite must include supported, unsupported, stale, unsafe, injection, silence,
 low-confidence, contradictory-evidence, dependency-failure, and forced-deadline cases. Reports show
 a full expected-reason versus observed-reason confusion matrix and representative failures.
-
+The retained live-ready run is 13/13 correct and includes an active-pipeline unsupported query. It
+remains nonqualifying because the bundled fixture lacks successful active-pipeline supported and
+contradiction rows; its synthetic conflict case remains a deterministic regression test, not
+live-corpus contradiction evidence.

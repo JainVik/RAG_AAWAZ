@@ -14,7 +14,7 @@ from dataclasses import dataclass
 from datetime import UTC, datetime
 from functools import partial
 from pathlib import Path
-from typing import Any, Protocol
+from typing import Any, Protocol, cast
 
 import numpy as np
 from pydantic import ValidationError
@@ -218,7 +218,8 @@ class OfflineE5DenseEncoder:
             convert_to_numpy=True,
             show_progress_bar=False,
         )
-        return np.asarray(vectors, dtype=np.float32).tolist()
+        array = np.asarray(vectors, dtype=np.float32)
+        return [[float(value) for value in row] for row in array]
 
     def encode_sentences(self, texts: list[str]) -> list[list[float]]:
         return self._encode(texts, "passage")
@@ -838,11 +839,14 @@ def _default_store_factory(
     sparse_encoder: SparseCharNgramEncoder | None,
     metadata: Mapping[str, Any],
 ) -> IndexStore:
-    return QdrantStore(
-        settings,
-        dense_encoder,
-        sparse_encoder,
-        collection_metadata=metadata,
+    return cast(
+        IndexStore,
+        QdrantStore(
+            settings,
+            dense_encoder,
+            sparse_encoder,
+            collection_metadata=metadata,
+        ),
     )
 
 
@@ -861,7 +865,7 @@ def _sentence_embedder(
             "The loaded dense encoder cannot synchronously embed sentences required "
             "for semantic chunking. Use --no-semantic or an offline E5 encoder."
         )
-    return method
+    return cast(Callable[[list[str]], Sequence[Sequence[float]]], method)
 
 
 async def build_index(
@@ -960,8 +964,9 @@ async def build_index(
         )
         sparse_encoder = None
         if config.settings.rag_enable_sparse:
-            sparse_encoder = await asyncio.to_thread(_fit_sparse_encoder, config.chunks_path)
-            await asyncio.to_thread(sparse_encoder.save, config.sparse_state_path)
+            fitted_sparse = await asyncio.to_thread(_fit_sparse_encoder, config.chunks_path)
+            sparse_encoder = fitted_sparse
+            await asyncio.to_thread(fitted_sparse.save, config.sparse_state_path)
         point_count = int(metrics["point_count"])
         checksums = await asyncio.to_thread(_artifact_checksums, config)
         _atomic_write_json(

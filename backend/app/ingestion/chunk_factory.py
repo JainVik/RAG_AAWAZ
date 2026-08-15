@@ -7,6 +7,7 @@ from collections.abc import Callable, Sequence
 from dataclasses import dataclass
 
 from app.domain.enums import ChunkStrategy, Language
+from app.domain.languages import language_from_tag
 from app.domain.models import Chunk, CorpusDocument
 from app.ingestion.deduplicate import stable_id
 
@@ -430,14 +431,15 @@ class ChunkFactory:
     def document_languages(document: CorpusDocument) -> tuple[Language, ...]:
         if not document.translated_text:
             return (Language.ENGLISH,)
-        translation_language = (document.translation_language or "").casefold()
-        translated = (
-            Language.MARATHI if translation_language.startswith(("mr", "mar")) else Language.HINDI
-        )
+        translated = language_from_tag(document.translation_language)
+        if translated in {Language.UNKNOWN, Language.ENGLISH, Language.CODE_MIXED}:
+            translated = Language.HINDI
         return Language.ENGLISH, translated
 
     @staticmethod
     def _text_for_language(document: CorpusDocument, language: Language) -> str:
-        if language in {Language.HINDI, Language.MARATHI}:
-            return document.translated_text or ""
-        return document.english_text
+        return (
+            document.english_text
+            if language == Language.ENGLISH
+            else document.translated_text or ""
+        )

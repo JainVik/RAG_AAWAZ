@@ -9,8 +9,12 @@ if str(BACKEND_ROOT) not in sys.path:
     sys.path.insert(0, str(BACKEND_ROOT))
 
 from app.ingestion.dataset_audit import (  # noqa: E402
+    DEFAULT_CANDIDATE_CORPUS_SIZES,
+    DEFAULT_DENSE_VECTOR_SIZE,
+    DEFAULT_EMBEDDING_VECTORS_PER_SECOND,
     DEFAULT_SHORT_PASSAGE_CHARS,
     DEFAULT_STREAM_BATCH_SIZE,
+    DEFAULT_UPSERT_POINTS_PER_SECOND,
     LANGUAGE_FILES,
     DatasetFileUnavailable,
     audit_records,
@@ -39,6 +43,24 @@ def build_parser() -> argparse.ArgumentParser:
     )
     parser.add_argument("--max-malformed-examples", type=int, default=20)
     parser.add_argument(
+        "--candidate-corpus-sizes",
+        nargs="+",
+        type=int,
+        default=list(DEFAULT_CANDIDATE_CORPUS_SIZES),
+        help="Unique-passage targets used for explicitly heuristic scaling estimates.",
+    )
+    parser.add_argument("--dense-vector-size", type=int, default=DEFAULT_DENSE_VECTOR_SIZE)
+    parser.add_argument(
+        "--assumed-embedding-vectors-per-second",
+        type=float,
+        default=DEFAULT_EMBEDDING_VECTORS_PER_SECOND,
+    )
+    parser.add_argument(
+        "--assumed-upsert-points-per-second",
+        type=float,
+        default=DEFAULT_UPSERT_POINTS_PER_SECOND,
+    )
+    parser.add_argument(
         "--json-output",
         type=Path,
         default=reports_dir / "dataset-audit.json",
@@ -62,6 +84,14 @@ def main(argv: list[str] | None = None) -> int:
         parser.error("--short-passage-chars must be non-negative")
     if args.max_malformed_examples < 0:
         parser.error("--max-malformed-examples must be non-negative")
+    if any(size < 1 for size in args.candidate_corpus_sizes):
+        parser.error("--candidate-corpus-sizes values must be positive")
+    if args.dense_vector_size < 1:
+        parser.error("--dense-vector-size must be positive")
+    if args.assumed_embedding_vectors_per_second <= 0:
+        parser.error("--assumed-embedding-vectors-per-second must be positive")
+    if args.assumed_upsert_points_per_second <= 0:
+        parser.error("--assumed-upsert-points-per-second must be positive")
 
     reports = []
     for language in args.languages:
@@ -84,6 +114,12 @@ def main(argv: list[str] | None = None) -> int:
                     batch_size=args.batch_size,
                     short_passage_chars=args.short_passage_chars,
                     max_malformed_examples=args.max_malformed_examples,
+                    candidate_corpus_sizes=args.candidate_corpus_sizes,
+                    dense_vector_size=args.dense_vector_size,
+                    embedding_vectors_per_second=(
+                        args.assumed_embedding_vectors_per_second
+                    ),
+                    upsert_points_per_second=args.assumed_upsert_points_per_second,
                 )
             )
 

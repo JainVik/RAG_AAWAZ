@@ -1,30 +1,33 @@
 # Known limitations and open acceptance gaps
 
-## Environment blockers on the current machine
+## Current local evidence boundary
 
-- Docker is not installed, so the pinned Qdrant 1.19.0 container, live dense/sparse upsert, schema
-  readiness, and query latency have not been exercised locally.
-- `SARVAM_API_KEY` is not configured. No real beta realtime handshake, human microphone request,
-  recognition result, or credentialed Sarvam smoke artifact exists. The real voice acceptance
-  criterion therefore remains blocked.
+- Docker Desktop and pinned Qdrant 1.19.0 are available. The active collection is green with
+  112,114 points, and live dense/sparse readiness plus the 500-query held-out retrieval path have
+  been exercised.
+- A local Sarvam key and strict credentialed realtime smoke artifact exist. This proves a successful
+  provider session begin/final/end, but it is not the required 100/300-request full voice benchmark.
 - The first cold MSMARCO-XI Hindi validation row is slow because the physical file contains one
-  giant nested Parquet row group. A pinned one-row live audit and leak-free 10-passage validation
-  corpus completed, but that sample is only a plumbing/schema smoke and is not statistically
-  representative.
-- The exact pinned E5 revision is cached and passed a real CPU + qdrant-client local-engine smoke.
-  No 10,000-passage corpus or Qdrant **server** index has yet been built on this checkout.
+  giant nested Parquet row group. A pinned 20-row live audit is retained; despite the completed
+  10,005-document validation corpus, that profiler sample itself is only a plumbing/schema smoke
+  and is not statistically representative.
+- The exact pinned E5 revision is cached and built into the 10,005-document, 112,114-vector server
+  index. Direct retrieval averages about 305 ms and P95 about 373 ms on the current CPU, so the
+  under-200-ms final-audio target still requires measured speculative overlap/fallback evidence.
 
 ## Evidence still required for submission
 
-- Held-out retrieval report over at least 500 distinct queries.
+- Corpus scaling comparison across at least two independently built sizes; only the qualifying
+  10,005-document baseline exists today.
 - At least four measured chunk/retrieval ablations and a data-backed default selection.
 - Reference versus ONNX/int8 embedding quality/latency comparison; quantization is not enabled by
   assumption.
 - At least 100, target 300, distinct real voice requests with Hindi/English/code-mixed and
   clean/noisy groups, including a target of 60 human recordings.
 - Raw voice latency with P50/P70/P95/P100=max, warm/cold separation, concurrency 1, and coverage.
-- Full guardrail confusion matrix including contradictory evidence and forced dependency/deadline
-  cases.
+- Active-pipeline supported/contradiction guardrail cases. The current live-ready report is 13/13
+  and includes active unsupported evidence, but is intentionally nonqualifying without the other
+  two scopes.
 - A successful real microphone-to-Sarvam-to-final-harness demo.
 
 ## Product limitations
@@ -58,7 +61,7 @@
 
 ## Highest-value next step
 
-Install Docker, build a 10,000-passage Hindi training corpus and a separately held-out validation
-fixture/index, then run the 500-query retrieval baseline and freeze development thresholds. Next,
-configure a local Sarvam beta credential and record the first end-to-end microphone smoke before
-claiming voice readiness or latency.
+Create a consented, de-identified voice manifest with at least 100 distinct recordings (target
+300, including the required language/noise/length/human slices), then run the cold integrity capture
+and warm primary benchmark against the current live backend. In parallel, build one larger nested
+corpus/collection and use `compare_corpus_sizes.py` before selecting a production corpus size.

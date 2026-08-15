@@ -799,7 +799,14 @@ async def run(args: argparse.Namespace) -> tuple[dict[str, Any], list[dict[str, 
             routed: RoutePlan | None = None
             routing_error: dict[str, str] | None = None
             try:
-                routed = orchestrator.router.route(query)
+                language_hint = (
+                    "en"
+                    if fixture["_query_source_field"] == "english_query"
+                    else fixture.get("language")
+                )
+                routed = orchestrator.router.route(
+                    query, language_hint=language_hint
+                )
             except Exception as exc:
                 routing_error = {
                     "kind": "configuration",

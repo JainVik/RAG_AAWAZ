@@ -4,9 +4,21 @@ from enum import StrEnum
 
 
 class Language(StrEnum):
+    ASSAMESE = "as"
+    BENGALI = "bn"
+    GUJARATI = "gu"
     HINDI = "hi"
     ENGLISH = "en"
+    KANNADA = "kn"
+    MALAYALAM = "ml"
     MARATHI = "mr"
+    NEPALI = "ne"
+    ODIA = "or"
+    PUNJABI = "pa"
+    SANSKRIT = "sa"
+    TAMIL = "ta"
+    TELUGU = "te"
+    URDU = "ur"
     CODE_MIXED = "hi-en"
     UNKNOWN = "unknown"
 

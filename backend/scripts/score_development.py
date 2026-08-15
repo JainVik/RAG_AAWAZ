@@ -169,7 +169,12 @@ async def run(args: argparse.Namespace) -> tuple[dict[str, Any], list[dict[str, 
         binding_payload = artifact_binding.model_dump(mode="json")
         for row in records:
             query = str(row["query"])
-            plan = orchestrator.router.route(query)
+            language_hint = (
+                "en"
+                if row["query_source_field"] == "english_query"
+                else row.get("language")
+            )
+            plan = orchestrator.router.route(query, language_hint=language_hint)
             started_ns = time.perf_counter_ns()
             result = await orchestrator.retriever.retrieve(
                 query,

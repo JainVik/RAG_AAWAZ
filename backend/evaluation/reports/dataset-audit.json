@@ -1,0 +1,909 @@
+{
+  "dataset_id": "ai4bharat/MSMARCO-XI",
+  "dataset_revision": "bf5cdc1f26e581e519018e434db14edd1b77602b",
+  "report_version": 2,
+  "reports": [
+    {
+      "answer_field_detection": {
+        "answers_field_present": false,
+        "live_expected_field": "Answer",
+        "presence_counts": {
+          "Answer": 20
+        }
+      },
+      "corpus_scale_estimates": {
+        "assumptions": {
+          "dense_value_bytes": 4,
+          "dense_vector_size": 384,
+          "embedding_vectors_per_second": 25.0,
+          "hnsw_multiplier": 1.35,
+          "note": "Planning estimates extrapolated from the bounded sample. HNSW, sparse, embedding, and upsert factors are explicit heuristics, not measured results.",
+          "sparse_bytes_per_vector": 2048,
+          "upsert_points_per_second": 1000.0
+        },
+        "candidate_sizes": [
+          {
+            "estimated_dense_vector_bytes": 190156800,
+            "estimated_embedding_seconds": 4952.0,
+            "estimated_payload_bytes": 61910250,
+            "estimated_qdrant_bytes": 572164330,
+            "estimated_sparse_vector_bytes": 253542400,
+            "estimated_total_vectors": 123800,
+            "estimated_upsert_seconds": 123.8,
+            "estimated_vectors_by_strategy": {
+              "atomic": 20000,
+              "bilingual_paired": 11200,
+              "parent_child": 36100,
+              "semantic_section_cap_heuristic": 20400,
+              "sentence_window": 36100
+            },
+            "target_unique_passages": 10000
+          },
+          {
+            "estimated_dense_vector_bytes": 475392000,
+            "estimated_embedding_seconds": 12380.0,
+            "estimated_payload_bytes": 154775625,
+            "estimated_qdrant_bytes": 1430410825,
+            "estimated_sparse_vector_bytes": 633856000,
+            "estimated_total_vectors": 309500,
+            "estimated_upsert_seconds": 309.5,
+            "estimated_vectors_by_strategy": {
+              "atomic": 50000,
+              "bilingual_paired": 28000,
+              "parent_child": 90250,
+              "semantic_section_cap_heuristic": 51000,
+              "sentence_window": 90250
+            },
+            "target_unique_passages": 25000
+          },
+          {
+            "estimated_dense_vector_bytes": 950784000,
+            "estimated_embedding_seconds": 24760.0,
+            "estimated_payload_bytes": 309551250,
+            "estimated_qdrant_bytes": 2860821650,
+            "estimated_sparse_vector_bytes": 1267712000,
+            "estimated_total_vectors": 619000,
+            "estimated_upsert_seconds": 619.0,
+            "estimated_vectors_by_strategy": {
+              "atomic": 100000,
+              "bilingual_paired": 56000,
+              "parent_child": 180500,
+              "semantic_section_cap_heuristic": 102000,
+              "sentence_window": 180500
+            },
+            "target_unique_passages": 50000
+          },
+          {
+            "estimated_dense_vector_bytes": 1901568000,
+            "estimated_embedding_seconds": 49520.0,
+            "estimated_payload_bytes": 619102500,
+            "estimated_qdrant_bytes": 5721643300,
+            "estimated_sparse_vector_bytes": 2535424000,
+            "estimated_total_vectors": 1238000,
+            "estimated_upsert_seconds": 1238.0,
+            "estimated_vectors_by_strategy": {
+              "atomic": 200000,
+              "bilingual_paired": 112000,
+              "parent_child": 361000,
+              "semantic_section_cap_heuristic": 204000,
+              "sentence_window": 361000
+            },
+            "target_unique_passages": 100000
+          }
+        ]
+      },
+      "dataset": {
+        "expected_target_lang": "hin_Deva",
+        "id": "ai4bharat/MSMARCO-XI",
+        "language": "hi",
+        "language_name": "Hindi",
+        "physical_path": "validation/hinval.parquet",
+        "revision": "bf5cdc1f26e581e519018e434db14edd1b77602b",
+        "split": "validation",
+        "uri": "hf://datasets/ai4bharat/MSMARCO-XI@bf5cdc1f26e581e519018e434db14edd1b77602b/validation/hinval.parquet"
+      },
+      "duplicates": {
+        "canonical_passage_reuse_rate": 0.0,
+        "canonical_passages_reused_across_queries": 0,
+        "english_passages": {
+          "duplicate_occurrences": 0,
+          "duplicate_rate": 0.0,
+          "nonempty_occurrences": 200,
+          "unique_values": 200
+        },
+        "translated_passages": {
+          "duplicate_occurrences": 0,
+          "duplicate_rate": 0.0,
+          "nonempty_occurrences": 200,
+          "unique_values": 200
+        }
+      },
+      "field_completeness": {
+        "Answer": {
+          "empty_count": 0,
+          "empty_rate": 0.0,
+          "missing_count": 0,
+          "missing_or_null_rate": 0.0,
+          "missing_rate": 0.0,
+          "null_count": 0,
+          "null_rate": 0.0
+        },
+        "Eng_Answer": {
+          "empty_count": 1,
+          "empty_rate": 0.05,
+          "missing_count": 0,
+          "missing_or_null_rate": 0.0,
+          "missing_rate": 0.0,
+          "null_count": 0,
+          "null_rate": 0.0
+        },
+        "Eng_Query": {
+          "empty_count": 0,
+          "empty_rate": 0.0,
+          "missing_count": 0,
+          "missing_or_null_rate": 0.0,
+          "missing_rate": 0.0,
+          "null_count": 0,
+          "null_rate": 0.0
+        },
+        "meta": {
+          "empty_count": 0,
+          "empty_rate": 0.0,
+          "missing_count": 0,
+          "missing_or_null_rate": 0.0,
+          "missing_rate": 0.0,
+          "null_count": 0,
+          "null_rate": 0.0
+        },
+        "meta.frequency_penalty": {
+          "empty_count": 0,
+          "empty_rate": 0.0,
+          "missing_count": 0,
+          "missing_or_null_rate": 0.0,
+          "missing_rate": 0.0,
+          "null_count": 0,
+          "null_rate": 0.0
+        },
+        "meta.max_tokens": {
+          "empty_count": 0,
+          "empty_rate": 0.0,
+          "missing_count": 0,
+          "missing_or_null_rate": 0.0,
+          "missing_rate": 0.0,
+          "null_count": 0,
+          "null_rate": 0.0
+        },
+        "meta.model_name": {
+          "empty_count": 0,
+          "empty_rate": 0.0,
+          "missing_count": 0,
+          "missing_or_null_rate": 0.0,
+          "missing_rate": 0.0,
+          "null_count": 0,
+          "null_rate": 0.0
+        },
+        "meta.presence_penalty": {
+          "empty_count": 0,
+          "empty_rate": 0.0,
+          "missing_count": 0,
+          "missing_or_null_rate": 0.0,
+          "missing_rate": 0.0,
+          "null_count": 0,
+          "null_rate": 0.0
+        },
+        "meta.temperature": {
+          "empty_count": 0,
+          "empty_rate": 0.0,
+          "missing_count": 0,
+          "missing_or_null_rate": 0.0,
+          "missing_rate": 0.0,
+          "null_count": 0,
+          "null_rate": 0.0
+        },
+        "meta.top_p": {
+          "empty_count": 0,
+          "empty_rate": 0.0,
+          "missing_count": 0,
+          "missing_or_null_rate": 0.0,
+          "missing_rate": 0.0,
+          "null_count": 0,
+          "null_rate": 0.0
+        },
+        "passages": {
+          "empty_count": 0,
+          "empty_rate": 0.0,
+          "missing_count": 0,
+          "missing_or_null_rate": 0.0,
+          "missing_rate": 0.0,
+          "null_count": 0,
+          "null_rate": 0.0
+        },
+        "passages.English_passages": {
+          "empty_count": 0,
+          "empty_rate": 0.0,
+          "missing_count": 0,
+          "missing_or_null_rate": 0.0,
+          "missing_rate": 0.0,
+          "null_count": 0,
+          "null_rate": 0.0
+        },
+        "passages.Translated_passages": {
+          "empty_count": 0,
+          "empty_rate": 0.0,
+          "missing_count": 0,
+          "missing_or_null_rate": 0.0,
+          "missing_rate": 0.0,
+          "null_count": 0,
+          "null_rate": 0.0
+        },
+        "passages.is_selected": {
+          "empty_count": 0,
+          "empty_rate": 0.0,
+          "missing_count": 0,
+          "missing_or_null_rate": 0.0,
+          "missing_rate": 0.0,
+          "null_count": 0,
+          "null_rate": 0.0
+        },
+        "query": {
+          "empty_count": 0,
+          "empty_rate": 0.0,
+          "missing_count": 0,
+          "missing_or_null_rate": 0.0,
+          "missing_rate": 0.0,
+          "null_count": 0,
+          "null_rate": 0.0
+        },
+        "query_id": {
+          "empty_count": 0,
+          "empty_rate": 0.0,
+          "missing_count": 0,
+          "missing_or_null_rate": 0.0,
+          "missing_rate": 0.0,
+          "null_count": 0,
+          "null_rate": 0.0
+        },
+        "query_type": {
+          "empty_count": 0,
+          "empty_rate": 0.0,
+          "missing_count": 0,
+          "missing_or_null_rate": 0.0,
+          "missing_rate": 0.0,
+          "null_count": 0,
+          "null_rate": 0.0
+        },
+        "source_lang": {
+          "empty_count": 0,
+          "empty_rate": 0.0,
+          "missing_count": 0,
+          "missing_or_null_rate": 0.0,
+          "missing_rate": 0.0,
+          "null_count": 0,
+          "null_rate": 0.0
+        },
+        "target_lang": {
+          "empty_count": 0,
+          "empty_rate": 0.0,
+          "missing_count": 0,
+          "missing_or_null_rate": 0.0,
+          "missing_rate": 0.0,
+          "null_count": 0,
+          "null_rate": 0.0
+        }
+      },
+      "length_distributions": {
+        "english_answers": {
+          "characters": {
+            "count": 19,
+            "max": 196,
+            "mean": 40.315789,
+            "min": 12,
+            "p100": 196,
+            "p25": 18,
+            "p50": 18,
+            "p70": 18,
+            "p75": 37,
+            "p90": 126,
+            "p95": 196,
+            "p99": 196
+          },
+          "model_token_estimate": {
+            "count": 19,
+            "max": 54,
+            "mean": 12.421053,
+            "min": 4,
+            "p100": 54,
+            "p25": 6,
+            "p50": 6,
+            "p70": 6,
+            "p75": 12,
+            "p90": 39,
+            "p95": 54,
+            "p99": 54
+          },
+          "sentences": {
+            "count": 19,
+            "max": 2,
+            "mean": 1.052632,
+            "min": 1,
+            "p100": 2,
+            "p25": 1,
+            "p50": 1,
+            "p70": 1,
+            "p75": 1,
+            "p90": 1,
+            "p95": 2,
+            "p99": 2
+          },
+          "words": {
+            "count": 19,
+            "max": 30,
+            "mean": 6.947368,
+            "min": 3,
+            "p100": 30,
+            "p25": 3,
+            "p50": 3,
+            "p70": 4,
+            "p75": 6,
+            "p90": 22,
+            "p95": 30,
+            "p99": 30
+          }
+        },
+        "english_passages": {
+          "characters": {
+            "count": 200,
+            "max": 696,
+            "mean": 289.995,
+            "min": 56,
+            "p100": 696,
+            "p25": 231,
+            "p50": 289,
+            "p70": 318,
+            "p75": 328,
+            "p90": 392,
+            "p95": 473,
+            "p99": 580
+          },
+          "model_token_estimate": {
+            "count": 200,
+            "max": 202,
+            "mean": 86.67,
+            "min": 17,
+            "p100": 202,
+            "p25": 69,
+            "p50": 84,
+            "p70": 95,
+            "p75": 99,
+            "p90": 120,
+            "p95": 139,
+            "p99": 160
+          },
+          "sentences": {
+            "count": 200,
+            "max": 11,
+            "mean": 3.675,
+            "min": 1,
+            "p100": 11,
+            "p25": 2,
+            "p50": 3,
+            "p70": 4,
+            "p75": 5,
+            "p90": 6,
+            "p95": 7,
+            "p99": 9
+          },
+          "words": {
+            "count": 200,
+            "max": 127,
+            "mean": 50.44,
+            "min": 12,
+            "p100": 127,
+            "p25": 40,
+            "p50": 49,
+            "p70": 56,
+            "p75": 59,
+            "p90": 69,
+            "p95": 83,
+            "p99": 103
+          }
+        },
+        "english_queries": {
+          "characters": {
+            "count": 20,
+            "max": 52,
+            "mean": 35.4,
+            "min": 23,
+            "p100": 52,
+            "p25": 26,
+            "p50": 33,
+            "p70": 40,
+            "p75": 41,
+            "p90": 46,
+            "p95": 51,
+            "p99": 52
+          },
+          "model_token_estimate": {
+            "count": 20,
+            "max": 15,
+            "mean": 10.1,
+            "min": 6,
+            "p100": 15,
+            "p25": 8,
+            "p50": 9,
+            "p70": 11,
+            "p75": 12,
+            "p90": 13,
+            "p95": 14,
+            "p99": 15
+          },
+          "sentences": {
+            "count": 20,
+            "max": 2,
+            "mean": 1.05,
+            "min": 1,
+            "p100": 2,
+            "p25": 1,
+            "p50": 1,
+            "p70": 1,
+            "p75": 1,
+            "p90": 1,
+            "p95": 1,
+            "p99": 2
+          },
+          "words": {
+            "count": 20,
+            "max": 9,
+            "mean": 6.15,
+            "min": 4,
+            "p100": 9,
+            "p25": 5,
+            "p50": 6,
+            "p70": 6,
+            "p75": 7,
+            "p90": 8,
+            "p95": 9,
+            "p99": 9
+          }
+        },
+        "normalization": "NFC and conservative whitespace/punctuation normalization",
+        "token_estimate_method": "unicode_subword_heuristic_v1: Latin/alphanumeric runs=ceil(chars/4), non-Latin runs=ceil(chars/2), punctuation=1; this is an estimate, not a model tokenizer",
+        "translated_answers": {
+          "characters": {
+            "count": 20,
+            "max": 7515,
+            "mean": 419.1,
+            "min": 20,
+            "p100": 7515,
+            "p25": 20,
+            "p50": 20,
+            "p70": 36,
+            "p75": 41,
+            "p90": 148,
+            "p95": 232,
+            "p99": 7515
+          },
+          "model_token_estimate": {
+            "count": 20,
+            "max": 5223,
+            "mean": 291.8,
+            "min": 14,
+            "p100": 5223,
+            "p25": 14,
+            "p50": 14,
+            "p70": 24,
+            "p75": 25,
+            "p90": 103,
+            "p95": 165,
+            "p99": 5223
+          },
+          "sentences": {
+            "count": 20,
+            "max": 2,
+            "mean": 1.05,
+            "min": 1,
+            "p100": 2,
+            "p25": 1,
+            "p50": 1,
+            "p70": 1,
+            "p75": 1,
+            "p90": 1,
+            "p95": 1,
+            "p99": 2
+          },
+          "words": {
+            "count": 20,
+            "max": 2857,
+            "mean": 158.45,
+            "min": 7,
+            "p100": 2857,
+            "p25": 7,
+            "p50": 7,
+            "p70": 14,
+            "p75": 14,
+            "p90": 56,
+            "p95": 80,
+            "p99": 2857
+          }
+        },
+        "translated_passages": {
+          "characters": {
+            "count": 200,
+            "max": 762,
+            "mean": 292.265,
+            "min": 63,
+            "p100": 762,
+            "p25": 227,
+            "p50": 285,
+            "p70": 329,
+            "p75": 342,
+            "p90": 415,
+            "p95": 466,
+            "p99": 554
+          },
+          "model_token_estimate": {
+            "count": 200,
+            "max": 528,
+            "mean": 205.985,
+            "min": 41,
+            "p100": 528,
+            "p25": 158,
+            "p50": 204,
+            "p70": 234,
+            "p75": 240,
+            "p90": 286,
+            "p95": 320,
+            "p99": 392
+          },
+          "sentences": {
+            "count": 200,
+            "max": 16,
+            "mean": 4.105,
+            "min": 1,
+            "p100": 16,
+            "p25": 2,
+            "p50": 4,
+            "p70": 5,
+            "p75": 5,
+            "p90": 7,
+            "p95": 9,
+            "p99": 12
+          },
+          "words": {
+            "count": 200,
+            "max": 274,
+            "mean": 105.7,
+            "min": 23,
+            "p100": 274,
+            "p25": 83,
+            "p50": 103,
+            "p70": 119,
+            "p75": 124,
+            "p90": 149,
+            "p95": 166,
+            "p99": 203
+          }
+        },
+        "translated_queries": {
+          "characters": {
+            "count": 20,
+            "max": 58,
+            "mean": 37.05,
+            "min": 19,
+            "p100": 58,
+            "p25": 29,
+            "p50": 37,
+            "p70": 40,
+            "p75": 41,
+            "p90": 49,
+            "p95": 57,
+            "p99": 58
+          },
+          "model_token_estimate": {
+            "count": 20,
+            "max": 43,
+            "mean": 27.1,
+            "min": 14,
+            "p100": 43,
+            "p25": 21,
+            "p50": 27,
+            "p70": 30,
+            "p75": 31,
+            "p90": 34,
+            "p95": 42,
+            "p99": 43
+          },
+          "sentences": {
+            "count": 20,
+            "max": 4,
+            "mean": 1.2,
+            "min": 1,
+            "p100": 4,
+            "p25": 1,
+            "p50": 1,
+            "p70": 1,
+            "p75": 1,
+            "p90": 1,
+            "p95": 2,
+            "p99": 4
+          },
+          "words": {
+            "count": 20,
+            "max": 23,
+            "mean": 14.15,
+            "min": 8,
+            "p100": 23,
+            "p25": 11,
+            "p50": 14,
+            "p70": 16,
+            "p75": 17,
+            "p90": 17,
+            "p95": 21,
+            "p99": 23
+          }
+        }
+      },
+      "malformed": {
+        "example_limit": 20,
+        "examples": [],
+        "examples_recorded": 0
+      },
+      "passage_counts": {
+        "aligned_candidate_positions": 200,
+        "array_mismatch_rows": 0,
+        "empty_english_passages": 0,
+        "empty_translated_passages": 0,
+        "english_passage_occurrences": 200,
+        "invalid_labels": 0,
+        "label_occurrences": 200,
+        "non_selected_labels": 192,
+        "rows_with_passages": 20,
+        "selected_labels": 8,
+        "selected_ratio": 0.04,
+        "short_english_passages": 0,
+        "short_translated_passages": 0,
+        "translated_passage_occurrences": 200
+      },
+      "query_counts": {
+        "duplicate_query_id_rows": 0,
+        "english_query_duplicates": {
+          "duplicate_occurrences": 0,
+          "duplicate_rate": 0.0,
+          "nonempty_occurrences": 20,
+          "unique_values": 20
+        },
+        "nonempty_english_queries": 20,
+        "nonempty_translated_queries": 20,
+        "passages_per_query": {
+          "count": 20,
+          "max": 10,
+          "mean": 10.0,
+          "min": 10,
+          "p100": 10,
+          "p25": 10,
+          "p50": 10,
+          "p70": 10,
+          "p75": 10,
+          "p90": 10,
+          "p95": 10,
+          "p99": 10
+        },
+        "query_rows_sampled": 20,
+        "query_type_distribution": {
+          "DESCRIPTION": 11,
+          "ENTITY": 1,
+          "NUMERIC": 8
+        },
+        "rows_with_query_id": 20,
+        "selected_passages_per_query": {
+          "count": 20,
+          "max": 2,
+          "mean": 0.4,
+          "min": 0,
+          "p100": 2,
+          "p25": 0,
+          "p50": 0,
+          "p70": 0,
+          "p75": 1,
+          "p90": 1,
+          "p95": 2,
+          "p99": 2
+        },
+        "translated_query_duplicates": {
+          "duplicate_occurrences": 0,
+          "duplicate_rate": 0.0,
+          "nonempty_occurrences": 20,
+          "unique_values": 20
+        },
+        "unique_query_ids": 20
+      },
+      "report_version": 2,
+      "sampling": {
+        "max_rows": 20,
+        "method": "deterministic_stream_prefix",
+        "note": "A bounded prefix is reproducible but is not a random population estimate.",
+        "rows_sampled": 20,
+        "short_passage_threshold_characters": 20,
+        "stream_batch_size": 2
+      },
+      "schema": {
+        "expected": {
+          "Answer": "string",
+          "Eng_Answer": "string",
+          "Eng_Query": "string",
+          "meta": {
+            "frequency_penalty": "int64",
+            "max_tokens": "int64",
+            "model_name": "string",
+            "presence_penalty": "int64",
+            "temperature": "int64",
+            "top_p": "int64"
+          },
+          "passages": {
+            "English_passages": "list<string>",
+            "Translated_passages": "list<string>",
+            "is_selected": "list<int64>"
+          },
+          "query": "string",
+          "query_id": "int64",
+          "query_type": "string",
+          "source_lang": "string",
+          "target_lang": "string"
+        },
+        "expected_leaf_types": {
+          "Answer": "string",
+          "Eng_Answer": "string",
+          "Eng_Query": "string",
+          "meta.frequency_penalty": "int64",
+          "meta.max_tokens": "int64",
+          "meta.model_name": "string",
+          "meta.presence_penalty": "int64",
+          "meta.temperature": "int64",
+          "meta.top_p": "int64",
+          "passages.English_passages": "list<string>",
+          "passages.Translated_passages": "list<string>",
+          "passages.is_selected": "list<int64>",
+          "query": "string",
+          "query_id": "int64",
+          "query_type": "string",
+          "source_lang": "string",
+          "target_lang": "string"
+        },
+        "matches": true,
+        "missing_paths": [],
+        "observed": {
+          "Answer": {
+            "_type": "Value",
+            "dtype": "string"
+          },
+          "Eng_Answer": {
+            "_type": "Value",
+            "dtype": "string"
+          },
+          "Eng_Query": {
+            "_type": "Value",
+            "dtype": "string"
+          },
+          "meta": {
+            "frequency_penalty": {
+              "_type": "Value",
+              "dtype": "int64"
+            },
+            "max_tokens": {
+              "_type": "Value",
+              "dtype": "int64"
+            },
+            "model_name": {
+              "_type": "Value",
+              "dtype": "string"
+            },
+            "presence_penalty": {
+              "_type": "Value",
+              "dtype": "int64"
+            },
+            "temperature": {
+              "_type": "Value",
+              "dtype": "int64"
+            },
+            "top_p": {
+              "_type": "Value",
+              "dtype": "int64"
+            }
+          },
+          "passages": {
+            "English_passages": {
+              "_type": "List",
+              "feature": {
+                "_type": "Value",
+                "dtype": "string"
+              }
+            },
+            "Translated_passages": {
+              "_type": "List",
+              "feature": {
+                "_type": "Value",
+                "dtype": "string"
+              }
+            },
+            "is_selected": {
+              "_type": "List",
+              "feature": {
+                "_type": "Value",
+                "dtype": "int64"
+              }
+            }
+          },
+          "query": {
+            "_type": "Value",
+            "dtype": "string"
+          },
+          "query_id": {
+            "_type": "Value",
+            "dtype": "int64"
+          },
+          "query_type": {
+            "_type": "Value",
+            "dtype": "string"
+          },
+          "source_lang": {
+            "_type": "Value",
+            "dtype": "string"
+          },
+          "target_lang": {
+            "_type": "Value",
+            "dtype": "string"
+          }
+        },
+        "observed_leaf_types": {
+          "Answer": "string",
+          "Eng_Answer": "string",
+          "Eng_Query": "string",
+          "meta.frequency_penalty": "int64",
+          "meta.max_tokens": "int64",
+          "meta.model_name": "string",
+          "meta.presence_penalty": "int64",
+          "meta.temperature": "int64",
+          "meta.top_p": "int64",
+          "passages.English_passages": "list<string>",
+          "passages.Translated_passages": "list<string>",
+          "passages.is_selected": "list<int64>",
+          "query": "string",
+          "query_id": "int64",
+          "query_type": "string",
+          "source_lang": "string",
+          "target_lang": "string"
+        },
+        "status": "matched",
+        "type_mismatches": [],
+        "unexpected_paths": []
+      },
+      "translation_metadata": {
+        "parameter_profiles": [
+          {
+            "count": 20,
+            "settings": {
+              "frequency_penalty": 0,
+              "max_tokens": 4096,
+              "model_name": "ckpt-3epochs-sft-then-400k-kd",
+              "presence_penalty": 0,
+              "temperature": 0,
+              "top_p": 1
+            }
+          }
+        ],
+        "source_lang_counts": {
+          "eng_Latn": 20
+        },
+        "source_target_pair_counts": {
+          "eng_Latn->hin_Deva": 20
+        },
+        "target_lang_counts": {
+          "hin_Deva": 20
+        },
+        "translation_model_counts": {
+          "ckpt-3epochs-sft-then-400k-kd": 20
+        }
+      }
+    }
+  ]
+}

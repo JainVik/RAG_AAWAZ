@@ -77,12 +77,8 @@ def build_parser() -> argparse.ArgumentParser:
         default="balanced_accuracy",
     )
     parser.add_argument("--grid-points", type=int, default=16)
-    parser.add_argument(
-        "--corpus-manifest", type=Path, default=_runtime_corpus_manifest_path()
-    )
-    parser.add_argument(
-        "--index-manifest", type=Path, default=_runtime_index_manifest_path()
-    )
+    parser.add_argument("--corpus-manifest", type=Path, default=_runtime_corpus_manifest_path())
+    parser.add_argument("--index-manifest", type=Path, default=_runtime_index_manifest_path())
     return parser
 
 
@@ -135,9 +131,7 @@ def _prepare(records: list[dict[str, Any]]) -> list[dict[str, Any]]:
                 "the development split"
             )
         score_kind = require_text(record, "score_kind", row=row_number)
-        score_contract_version = require_text(
-            record, "score_contract_version", row=row_number
-        )
+        score_contract_version = require_text(record, "score_contract_version", row=row_number)
         if score_kind != RAW_DENSE_SCORE_KIND:
             raise EvaluationError(
                 f"Row {row_number} score_kind must be {RAW_DENSE_SCORE_KIND!r}; "
@@ -197,9 +191,7 @@ def _prepare(records: list[dict[str, Any]]) -> list[dict[str, Any]]:
         if margin < 0:
             raise EvaluationError(f"Row {row_number} score margin must not be negative")
         if not 0 <= agreement <= 1:
-            raise EvaluationError(
-                f"Row {row_number} evidence_agreement must be between 0 and 1"
-            )
+            raise EvaluationError(f"Row {row_number} evidence_agreement must be between 0 and 1")
         prepared.append(
             {
                 **record,
@@ -233,9 +225,7 @@ def _require_active_retrieval_binding(
     mismatched: list[str] = []
     for record in records:
         try:
-            observed = RetrievalArtifactBinding.model_validate(
-                record.get("retrieval_artifacts")
-            )
+            observed = RetrievalArtifactBinding.model_validate(record.get("retrieval_artifacts"))
         except ValidationError:
             mismatched.append(str(record["query_id"]))
             continue
@@ -253,11 +243,19 @@ def _grid(values: list[float], points: int, *, anchors: tuple[float, ...]) -> li
     unique = sorted(set(values).union(anchors))
     if len(unique) <= points:
         return unique
-    indices = {
-        round(position * (len(unique) - 1) / (points - 1))
-        for position in range(points)
-    }
-    return [unique[index] for index in sorted(indices)]
+    fixed = sorted(set(anchors))
+    remaining = [value for value in unique if value not in fixed]
+    slots = max(0, points - len(fixed))
+    if slots == 0:
+        return fixed[:points]
+    if slots == 1:
+        sampled = [remaining[len(remaining) // 2]]
+    else:
+        indices = {
+            round(position * (len(remaining) - 1) / (slots - 1)) for position in range(slots)
+        }
+        sampled = [remaining[index] for index in sorted(indices)]
+    return sorted(set(fixed).union(sampled))
 
 
 def _binary_metrics(expected: list[bool], observed: list[bool]) -> dict[str, float | int]:
@@ -326,9 +324,7 @@ def _retrieval_artifact_binding(
         }
 
     declared_corpus_manifest_hash = (
-        index_manifest.get("corpus_manifest_sha256")
-        if index_manifest is not None
-        else None
+        index_manifest.get("corpus_manifest_sha256") if index_manifest is not None else None
     )
     if (
         corpus_manifest_hash
@@ -345,21 +341,13 @@ def _retrieval_artifact_binding(
             if index_manifest is not None and index_manifest_path is not None
             else None
         ),
-        corpus_manifest_sha256=(
-            corpus_manifest_hash or declared_corpus_manifest_hash
-        ),
-        corpus_artifact_sha256=(
-            checksums.get("corpus") if isinstance(checksums, dict) else None
-        ),
+        corpus_manifest_sha256=(corpus_manifest_hash or declared_corpus_manifest_hash),
+        corpus_artifact_sha256=(checksums.get("corpus") if isinstance(checksums, dict) else None),
         chunk_build_id=(
             index_manifest.get("chunk_build_id") if index_manifest is not None else None
         ),
-        collection=(
-            index_manifest.get("collection") if index_manifest is not None else None
-        ),
-        dense_model=(
-            index_manifest.get("dense_model") if index_manifest is not None else None
-        ),
+        collection=(index_manifest.get("collection") if index_manifest is not None else None),
+        dense_model=(index_manifest.get("dense_model") if index_manifest is not None else None),
         model_revision=(
             index_manifest.get("model_revision") if index_manifest is not None else None
         ),
@@ -409,9 +397,7 @@ def run(args: argparse.Namespace) -> tuple[dict[str, Any], list[dict[str, Any]]]
     )
     expected = [bool(row["is_answerable"]) for row in records]
     candidates: list[dict[str, Any]] = []
-    for score, margin, agreement in itertools.product(
-        score_grid, margin_grid, agreement_grid
-    ):
+    for score, margin, agreement in itertools.product(score_grid, margin_grid, agreement_grid):
         observed = [
             row["top_raw_dense_similarity"] >= score
             and row["raw_dense_similarity_margin"] >= margin

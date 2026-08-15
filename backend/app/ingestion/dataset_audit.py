@@ -1,11 +1,12 @@
 from __future__ import annotations
 
+import hashlib
 import json
 import math
 import os
 import re
 import tempfile
-from collections import Counter
+from collections import Counter, defaultdict
 from collections.abc import Callable, Iterable, Mapping, Sequence
 from pathlib import Path
 from typing import Any
@@ -14,10 +15,14 @@ from app.ingestion.normalize import normalize_text
 
 DATASET_ID = "ai4bharat/MSMARCO-XI"
 DATASET_REVISION = "bf5cdc1f26e581e519018e434db14edd1b77602b"
-AUDIT_REPORT_VERSION = 1
+AUDIT_REPORT_VERSION = 2
 DEFAULT_STREAM_BATCH_SIZE = 64
 DEFAULT_SHORT_PASSAGE_CHARS = 20
 DEFAULT_MAX_MALFORMED_EXAMPLES = 20
+DEFAULT_CANDIDATE_CORPUS_SIZES = (10_000, 25_000, 50_000, 100_000)
+DEFAULT_DENSE_VECTOR_SIZE = 384
+DEFAULT_EMBEDDING_VECTORS_PER_SECOND = 25.0
+DEFAULT_UPSERT_POINTS_PER_SECOND = 1_000.0
 
 LANGUAGE_FILES: dict[str, str] = {
     "as": "asm",
@@ -373,8 +378,10 @@ def _distribution(values: Sequence[int]) -> dict[str, Any]:
             "p25": None,
             "p50": None,
             "p70": None,
+            "p75": None,
             "p90": None,
             "p95": None,
+            "p99": None,
             "p100": None,
             "max": None,
             "mean": None,
@@ -385,8 +392,10 @@ def _distribution(values: Sequence[int]) -> dict[str, Any]:
         "p25": _nearest_rank(ordered, 25),
         "p50": _nearest_rank(ordered, 50),
         "p70": _nearest_rank(ordered, 70),
+        "p75": _nearest_rank(ordered, 75),
         "p90": _nearest_rank(ordered, 90),
         "p95": _nearest_rank(ordered, 95),
+        "p99": _nearest_rank(ordered, 99),
         "p100": ordered[-1],
         "max": ordered[-1],
         "mean": round(sum(ordered) / len(ordered), 6),
@@ -416,6 +425,83 @@ def _counter_dict(counter: Counter[str]) -> dict[str, int]:
     return {key: counter[key] for key in sorted(counter)}
 
 
+def _length_accumulator() -> dict[str, list[int]]:
+    return {
+        "characters": [],
+        "words": [],
+        "sentences": [],
+        "model_token_estimate": [],
+    }
+
+
+def _sentence_window_count(text: str, *, size: int = 3, overlap: int = 1) -> int:
+    sentences = sentence_count(text)
+    if sentences <= 1:
+        return 1 if text else 0
+    step = size - overlap
+    return max(1, math.ceil(max(0, sentences - size) / step) + 1)
+
+
+def _corpus_scale_estimates(
+    *,
+    unique_passages: int,
+    strategy_vectors: Counter[str],
+    strategy_payload_bytes: Counter[str],
+    candidate_sizes: Sequence[int],
+    dense_vector_size: int,
+    embedding_vectors_per_second: float,
+    upsert_points_per_second: float,
+) -> dict[str, Any]:
+    hnsw_multiplier = 1.35
+    sparse_bytes_per_vector = 2_048
+    assumptions = {
+        "dense_vector_size": dense_vector_size,
+        "dense_value_bytes": 4,
+        "hnsw_multiplier": hnsw_multiplier,
+        "sparse_bytes_per_vector": sparse_bytes_per_vector,
+        "embedding_vectors_per_second": embedding_vectors_per_second,
+        "upsert_points_per_second": upsert_points_per_second,
+        "note": (
+            "Planning estimates extrapolated from the bounded sample. HNSW, sparse, "
+            "embedding, and upsert factors are explicit heuristics, not measured results."
+        ),
+    }
+    if unique_passages <= 0:
+        return {"assumptions": assumptions, "candidate_sizes": []}
+    rows: list[dict[str, Any]] = []
+    for target in candidate_sizes:
+        strategy_counts = {
+            strategy: round(count / unique_passages * target)
+            for strategy, count in sorted(strategy_vectors.items())
+        }
+        total_vectors = sum(strategy_counts.values())
+        payload_bytes = round(
+            sum(strategy_payload_bytes.values()) / unique_passages * target
+        )
+        dense_bytes = total_vectors * dense_vector_size * 4
+        sparse_bytes = total_vectors * sparse_bytes_per_vector
+        qdrant_bytes = round(dense_bytes * hnsw_multiplier)
+        qdrant_bytes += sparse_bytes + payload_bytes
+        rows.append(
+            {
+                "target_unique_passages": target,
+                "estimated_vectors_by_strategy": strategy_counts,
+                "estimated_total_vectors": total_vectors,
+                "estimated_dense_vector_bytes": dense_bytes,
+                "estimated_sparse_vector_bytes": sparse_bytes,
+                "estimated_payload_bytes": payload_bytes,
+                "estimated_qdrant_bytes": qdrant_bytes,
+                "estimated_embedding_seconds": round(
+                    total_vectors / embedding_vectors_per_second, 3
+                ),
+                "estimated_upsert_seconds": round(
+                    total_vectors / upsert_points_per_second, 3
+                ),
+            }
+        )
+    return {"assumptions": assumptions, "candidate_sizes": rows}
+
+
 def audit_records(
     records: Iterable[Mapping[str, Any]],
     *,
@@ -428,6 +514,10 @@ def audit_records(
     max_malformed_examples: int = DEFAULT_MAX_MALFORMED_EXAMPLES,
     token_counter: Callable[[str], int] = estimate_model_tokens,
     token_method: str = TOKEN_ESTIMATE_METHOD,
+    candidate_corpus_sizes: Sequence[int] = DEFAULT_CANDIDATE_CORPUS_SIZES,
+    dense_vector_size: int = DEFAULT_DENSE_VECTOR_SIZE,
+    embedding_vectors_per_second: float = DEFAULT_EMBEDDING_VECTORS_PER_SECOND,
+    upsert_points_per_second: float = DEFAULT_UPSERT_POINTS_PER_SECOND,
 ) -> dict[str, Any]:
     """Audit a bounded deterministic stream prefix without retaining source rows."""
 
@@ -440,6 +530,12 @@ def audit_records(
         raise ValueError("short_passage_chars must be non-negative")
     if max_malformed_examples < 0:
         raise ValueError("max_malformed_examples must be non-negative")
+    if not candidate_corpus_sizes or any(size < 1 for size in candidate_corpus_sizes):
+        raise ValueError("candidate_corpus_sizes must contain positive values")
+    if dense_vector_size < 1:
+        raise ValueError("dense_vector_size must be positive")
+    if embedding_vectors_per_second <= 0 or upsert_points_per_second <= 0:
+        raise ValueError("throughput assumptions must be positive")
 
     field_counters: dict[str, Counter[str]] = {
         path: Counter() for path in EXPECTED_FIELD_PATHS
@@ -447,25 +543,28 @@ def audit_records(
     answer_field_presence = Counter[str]()
     source_languages = Counter[str]()
     target_languages = Counter[str]()
+    language_pairs = Counter[str]()
     translation_models = Counter[str]()
     translation_profiles = Counter[str]()
+    query_types = Counter[str]()
     query_ids: set[str] = set()
+    english_query_duplicates = Counter[str]()
+    translated_query_duplicates = Counter[str]()
     english_duplicates = Counter[str]()
     translated_duplicates = Counter[str]()
+    passage_query_ids: dict[str, set[str]] = defaultdict(set)
+    strategy_vectors = Counter[str]()
+    strategy_payload_bytes = Counter[str]()
     malformed_examples: list[dict[str, Any]] = []
 
-    english_lengths: dict[str, list[int]] = {
-        "characters": [],
-        "words": [],
-        "sentences": [],
-        "model_token_estimate": [],
-    }
-    translated_lengths: dict[str, list[int]] = {
-        "characters": [],
-        "words": [],
-        "sentences": [],
-        "model_token_estimate": [],
-    }
+    english_lengths = _length_accumulator()
+    translated_lengths = _length_accumulator()
+    english_query_lengths = _length_accumulator()
+    translated_query_lengths = _length_accumulator()
+    english_answer_lengths = _length_accumulator()
+    translated_answer_lengths = _length_accumulator()
+    passages_per_query: list[int] = []
+    selected_passages_per_query: list[int] = []
 
     counts = Counter[str]()
     for sample_index, record in enumerate(records):
@@ -499,13 +598,41 @@ def audit_records(
                 answer_field_presence[candidate_name] += 1
 
         query_id_value = record.get("query_id")
+        row_query_key = (
+            str(query_id_value)
+            if query_id_value is not None and str(query_id_value).strip()
+            else f"sample:{sample_index}"
+        )
         if query_id_value is not None and str(query_id_value).strip():
             query_ids.add(str(query_id_value))
             counts["rows_with_query_id"] += 1
-        if isinstance(record.get("Eng_Query"), str) and record["Eng_Query"].strip():
+        english_query = record.get("Eng_Query")
+        if isinstance(english_query, str) and english_query.strip():
+            normalized = normalize_text(english_query)
             counts["nonempty_english_queries"] += 1
-        if isinstance(record.get("query"), str) and record["query"].strip():
+            english_query_duplicates[normalized] += 1
+            _lengths_for_text(normalized, english_query_lengths)
+            english_query_lengths["model_token_estimate"][-1] = token_counter(normalized)
+        translated_query = record.get("query")
+        if isinstance(translated_query, str) and translated_query.strip():
+            normalized = normalize_text(translated_query)
             counts["nonempty_translated_queries"] += 1
+            translated_query_duplicates[normalized] += 1
+            _lengths_for_text(normalized, translated_query_lengths)
+            translated_query_lengths["model_token_estimate"][-1] = token_counter(normalized)
+        english_answer = record.get("Eng_Answer")
+        if isinstance(english_answer, str) and english_answer.strip():
+            normalized = normalize_text(english_answer)
+            _lengths_for_text(normalized, english_answer_lengths)
+            english_answer_lengths["model_token_estimate"][-1] = token_counter(normalized)
+        translated_answer = record.get("Answer")
+        if isinstance(translated_answer, str) and translated_answer.strip():
+            normalized = normalize_text(translated_answer)
+            _lengths_for_text(normalized, translated_answer_lengths)
+            translated_answer_lengths["model_token_estimate"][-1] = token_counter(normalized)
+        query_type = record.get("query_type")
+        if isinstance(query_type, str) and query_type.strip():
+            query_types[query_type.strip()] += 1
 
         source_lang = record.get("source_lang")
         target_lang = record.get("target_lang")
@@ -513,6 +640,13 @@ def audit_records(
             source_languages[source_lang] += 1
         if isinstance(target_lang, str) and target_lang.strip():
             target_languages[target_lang] += 1
+        if (
+            isinstance(source_lang, str)
+            and source_lang.strip()
+            and isinstance(target_lang, str)
+            and target_lang.strip()
+        ):
+            language_pairs[f"{source_lang.strip()}->{target_lang.strip()}"] += 1
 
         meta = record.get("meta")
         if isinstance(meta, Mapping):
@@ -550,6 +684,10 @@ def audit_records(
         english = arrays["English_passages"] or []
         translated = arrays["Translated_passages"] or []
         labels = arrays["is_selected"] or []
+        passages_per_query.append(len(english))
+        selected_passages_per_query.append(
+            sum(label in {1, "1", "true", "True"} for label in labels)
+        )
         counts["english_passage_occurrences"] += len(english)
         counts["translated_passage_occurrences"] += len(translated)
         counts["label_occurrences"] += len(labels)
@@ -569,6 +707,9 @@ def audit_records(
                 reasons.append(f"english_passage_{index}_empty")
                 continue
             english_duplicates[normalized] += 1
+            canonical_hash = hashlib.sha256(normalized.encode("utf-8")).hexdigest()
+            first_canonical_occurrence = canonical_hash not in passage_query_ids
+            passage_query_ids[canonical_hash].add(row_query_key)
             _lengths_for_text(normalized, english_lengths)
             english_lengths["model_token_estimate"][-1] = token_counter(normalized)
             if len(normalized) < short_passage_chars:
@@ -582,6 +723,55 @@ def audit_records(
                             "preview": normalized[:120],
                         }
                     )
+            if first_canonical_occurrence:
+                translated_value = translated[index] if index < len(translated) else None
+                translated_normalized = (
+                    normalize_text(translated_value)
+                    if isinstance(translated_value, str)
+                    else ""
+                )
+                variants = [normalized]
+                if translated_normalized:
+                    variants.append(translated_normalized)
+                atomic_count = len(variants)
+                window_count = sum(_sentence_window_count(item) for item in variants)
+                semantic_count = sum(
+                    max(1, math.ceil(max(1, word_count(item)) / 180))
+                    for item in variants
+                )
+                bilingual_count = (
+                    max(
+                        math.ceil(len(normalized) / 397),
+                        math.ceil(len(translated_normalized) / 397),
+                    )
+                    if translated_normalized
+                    else 0
+                )
+                strategy_vectors.update(
+                    {
+                        "atomic": atomic_count,
+                        "sentence_window": window_count,
+                        "semantic_section_cap_heuristic": semantic_count,
+                        "parent_child": window_count,
+                        "bilingual_paired": bilingual_count,
+                    }
+                )
+                source_bytes = sum(len(item.encode("utf-8")) for item in variants)
+                strategy_payload_bytes.update(
+                    {
+                        "atomic": source_bytes,
+                        "sentence_window": round(source_bytes * 1.5),
+                        "semantic_section_cap_heuristic": source_bytes,
+                        "parent_child": round(source_bytes * 1.5),
+                        "bilingual_paired": (
+                            len(
+                                f"{translated_normalized}\n[EN] {normalized}".encode()
+                            )
+                            if translated_normalized
+                            else 0
+                        ),
+                    }
+                )
 
         for index, value in enumerate(translated):
             if not isinstance(value, str):
@@ -640,7 +830,27 @@ def audit_records(
         "translated_passages": {
             key: _distribution(values) for key, values in sorted(translated_lengths.items())
         },
+        "english_queries": {
+            key: _distribution(values)
+            for key, values in sorted(english_query_lengths.items())
+        },
+        "translated_queries": {
+            key: _distribution(values)
+            for key, values in sorted(translated_query_lengths.items())
+        },
+        "english_answers": {
+            key: _distribution(values)
+            for key, values in sorted(english_answer_lengths.items())
+        },
+        "translated_answers": {
+            key: _distribution(values)
+            for key, values in sorted(translated_answer_lengths.items())
+        },
     }
+    reused_across_queries = sum(
+        len(associated_query_ids) > 1
+        for associated_query_ids in passage_query_ids.values()
+    )
 
     profiles = [
         {"settings": json.loads(serialized), "count": count}
@@ -678,6 +888,18 @@ def audit_records(
             "unique_query_ids": len(query_ids),
             "nonempty_english_queries": counts["nonempty_english_queries"],
             "nonempty_translated_queries": counts["nonempty_translated_queries"],
+            "duplicate_query_id_rows": max(
+                0, counts["rows_with_query_id"] - len(query_ids)
+            ),
+            "query_type_distribution": _counter_dict(query_types),
+            "english_query_duplicates": _duplicate_summary(english_query_duplicates),
+            "translated_query_duplicates": _duplicate_summary(
+                translated_query_duplicates
+            ),
+            "passages_per_query": _distribution(passages_per_query),
+            "selected_passages_per_query": _distribution(
+                selected_passages_per_query
+            ),
         },
         "passage_counts": {
             "rows_with_passages": counts["rows_with_passages"],
@@ -702,10 +924,26 @@ def audit_records(
         "duplicates": {
             "english_passages": _duplicate_summary(english_duplicates),
             "translated_passages": _duplicate_summary(translated_duplicates),
+            "canonical_passages_reused_across_queries": reused_across_queries,
+            "canonical_passage_reuse_rate": round(
+                reused_across_queries / len(passage_query_ids), 6
+            )
+            if passage_query_ids
+            else 0.0,
         },
+        "corpus_scale_estimates": _corpus_scale_estimates(
+            unique_passages=len(passage_query_ids),
+            strategy_vectors=strategy_vectors,
+            strategy_payload_bytes=strategy_payload_bytes,
+            candidate_sizes=tuple(dict.fromkeys(candidate_corpus_sizes)),
+            dense_vector_size=dense_vector_size,
+            embedding_vectors_per_second=embedding_vectors_per_second,
+            upsert_points_per_second=upsert_points_per_second,
+        ),
         "translation_metadata": {
             "source_lang_counts": _counter_dict(source_languages),
             "target_lang_counts": _counter_dict(target_languages),
+            "source_target_pair_counts": _counter_dict(language_pairs),
             "translation_model_counts": _counter_dict(translation_models),
             "parameter_profiles": profiles,
         },
@@ -741,16 +979,28 @@ def _markdown_distribution_table(title: str, distributions: Mapping[str, Any]) -
     lines = [
         f"#### {title}",
         "",
-        "| Measure | Count | Min | P50 | P70 | P95 | P100 | Mean |",
-        "|---|---:|---:|---:|---:|---:|---:|---:|",
+        "| Measure | Count | Min | P50 | P70 | P75 | P90 | P95 | P99 | P100 | Mean |",
+        "|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|",
     ]
     for measure, stats in sorted(distributions.items()):
         lines.append(
-            "| {measure} | {count} | {min} | {p50} | {p70} | {p95} | {p100} | {mean} |".format(
+            "| {measure} | {count} | {min} | {p50} | {p70} | {p75} | {p90} | "
+            "{p95} | {p99} | {p100} | {mean} |".format(
                 measure=measure,
                 **{
                     key: stats.get(key)
-                    for key in ("count", "min", "p50", "p70", "p95", "p100", "mean")
+                    for key in (
+                        "count",
+                        "min",
+                        "p50",
+                        "p70",
+                        "p75",
+                        "p90",
+                        "p95",
+                        "p99",
+                        "p100",
+                        "mean",
+                    )
                 },
             )
         )
@@ -784,6 +1034,9 @@ def render_audit_markdown(report: Mapping[str, Any]) -> str:
                 f"- Rows sampled: {sampling['rows_sampled']} of at most {sampling['max_rows']}",
                 f"- Schema status: `{schema['status']}`",
                 f"- Unique sampled query IDs: {queries['unique_query_ids']}",
+                f"- Duplicate query-ID rows: {queries['duplicate_query_id_rows']}",
+                "- Query types: "
+                f"`{json.dumps(queries['query_type_distribution'], sort_keys=True)}`",
                 f"- English passage occurrences: {passages['english_passage_occurrences']}",
                 f"- Translated passage occurrences: {passages['translated_passage_occurrences']}",
                 "- Selected/non-selected: "
@@ -792,6 +1045,8 @@ def render_audit_markdown(report: Mapping[str, Any]) -> str:
                 f"- English duplicate rate: {duplicates['english_passages']['duplicate_rate']}",
                 "- Translated duplicate rate: "
                 f"{duplicates['translated_passages']['duplicate_rate']}",
+                "- Canonical passages reused across queries: "
+                f"{duplicates['canonical_passages_reused_across_queries']}",
                 "",
                 "### Field completeness",
                 "",
@@ -815,6 +1070,65 @@ def render_audit_markdown(report: Mapping[str, Any]) -> str:
             _markdown_distribution_table(
                 "Translated passages", lengths["translated_passages"]
             )
+        )
+        lines.extend(_markdown_distribution_table("English queries", lengths["english_queries"]))
+        lines.extend(
+            _markdown_distribution_table("Translated queries", lengths["translated_queries"])
+        )
+        lines.extend(_markdown_distribution_table("English answers", lengths["english_answers"]))
+        lines.extend(
+            _markdown_distribution_table("Translated answers", lengths["translated_answers"])
+        )
+        lines.extend(
+            _markdown_distribution_table(
+                "Passages per query",
+                {"candidate_passages": queries["passages_per_query"]},
+            )
+        )
+        lines.extend(
+            _markdown_distribution_table(
+                "Selected passages per query",
+                {"selected_passages": queries["selected_passages_per_query"]},
+            )
+        )
+        lines.extend(
+            [
+                "### Corpus scaling estimates",
+                "",
+                "These are sample extrapolations with explicit heuristic assumptions, not "
+                "measured Qdrant or embedding benchmarks.",
+                "",
+                "| Target passages | Estimated vectors | Dense bytes | Sparse bytes | "
+                "Payload bytes | Qdrant bytes | Embedding seconds | Upsert seconds |",
+                "|---:|---:|---:|---:|---:|---:|---:|---:|",
+            ]
+        )
+        for estimate in item["corpus_scale_estimates"]["candidate_sizes"]:
+            lines.append(
+                f"| {estimate['target_unique_passages']} | "
+                f"{estimate['estimated_total_vectors']} | "
+                f"{estimate['estimated_dense_vector_bytes']} | "
+                f"{estimate['estimated_sparse_vector_bytes']} | "
+                f"{estimate['estimated_payload_bytes']} | "
+                f"{estimate['estimated_qdrant_bytes']} | "
+                f"{estimate['estimated_embedding_seconds']} | "
+                f"{estimate['estimated_upsert_seconds']} |"
+            )
+        lines.extend(
+            [
+                "",
+                "Assumptions:",
+                "",
+                "```json",
+                json.dumps(
+                    item["corpus_scale_estimates"]["assumptions"],
+                    ensure_ascii=False,
+                    indent=2,
+                    sort_keys=True,
+                ),
+                "```",
+                "",
+            ]
         )
         lines.extend(["### Translation metadata", "", "```json"])
         lines.append(

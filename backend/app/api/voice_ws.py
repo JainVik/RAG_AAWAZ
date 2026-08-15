@@ -27,6 +27,7 @@ from app.domain.enums import (
     PipelineState,
     SttEventType,
 )
+from app.domain.languages import language_from_tag
 from app.domain.models import (
     AudioChunkEvent,
     AudioStartEvent,
@@ -70,8 +71,8 @@ router = APIRouter(tags=["query"])
 
 
 def _language_from_provider(value: str | None, fallback: Language) -> Language:
-    mapping = {"hi-IN": Language.HINDI, "en-IN": Language.ENGLISH, "mr-IN": Language.MARATHI}
-    return mapping.get(value or "", fallback)
+    detected = language_from_tag(value)
+    return fallback if detected == Language.UNKNOWN else detected
 
 
 def _voice_access_allowed(websocket: WebSocket, settings: Settings) -> bool:
@@ -301,7 +302,12 @@ async def voice_query(websocket: WebSocket) -> None:
             speculative_started_ns = time.perf_counter_ns()
             speculative_deadline = Deadline.after_ms(2_000, 1_900)
             try:
-                plan = orchestrator.router.route(query)
+                plan = orchestrator.router.route(
+                    query,
+                    language_hint=(
+                        start.language if start.language != Language.UNKNOWN else None
+                    ),
+                )
                 return await orchestrator.retriever.retrieve(query, plan, speculative_deadline)
             finally:
                 speculative_durations_ms.append(

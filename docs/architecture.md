@@ -52,14 +52,17 @@ and [WebSocket reference](https://docs.sarvam.ai/api-reference/speech-to-text/tr
 
 ## Corpus identities and representations
 
-`canonical_doc_id` is `sha256(NFC-and-whitespace-normalized English passage)`. Aligned Hindi text
-shares this identity. `ChunkFactory` can emit these independently flaggable views:
+`canonical_doc_id` is `sha256(NFC-and-whitespace-normalized English passage)`. Aligned translated
+text shares this identity. A central language registry covers English plus all 14 MSMARCO-XI
+Indic targets, records script ambiguity explicitly, and uses a provider/fixture hint when scripts
+such as Devanagari are shared by multiple languages. `ChunkFactory` can emit these independently
+flaggable views:
 
 1. atomic English and translated passages;
 2. language-aware sentence windows;
 3. offline semantic sections for sufficiently long passages;
 4. sentence children that return/deduplicate to parents;
-5. bounded Hindi–English paired text;
+5. bounded translated-English paired text;
 6. deterministic hashed character 3–5-gram sparse vectors with exact number/date features.
 
 Every monolingual chunk retains an exact character span into its source parent. Paired chunks
@@ -79,8 +82,9 @@ direct cited span. Otherwise the backend abstains. No partial transcript can bec
 ## Qdrant contract
 
 The pinned production contract is Qdrant server/client 1.19.0. It uses `query_points` (the old
-high-level `search` API has been removed), named dense and sparse vectors, an index only on the
-strategy filter field, deterministic full-point upserts, and collection metadata describing the
+high-level `search` API has been removed), named dense and sparse vectors, payload indexes on the
+strategy and representation-language filter fields, deterministic full-point upserts, and
+collection metadata describing the
 schema and encoders. Existing incompatible collections fail readiness; startup never silently
 recreates them. See the official [collection](https://qdrant.tech/documentation/manage-data/collections/),
 [point](https://qdrant.tech/documentation/manage-data/points/), and
@@ -94,4 +98,3 @@ recreates them. See the official [collection](https://qdrant.tech/documentation/
 - `/metrics` contains aggregate states, reasons, timings, and speculative reuse only.
 - Searchable payload schemas have no query, answer, or relevance fields.
 - Retrieved passages are evidence data, never executable instructions.
-

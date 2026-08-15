@@ -5,10 +5,9 @@ from collections.abc import Sequence
 from dataclasses import dataclass
 
 from app.domain.enums import ChunkStrategy, Language
+from app.domain.languages import analyze_language, language_from_tag
 from app.ingestion.normalize import normalize_text
 
-_DEVANAGARI = re.compile(r"[\u0900-\u097f]")
-_LATIN = re.compile(r"[A-Za-z]")
 _NUMBER_OR_DATE = re.compile(r"\b\d+(?:[./:-]\d+)*\b")
 _TOKEN = re.compile(r"\w+", re.UNICODE)
 _SHORT_FACTUAL = {
@@ -24,7 +23,7 @@ _SHORT_FACTUAL = {
 }
 _DESCRIPTIVE = {"why", "how", "explain", "describe", "क्यों", "कैसे", "समझाइए", "बताइए"}
 
-TIDE_ROUTER_CONTRACT_VERSION = "tide-router-heuristics-v3"
+TIDE_ROUTER_CONTRACT_VERSION = "tide-router-heuristics-v4"
 
 
 @dataclass(frozen=True, slots=True)
@@ -38,6 +37,10 @@ class RoutePlan:
     sparse_limit: int
     low_stt_confidence: bool
     representation_languages: tuple[Language, ...] | None = None
+    scripts: tuple[str, ...] = ()
+    code_mixed: bool = False
+    language_confidence: float | None = None
+    language_fallback: bool = False
 
 
 class TideRouter:
@@ -62,15 +65,7 @@ class TideRouter:
 
     @staticmethod
     def detect_language(query: str) -> Language:
-        devanagari = len(_DEVANAGARI.findall(query))
-        latin = len(_LATIN.findall(query))
-        if devanagari and latin:
-            return Language.CODE_MIXED
-        if devanagari:
-            return Language.HINDI
-        if latin:
-            return Language.ENGLISH
-        return Language.UNKNOWN
+        return analyze_language(query).language
 
     def route(
         self,
@@ -78,11 +73,23 @@ class TideRouter:
         *,
         stt_confidence: float | None = None,
         partial_stability: float | None = None,
+        language_hint: Language | str | None = None,
+        language_confidence: float | None = None,
     ) -> RoutePlan:
         normalized = normalize_text(query).casefold()
         token_list = _TOKEN.findall(normalized)
         tokens = set(token_list)
-        language = self.detect_language(normalized)
+        normalized_hint = (
+            language_hint
+            if isinstance(language_hint, Language)
+            else language_from_tag(language_hint)
+        )
+        language_analysis = analyze_language(
+            normalized,
+            hint=normalized_hint,
+            language_confidence=language_confidence,
+        )
+        language = language_analysis.language
         has_number = bool(_NUMBER_OR_DATE.search(normalized))
         is_short = len(token_list) <= 8
         factual = bool(tokens.intersection(_SHORT_FACTUAL)) or has_number
@@ -127,17 +134,15 @@ class TideRouter:
             category = f"{category}_enabled_fallback"
         if not self.enable_sparse:
             dense_weight, sparse_weight = 1.0, 0.0
-        representation_languages: tuple[Language, ...] | None = (
-            (Language.ENGLISH,)
-            if language == Language.ENGLISH
-            else (Language.HINDI,)
-            if language == Language.HINDI
-            else (Language.MARATHI,)
-            if language == Language.MARATHI
-            else (Language.CODE_MIXED, Language.HINDI, Language.ENGLISH)
-            if language == Language.CODE_MIXED
-            else None
-        )
+        representation_languages: tuple[Language, ...] | None
+        if language == Language.UNKNOWN:
+            representation_languages = None
+        elif language == Language.CODE_MIXED:
+            representation_languages = tuple(
+                dict.fromkeys((Language.CODE_MIXED, *language_analysis.component_languages))
+            )
+        else:
+            representation_languages = (language,)
         if (
             ChunkStrategy.BILINGUAL_PAIRED in strategies
             and representation_languages is not None
@@ -154,4 +159,8 @@ class TideRouter:
             sparse_limit=(self.sparse_limit * multiplier if self.enable_sparse else 0),
             low_stt_confidence=low_confidence,
             representation_languages=representation_languages,
+            scripts=language_analysis.scripts,
+            code_mixed=language_analysis.code_mixed,
+            language_confidence=language_analysis.confidence,
+            language_fallback=language_analysis.fallback_used,
         )

@@ -13,11 +13,13 @@ CORPUS_TARGET_PASSAGES ?= 10000
 PARTITION_DIR ?= data/evaluation/partition
 DEVELOPMENT_SCORE_PREFIX ?= evaluation/reports/development/development-retrieval-scores
 FINAL_RETRIEVAL_PREFIX ?= evaluation/reports/final/retrieval-eval
+CORPUS_COMPARISON_REPORTS ?=
+CORPUS_COMPARISON_PREFIX ?= evaluation/reports/final/corpus-scaling-comparison
 
 .PHONY: dev audit-data download-e5 build-corpus build-index partition-evaluation \
 	score-development calibrate-thresholds check test lint typecheck \
 	sarvam-smoke eval-retrieval eval-guardrails eval-guardrails-smoke ablation \
-	benchmark benchmark-text-smoke benchmark-cold benchmark-final
+	compare-corpus-sizes benchmark benchmark-text-smoke benchmark-cold benchmark-final
 
 dev:
 	cd $(BACKEND) && $(PYTHON) -m uvicorn app.main:app --reload --host 127.0.0.1 --port 8000
@@ -79,3 +81,7 @@ eval-guardrails-smoke:
 
 ablation:
 	cd $(BACKEND) && $(PYTHON) scripts/run_ablation.py
+
+compare-corpus-sizes:
+	$(if $(strip $(CORPUS_COMPARISON_REPORTS)),,$(error Set CORPUS_COMPARISON_REPORTS to at least two retrieval JSON reports))
+	cd $(BACKEND) && $(PYTHON) scripts/compare_corpus_sizes.py $(CORPUS_COMPARISON_REPORTS) --output-prefix $(CORPUS_COMPARISON_PREFIX)

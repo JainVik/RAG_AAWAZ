@@ -1,8 +1,8 @@
 {
   "frozen_output": "C:\\RAG\\backend\\data\\calibration\\frozen-thresholds.json",
-  "frozen_output_sha256": "32c6d0007102f14af34eb4ce342ed2943076f91299d0cc9b3ac12911e98938e9",
+  "frozen_output_sha256": "6a0f550a70caa8cf43eabbdc4b3b4b26311ea63221a1074155901d0cbcd4cba8",
   "frozen_thresholds": {
-    "development_fixture_sha256": "5df206c7fd14a9aa1aee4d784528402cf95854ca6e0fccae37237fba76c3a4b3",
+    "development_fixture_sha256": "45b206248355b545a05e16acbf2e610890046f39ccb48c56b09091dcb558eaeb",
     "development_query_content_count": 518,
     "development_query_content_hashes": [
       "00279dc0f94141a7b10c7b3f25339594b3198e7c863b6600bc4b234a2d274009",
@@ -1047,8 +1047,8 @@
       "development-negative-hien-future-result"
     ],
     "development_query_ids_sha256": "22c69ae9334d215ee8383866bd0d28a80ce81826448138a54c28ce28cd7d8e3a",
-    "frozen_at": "2026-08-14T21:13:09.420320Z",
-    "minimum_answer_score": 0.8517202,
+    "frozen_at": "2026-08-15T10:45:38.897389Z",
+    "minimum_answer_score": 0.85302633,
     "minimum_evidence_agreement": 0.0,
     "minimum_score_margin": 0.0,
     "retrieval_artifacts": {
@@ -1059,8 +1059,8 @@
       "dense_model": "intfloat/multilingual-e5-small",
       "index_manifest_sha256": "3b872e3a2d0775c7bcc63c9305f1c26cd3c37313a46bfee2d4967199b33da3d5",
       "model_revision": "614241f622f53c4eeff9890bdc4f31cfecc418b3",
-      "retrieval_contract_sha256": "313d7828b9cba513734ce4ccc4612a646001d63f22fb2d929af8b419af07c713",
-      "retrieval_contract_version": "tide-router-heuristics-v3"
+      "retrieval_contract_sha256": "e6fd1b2955911ed8f49f38734de975f2cc5154c6b00d1eb7f73a4b78f794320c",
+      "retrieval_contract_version": "tide-router-heuristics-v4"
     },
     "schema_version": 3,
     "score_contract_version": "raw-dense-similarity-v1",
@@ -1145,10 +1145,10 @@
       "path": "C:\\RAG\\backend\\data\\corpus\\corpus-manifest.json",
       "sha256": "70d0bd95ced0b876490bc0c0edaf5a9bc6f2fb493b30016a233abcdb7a3a25f3"
     },
-    "created_at": "2026-08-14T21:13:09.432815+00:00",
+    "created_at": "2026-08-15T10:45:38.908721+00:00",
     "fixture": {
       "path": "C:\\RAG\\backend\\evaluation\\reports\\development\\development-retrieval-scores.jsonl",
-      "sha256": "5df206c7fd14a9aa1aee4d784528402cf95854ca6e0fccae37237fba76c3a4b3"
+      "sha256": "45b206248355b545a05e16acbf2e610890046f39ccb48c56b09091dcb558eaeb"
     },
     "grid_points_per_dimension_max": 16,
     "hardware": {
@@ -1185,13 +1185,13 @@
         "dense_model": "intfloat/multilingual-e5-small",
         "index_manifest_sha256": "3b872e3a2d0775c7bcc63c9305f1c26cd3c37313a46bfee2d4967199b33da3d5",
         "model_revision": "614241f622f53c4eeff9890bdc4f31cfecc418b3",
-        "retrieval_contract_sha256": "313d7828b9cba513734ce4ccc4612a646001d63f22fb2d929af8b419af07c713",
-        "retrieval_contract_version": "tide-router-heuristics-v3"
+        "retrieval_contract_sha256": "e6fd1b2955911ed8f49f38734de975f2cc5154c6b00d1eb7f73a4b78f794320c",
+        "retrieval_contract_version": "tide-router-heuristics-v4"
       },
       "corpus_manifest_path": "C:\\RAG\\backend\\data\\corpus\\corpus-manifest.json",
       "index_manifest_path": "C:\\RAG\\backend\\data\\index\\index-manifest.json",
       "retrieval_runtime_contract": {
-        "contract_version": "tide-router-heuristics-v3",
+        "contract_version": "tide-router-heuristics-v4",
         "dense_candidate_limit": 24,
         "enable_sparse": true,
         "enabled_dense_strategies": [
@@ -1212,22 +1212,22 @@
     "score_kind": "raw_dense_similarity"
   },
   "selected": {
-    "accuracy": 0.8918918918918919,
-    "answer_coverage": 0.8687258687258688,
-    "balanced_accuracy": 0.9446640316205533,
+    "accuracy": 0.8803088803088803,
+    "answer_coverage": 0.8571428571428571,
+    "balanced_accuracy": 0.9387351778656127,
     "case_count": 518,
-    "f1": 0.9414225941422594,
-    "false_negative": 56,
+    "f1": 0.9347368421052632,
+    "false_negative": 62,
     "false_positive": 0,
-    "minimum_answer_score": 0.8517202,
+    "minimum_answer_score": 0.85302633,
     "minimum_evidence_agreement": 0.0,
     "minimum_score_margin": 0.0,
     "precision": 1.0,
-    "recall": 0.8893280632411067,
+    "recall": 0.8774703557312253,
     "score_contract_version": "raw-dense-similarity-v1",
     "score_kind": "raw_dense_similarity",
     "specificity": 1.0,
     "true_negative": 12,
-    "true_positive": 450
+    "true_positive": 444
   }
 }
