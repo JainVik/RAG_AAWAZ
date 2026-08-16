@@ -89,14 +89,12 @@ export const Shell: React.FC<ShellProps> = ({ children, isDark, onToggleTheme })
         </div>
 
         {/* Global Application Header */}
-        <div className="relative z-20">
-          <Header
-            ready={ready}
-            isLoadingReady={isLoadingStatus}
-            isDark={isDark}
-            onToggleTheme={onToggleTheme}
-          />
-        </div>
+        <Header
+          ready={ready}
+          isLoadingReady={isLoadingStatus}
+          isDark={isDark}
+          onToggleTheme={onToggleTheme}
+        />
 
         {/* Main Content Area with Skip Target */}
         <main id="main-content" className="flex-1 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex flex-col relative z-10">

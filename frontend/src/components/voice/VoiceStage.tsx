@@ -9,7 +9,7 @@ import type {
   VoiceErrorState,
   VoiceState,
 } from '../../types/api';
-import { getLanguageDisplayLabel, PIPELINE_STATE_TO_USER_STATUS } from '../../types/api';
+import { PIPELINE_STATE_TO_USER_STATUS } from '../../types/api';
 import type { SessionQueryHistoryEntry } from '../../utils/sessionQueryHistory';
 import type { ChatTurn } from '../../utils/chatSessionHistory';
 import { VoiceOrb } from './VoiceOrb';
@@ -60,23 +60,15 @@ export const VoiceStage: React.FC<VoiceStageProps> = (props) => {
   const isLive = isRecording || isProcessing || isRequesting;
 
   const hasChatHistory = props.chatTurns.length > 0;
+  const hasActiveConversation = hasChatHistory || isLive || Boolean(props.result);
 
   return (
     <div className="relative flex min-h-[calc(100dvh-100px)] select-none flex-col items-center justify-between px-2 sm:px-4 py-2">
-      {/* Detected Language Subtle Floating Indicator */}
-      <div className="flex h-6 items-center justify-center">
-        {props.detectedLanguage && props.detectedLanguage !== 'unknown' && (
-          <div className="rounded-full border border-white/10 bg-white/5 px-3 py-0.5 text-[11px] font-semibold text-cyan-300 backdrop-blur-md">
-            Detected: {getLanguageDisplayLabel(props.detectedLanguage)}
-          </div>
-        )}
-      </div>
-
       {/* CONDITIONAL BODY: Hero Landing (0 turns) vs Chat Timeline Stream (>= 1 turn) */}
       {!hasChatHistory ? (
         /* HERO INITIAL STATE */
         <div
-          className={`my-auto flex w-full max-w-5xl flex-col items-center justify-center py-4 text-center transition-all duration-500 ${
+          className={`mt-6 mb-auto flex w-full max-w-5xl flex-col items-center justify-center py-4 text-center transition-all duration-500 ${
             isRecording ? '-translate-y-4 space-y-4' : 'space-y-6'
           }`}
         >
@@ -123,12 +115,7 @@ export const VoiceStage: React.FC<VoiceStageProps> = (props) => {
                 onDismiss={props.onReset}
               />
             ) : (
-              <>
-                <h2 className="text-3xl font-bold text-white">Ask with voice or text</h2>
-                <p className="text-sm text-slate-400 max-w-lg">
-                  Grounded multilingual RAG across English, Hindi, and Hinglish. Click a sample below or tap Speak.
-                </p>
-              </>
+              <h2 className="text-3xl font-bold text-white">Ask with voice or text</h2>
             )}
 
             {props.error && !props.result && (
@@ -157,13 +144,11 @@ export const VoiceStage: React.FC<VoiceStageProps> = (props) => {
             liveState={props.textSubmitting ? 'processing' : props.state}
             isLive={isLive}
             audioLevel={props.audioLevel}
-            onClearSession={props.onClearSession}
-            onSelectPrompt={props.onSelectVerifiedPrompt}
           />
         </div>
       )}
 
-      {/* FIXED STICKY BOTTOM GLASS CONTROLS DOCK */}
+      {/* Fixed bottom controls overlay the page's normal document flow. */}
       <div className="fixed bottom-4 left-0 right-0 z-40 flex justify-center pointer-events-none px-2 sm:px-4">
         <div className="pointer-events-auto">
           <VoicePillControls
@@ -182,6 +167,9 @@ export const VoiceStage: React.FC<VoiceStageProps> = (props) => {
             verifiedPromptsLoading={props.verifiedPromptsLoading}
             verifiedPromptsError={props.verifiedPromptsError}
             recentQueries={props.recentQueries}
+            showQuickPrompts={!hasActiveConversation}
+            showNewConversation={hasActiveConversation}
+            onClearSession={props.onClearSession}
             onSelectVerifiedPrompt={props.onSelectVerifiedPrompt}
             onRetryVerifiedPrompts={props.onRetryVerifiedPrompts}
             onClearRecentQueries={props.onClearRecentQueries}

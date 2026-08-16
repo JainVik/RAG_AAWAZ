@@ -7,7 +7,6 @@ import {
   Sparkle,
   SpinnerGap,
   WarningOctagon,
-  X,
 } from '@phosphor-icons/react';
 import type { QueryResponse, SynthesisResponse } from '../../types/api';
 import { getLanguageDisplayLabel, PIPELINE_STATE_TO_USER_STATUS } from '../../types/api';
@@ -131,7 +130,6 @@ export const AnswerCards: React.FC<AnswerCardsProps> = ({
   synthesisLoading,
   synthesisResult,
   synthesisError,
-  onDismiss,
 }) => {
   const [drawerSource, setDrawerSource] = useState<DrawerSource>(null);
   const [copied, setCopied] = useState<CopySource>(null);
@@ -171,20 +169,8 @@ export const AnswerCards: React.FC<AnswerCardsProps> = ({
           </span>
           <span className="mt-1 block text-[10px] text-slate-500">Exact answer assembled from retrieved passages</span>
         </div>
-        <div className="flex flex-wrap items-center justify-end gap-2">
-          <button
-            type="button"
-            aria-label="Dismiss answers"
-            title="Dismiss answers"
-            onClick={onDismiss}
-            className="rounded-md p-1 text-slate-400 transition-colors hover:bg-white/10 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400"
-          >
-            <X size={16} />
-          </button>
-        </div>
       </div>
 
-      <p className="select-text break-words text-xs italic text-slate-300">“{result.transcript}”</p>
       <div className="flex-1">
         {result.answer ? (
           <p className="select-text whitespace-pre-wrap break-words text-base leading-relaxed text-white">
@@ -252,9 +238,6 @@ export const AnswerCards: React.FC<AnswerCardsProps> = ({
           <div>
             <p className="select-text whitespace-pre-wrap break-words text-base leading-relaxed text-white">
               {synthesisResult.answer}
-            </p>
-            <p className="mt-3 text-[10px] font-semibold uppercase tracking-wide text-violet-300/75">
-              {synthesisResult.claims.length} grounded claim{synthesisResult.claims.length === 1 ? '' : 's'} verified
             </p>
           </div>
         ) : uninvokedSynthesis ? (
@@ -336,8 +319,6 @@ export const AnswerCards: React.FC<AnswerCardsProps> = ({
               <span className="text-cyan-300">{getLanguageDisplayLabel(result.language)}</span>
               <span className="text-slate-600" aria-hidden="true">·</span>
               <span className={primaryOutcome === 'Grounded' ? 'text-emerald-300 font-semibold' : 'text-amber-300'}>{primaryOutcome}</span>
-              <span className="text-slate-600" aria-hidden="true">·</span>
-              <span>{result.citations.length} citation{result.citations.length === 1 ? '' : 's'}</span>
               {responseLatencyMs !== null && (
                 <>
                   <span className="text-slate-600" aria-hidden="true">·</span>
@@ -364,12 +345,6 @@ export const AnswerCards: React.FC<AnswerCardsProps> = ({
                 <span className={synthesisResult?.status === 'completed' ? 'text-emerald-300 font-semibold' : 'text-violet-300'}>
                   {synthesisResult?.status === 'completed' ? 'Grounded' : synthesisLoading ? 'Generating…' : (synthesisResult?.status ?? 'Pending')}
                 </span>
-                {synthesisResult?.status === 'completed' && (
-                  <>
-                    <span className="text-slate-600" aria-hidden="true">·</span>
-                    <span>{synthesisResult.citations.length} citation{synthesisResult.citations.length === 1 ? '' : 's'}</span>
-                  </>
-                )}
                 {synthesisLatencyMs !== null && (
                   <>
                     <span className="text-slate-600" aria-hidden="true">·</span>

@@ -7,6 +7,7 @@ interface VoiceOrbProps {
   onClick?: () => void;
   disabled?: boolean;
   size?: 'lg' | 'sm';
+  animated?: boolean;
 }
 
 export const VoiceOrb: React.FC<VoiceOrbProps> = ({
@@ -15,6 +16,7 @@ export const VoiceOrb: React.FC<VoiceOrbProps> = ({
   onClick,
   disabled = false,
   size = 'lg',
+  animated = true,
 }) => {
   const isRecording = state === 'recording';
   const isProcessing = state === 'processing';
@@ -23,6 +25,8 @@ export const VoiceOrb: React.FC<VoiceOrbProps> = ({
   // Dynamic scale calculation based on mic audio volume
   const scale = isRecording ? 1 + Math.min(0.2, audioLevel * 0.3) : isProcessing ? 1.04 : 1;
   const glowOpacity = isRecording ? 0.7 + Math.min(0.3, audioLevel * 0.4) : isProcessing ? 0.6 : 0.4;
+  const visualScale = animated ? scale : 1;
+  const visualGlowOpacity = animated ? glowOpacity : 0.4;
 
   const getDisplayText = () => {
     if (isRecording) return 'Listening';
@@ -39,7 +43,7 @@ export const VoiceOrb: React.FC<VoiceOrbProps> = ({
     return (
       <div
         className="relative flex items-center justify-center w-11 h-11 shrink-0 select-none"
-        aria-label="Animated VANI Voice Orb"
+        aria-hidden="true"
       >
         {/* Outer ambient diffuse glow responding to audioLevel */}
         <div
@@ -50,8 +54,8 @@ export const VoiceOrb: React.FC<VoiceOrbProps> = ({
               : isProcessing
               ? 'radial-gradient(circle, rgba(214, 10, 71, 0.6) 0%, rgba(71, 30, 236, 0.5) 45%, transparent 70%)'
               : 'radial-gradient(circle, rgba(71, 30, 236, 0.6) 0%, rgba(173, 95, 255, 0.4) 50%, transparent 70%)',
-            opacity: glowOpacity,
-            transform: `scale(${scale * 1.3})`,
+            opacity: visualGlowOpacity,
+            transform: `scale(${visualScale * 1.3})`,
           }}
         />
 
@@ -59,7 +63,7 @@ export const VoiceOrb: React.FC<VoiceOrbProps> = ({
         <div
           className="loader-wrapper"
           style={{
-            transform: `scale(${smScale * scale})`,
+            transform: `scale(${smScale * visualScale})`,
             transformOrigin: 'center center',
           }}
         >
@@ -70,6 +74,7 @@ export const VoiceOrb: React.FC<VoiceOrbProps> = ({
               className="loader-letter text-sm font-semibold"
               style={{
                 animationDelay: `${idx * 0.1}s`,
+                animationPlayState: animated ? 'running' : 'paused',
                 marginRight: char === ' ' ? '0.35rem' : '0.02rem',
               }}
             >
@@ -78,11 +83,11 @@ export const VoiceOrb: React.FC<VoiceOrbProps> = ({
           ))}
 
           {/* The Exact Rotating Inset-Shadow Ball Element */}
-          <div className="loader" />
+          <div className="loader" style={{ animationPlayState: animated ? 'running' : 'paused' }} />
         </div>
 
         {/* Subtle pulse ring when recording */}
-        {isRecording && (
+        {isRecording && animated && (
           <div className="absolute -inset-1 rounded-full border border-cyan-400/50 animate-ping pointer-events-none opacity-40" />
         )}
       </div>
@@ -125,6 +130,7 @@ export const VoiceOrb: React.FC<VoiceOrbProps> = ({
             className="loader-letter"
             style={{
               animationDelay: `${idx * 0.1}s`,
+              animationPlayState: animated ? 'running' : 'paused',
               marginRight: char === ' ' ? '0.35rem' : '0.02rem',
             }}
           >
@@ -133,11 +139,11 @@ export const VoiceOrb: React.FC<VoiceOrbProps> = ({
         ))}
 
         {/* The Rotating Inset-Shadow Ball Element */}
-        <div className="loader" />
+        <div className="loader" style={{ animationPlayState: animated ? 'running' : 'paused' }} />
       </div>
 
       {/* Subtle pulse ring when recording */}
-      {isRecording && (
+      {isRecording && animated && (
         <div className="absolute inset-4 rounded-full border border-cyan-400/40 animate-ping pointer-events-none opacity-30" />
       )}
     </button>

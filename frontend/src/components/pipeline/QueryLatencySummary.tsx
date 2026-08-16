@@ -1,5 +1,5 @@
 import React from 'react';
-import { ArrowSquareOut, CheckCircle, Lightning } from '@phosphor-icons/react';
+import { ArrowSquareOut, CaretDown, CheckCircle, Lightning } from '@phosphor-icons/react';
 import { formatStageLatency, getCoreLatencySummary } from '../../utils/pipelineLatency';
 import { formatResponseLatency } from '../../utils/responseTiming';
 
@@ -88,40 +88,45 @@ export const QueryLatencySummary: React.FC<QueryLatencySummaryProps> = ({
   ];
 
   return (
-    <aside
+    <details
       aria-label="Per-query end-to-end RAG latency breakdown"
-      className="mt-4 overflow-hidden rounded-2xl border border-cyan-500/20 bg-[#080e1a]/95 shadow-2xl backdrop-blur-md"
+      className="group mt-4 overflow-hidden rounded-2xl border border-cyan-500/20 bg-[#080e1a]/95 shadow-2xl backdrop-blur-md"
     >
-      {/* Header */}
-      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-white/8 bg-white/[0.02] px-5 py-3.5">
-        <div className="flex items-center gap-3">
-          <div className="rounded-lg border border-cyan-400/30 bg-cyan-500/10 p-2 text-cyan-300">
+      {/* The summary stays compact; measured stages are revealed on demand. */}
+      <summary className="flex cursor-pointer list-none flex-wrap items-center justify-between gap-3 bg-white/[0.02] px-5 py-3.5 transition-colors hover:bg-white/[0.04] [&::-webkit-details-marker]:hidden">
+        <span className="flex items-center gap-3">
+          <span className="rounded-lg border border-cyan-400/30 bg-cyan-500/10 p-2 text-cyan-300">
             <Lightning size={18} weight="fill" />
-          </div>
-          <div>
-            <h4 className="text-sm font-bold text-white tracking-wide">
+          </span>
+          <span>
+            <span className="block text-sm font-bold text-white tracking-wide" role="heading" aria-level={4}>
               End-to-End Pipeline Evaluation
-            </h4>
-            <p className="text-xs text-slate-400">
+            </span>
+            <span className="block text-xs text-slate-400">
               Granular measured timings for each stage of this query
-            </p>
-          </div>
-        </div>
+            </span>
+          </span>
+        </span>
 
-        <div className="flex items-center gap-3">
-          <div className="text-right">
+        <span className="flex items-center gap-3">
+          <span className="text-right">
             <span className="font-mono text-xl font-bold text-cyan-300">
               {formatResponseLatency(totalTime)}
             </span>
-            <p className="text-[10px] uppercase tracking-wider text-slate-400">
+            <span className="block text-[10px] uppercase tracking-wider text-slate-400">
               Total Request Latency
-            </p>
-          </div>
-        </div>
-      </div>
+            </span>
+          </span>
+          <CaretDown
+            size={18}
+            className="shrink-0 text-slate-400 transition-transform duration-200 group-open:rotate-180"
+            aria-hidden="true"
+          />
+        </span>
+      </summary>
 
       {/* Clean Vertical Table */}
-      <div className="divide-y divide-white/5 overflow-x-auto">
+      <div className="divide-y divide-white/5 overflow-x-auto border-t border-white/8">
         <table className="w-full text-left text-xs">
           <thead>
             <tr className="border-b border-white/8 bg-white/[0.01] text-[10px] uppercase tracking-wider text-slate-400 font-semibold">
@@ -167,6 +172,6 @@ export const QueryLatencySummary: React.FC<QueryLatencySummaryProps> = ({
           View 100-query benchmark evidence <ArrowSquareOut size={13} />
         </a>
       </div>
-    </aside>
+    </details>
   );
 };

@@ -32,6 +32,9 @@ interface VoicePillControlsProps {
   verifiedPromptsLoading: boolean;
   verifiedPromptsError: string | null;
   recentQueries: SessionQueryHistoryEntry[];
+  showQuickPrompts: boolean;
+  showNewConversation: boolean;
+  onClearSession: () => void;
   onSelectVerifiedPrompt: (prompt: string, language: ServerLanguageCode) => void;
   onRetryVerifiedPrompts: () => void;
   onClearRecentQueries: () => void;
@@ -53,6 +56,9 @@ export const VoicePillControls: React.FC<VoicePillControlsProps> = ({
   verifiedPromptsLoading,
   verifiedPromptsError,
   recentQueries,
+  showQuickPrompts,
+  showNewConversation,
+  onClearSession,
   onSelectVerifiedPrompt,
   onRetryVerifiedPrompts,
   onClearRecentQueries,
@@ -122,7 +128,7 @@ export const VoicePillControls: React.FC<VoicePillControlsProps> = ({
   return (
     <div ref={controlsRef} className="relative flex flex-col items-center select-none w-full">
       {/* Sample Question Pills (1 in each language) */}
-      {!isRecording && !isProcessing && (
+      {showQuickPrompts && !isRecording && !isProcessing && (
         <div className="mb-3 flex flex-wrap items-center justify-center gap-2 max-w-4xl px-2 animate-fade-in">
           {quickPrompts.map((qp) => (
             <button
@@ -290,7 +296,7 @@ export const VoicePillControls: React.FC<VoicePillControlsProps> = ({
       )}
 
       {/* SLIM REFINED DOCK BAR */}
-      <div className="h-12 px-3 bg-[#0a0f1d]/90 hover:bg-[#0a0f1d] backdrop-blur-2xl border border-white/12 rounded-full shadow-[0_12px_40px_rgba(0,0,0,0.7)] flex items-center gap-1.5 transition-all duration-300">
+      <div className="h-12 px-1.5 sm:px-3 bg-[#0a0f1d]/90 hover:bg-[#0a0f1d] backdrop-blur-2xl border border-white/12 rounded-full shadow-[0_12px_40px_rgba(0,0,0,0.7)] flex items-center gap-0.5 sm:gap-1.5 transition-all duration-300">
         {/* GROUP 1: Mode Selector (Hover Reveal) */}
         <div className="relative">
           <button
@@ -303,7 +309,7 @@ export const VoicePillControls: React.FC<VoicePillControlsProps> = ({
           >
             <Microphone size={15} className="text-cyan-400" weight="bold" />
             <span className="hidden sm:inline text-[11px]">Voice</span>
-            <CaretUp size={11} className="text-slate-500" />
+            <CaretUp size={11} className="hidden text-slate-500 sm:block" />
           </button>
         </div>
 
@@ -319,7 +325,7 @@ export const VoicePillControls: React.FC<VoicePillControlsProps> = ({
           >
             <Sparkle size={15} className="text-cyan-400" />
             <span className="hidden sm:inline text-[11px]">Questions</span>
-            <CaretUp size={11} className="text-slate-500" />
+            <CaretUp size={11} className="hidden text-slate-500 sm:block" />
           </button>
         </div>
 
@@ -392,9 +398,25 @@ export const VoicePillControls: React.FC<VoicePillControlsProps> = ({
             <span className="font-mono text-[11px] uppercase">
               {currentLangObj.nativeLabel}
             </span>
-            <CaretUp size={11} className="text-slate-500" />
+            <CaretUp size={11} className="hidden text-slate-500 sm:block" />
           </button>
         </div>
+
+        {showNewConversation && (
+          <>
+            <div className="h-5 w-[1px] bg-white/10 mx-1" />
+            <button
+              type="button"
+              onClick={onClearSession}
+              aria-label="Start new conversation"
+              className="flex h-9 shrink-0 cursor-pointer items-center gap-1.5 rounded-full border border-white/10 bg-white/5 px-2 text-xs font-semibold text-slate-300 transition-all hover:border-cyan-400/40 hover:bg-white/10 hover:text-white active:scale-95 sm:px-3.5"
+              title="Start new conversation"
+            >
+              <ArrowCounterClockwise size={14} className="text-cyan-400" />
+              <span className="hidden sm:inline">New Conversation</span>
+            </button>
+          </>
+        )}
 
       </div>
     </div>

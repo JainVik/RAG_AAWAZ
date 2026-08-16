@@ -38,6 +38,7 @@ export const ChatAssistantMessage: React.FC<ChatAssistantMessageProps> = ({
             state={isLive ? liveState : 'idle'}
             audioLevel={audioLevel}
             size="sm"
+            animated={false}
           />
           <div className="flex items-center gap-2">
             <span className="font-extrabold text-sm tracking-tight text-white">

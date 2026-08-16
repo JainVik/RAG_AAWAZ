@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { CircleNotch, Eraser, Globe, Info, PaperPlaneRight } from '@phosphor-icons/react';
+import { CircleNotch, Eraser, Globe, PaperPlaneRight } from '@phosphor-icons/react';
 import type { LanguageHint } from '../../types/api';
 
 interface TextInputPanelProps {
@@ -34,8 +34,7 @@ export const TextInputPanel: React.FC<TextInputPanelProps> = ({
 
   return (
     <div className="w-full space-y-6">
-      <div className="flex flex-wrap items-center justify-between gap-4 border-b border-white/10 pb-4">
-        <span className="flex items-center gap-1 text-xs text-slate-400"><Info size={14} className="text-cyan-400" />POST /v1/query/text</span>
+      <div className="flex flex-wrap items-center justify-end gap-4 border-b border-white/10 pb-4">
         <div className="flex items-center gap-2">
           <span className="flex items-center gap-1 text-xs font-semibold text-slate-300"><Globe size={14} className="text-cyan-400" />Language hint</span>
           <div className="flex gap-1 rounded-lg border border-white/10 bg-white/5 p-1">
