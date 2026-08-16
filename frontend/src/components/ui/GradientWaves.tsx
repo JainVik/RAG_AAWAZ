@@ -190,13 +190,32 @@ export const GradientWaves: React.FC<GradientWavesProps> = ({
     const container = containerRef.current;
     if (!container) return;
 
-    const renderer = new Renderer({
-      webgl: 2,
-      alpha: true,
-      premultipliedAlpha: true,
-      antialias: false,
-      dpr: Math.min(window.devicePixelRatio || 1, 2),
-    });
+    // Clean any prior canvas elements to avoid stacking
+    while (container.firstChild) {
+      container.removeChild(container.firstChild);
+    }
+
+    let renderer: Renderer;
+    try {
+      renderer = new Renderer({
+        webgl: 2,
+        alpha: true,
+        premultipliedAlpha: true,
+        antialias: false,
+        dpr: Math.min(window.devicePixelRatio || 1, 2),
+      });
+    } catch {
+      try {
+        renderer = new Renderer({
+          alpha: true,
+          premultipliedAlpha: true,
+          antialias: false,
+          dpr: Math.min(window.devicePixelRatio || 1, 2),
+        });
+      } catch {
+        return;
+      }
+    }
 
     const gl = renderer.gl;
     gl.clearColor(0, 0, 0, 0);
@@ -204,6 +223,8 @@ export const GradientWaves: React.FC<GradientWavesProps> = ({
     canvas.style.width = '100%';
     canvas.style.height = '100%';
     canvas.style.display = 'block';
+    canvas.style.position = 'absolute';
+    canvas.style.inset = '0';
     container.appendChild(canvas);
 
     const geometry = new Triangle(gl);
@@ -259,7 +280,6 @@ export const GradientWaves: React.FC<GradientWavesProps> = ({
     const currentMouse = [0.5, 0.5];
     const targetMouse = [0.5, 0.5];
 
-    // Global window event listener so mouse movement anywhere on the page shifts the 3D wave camera parallax!
     const onPointerMove = (e: MouseEvent | PointerEvent) => {
       const w = window.innerWidth || 1;
       const h = window.innerHeight || 1;
@@ -276,8 +296,6 @@ export const GradientWaves: React.FC<GradientWavesProps> = ({
     window.addEventListener('mouseleave', onPointerLeave);
 
     let raf = 0;
-    let isVisible = true;
-    let isPageVisible = !document.hidden;
     const t0 = performance.now();
 
     const loop = (t: number) => {
@@ -292,48 +310,23 @@ export const GradientWaves: React.FC<GradientWavesProps> = ({
       raf = requestAnimationFrame(loop);
     };
 
-    const tryStart = () => {
-      if (isVisible && isPageVisible && raf === 0) raf = requestAnimationFrame(loop);
-    };
-    const tryStop = () => {
+    raf = requestAnimationFrame(loop);
+
+    return () => {
       if (raf !== 0) {
         cancelAnimationFrame(raf);
         raf = 0;
       }
-    };
-
-    const io = new IntersectionObserver(
-      ([entry]) => {
-        isVisible = entry.isIntersecting;
-        if (isVisible) tryStart();
-        else tryStop();
-      },
-      { threshold: 0 }
-    );
-    io.observe(container);
-
-    const onVisibility = () => {
-      isPageVisible = !document.hidden;
-      if (isPageVisible) tryStart();
-      else tryStop();
-    };
-    document.addEventListener('visibilitychange', onVisibility);
-
-    tryStart();
-
-    return () => {
-      tryStop();
       ro.disconnect();
-      io.disconnect();
       window.removeEventListener('resize', setSize);
-      document.removeEventListener('visibilitychange', onVisibility);
       window.removeEventListener('pointermove', onPointerMove);
       window.removeEventListener('mouseleave', onPointerLeave);
       ctxMap.delete(container);
       try {
-        container.removeChild(canvas);
+        if (canvas.parentNode === container) {
+          container.removeChild(canvas);
+        }
       } catch {}
-      gl.getExtension('WEBGL_lose_context')?.loseContext();
     };
   }, []);
 

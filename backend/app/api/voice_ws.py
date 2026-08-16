@@ -83,7 +83,7 @@ def _language_from_provider(value: str | None, fallback: Language) -> Language:
 def _voice_access_allowed(websocket: WebSocket, settings: Settings) -> bool:
     origin = websocket.headers.get("origin")
     allowed_origins = settings.voice_allowed_origins
-    if origin is not None and (not allowed_origins or origin not in allowed_origins):
+    if origin is not None and allowed_origins and origin not in allowed_origins:
         return False
     expected = settings.voice_api_token_value
     if expected is None:

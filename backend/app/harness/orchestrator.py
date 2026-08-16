@@ -96,7 +96,8 @@ class PipelineOrchestrator:
         deadline_ms: int | None = None,
     ) -> QueryResponse:
         effective_deadline = deadline_ms or self.settings.rag_deadline_ms
-        fallback_at = min(self.settings.rag_fallback_at_ms, effective_deadline - 1)
+        fallback_ratio = self.settings.rag_fallback_at_ms / max(1, self.settings.rag_deadline_ms)
+        fallback_at = max(1, min(int(effective_deadline * fallback_ratio), effective_deadline - 1))
         deadline = Deadline.after_ms(effective_deadline, fallback_at)
         transcript = Transcript(
             text=query,

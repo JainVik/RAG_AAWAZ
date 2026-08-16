@@ -539,7 +539,11 @@ class DefaultServices:
                     "reason": "qdrant_readiness_failed",
                     "error_type": type(exc).__name__,
                 }
-        required = ("index", "model", "qdrant", "sarvam", "thresholds")
+        required = (
+            ("index", "model", "qdrant", "sarvam", "thresholds")
+            if self.settings.rag_require_frozen_thresholds
+            else ("index", "model", "qdrant", "sarvam")
+        )
         all_ready = all(checks.get(key, {}).get("ready") is True for key in required)
         return {"status": "ready" if all_ready else "not_ready", "checks": checks}
 
