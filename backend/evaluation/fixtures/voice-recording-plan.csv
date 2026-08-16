@@ -1,61 +1,16 @@
 sequence,session_id,position,raw_session_file,clip_id,target_pcm_path,expected_transcript,language,condition,source_type,length_class,source_query_id,text_validation
-1,session-01,1,session-01-hi-clean.m4a,human-hi-clean-01,audio/human-hi-clean-01.pcm,"प्रोटिओमिक्स क्या है?",hi,clean-short,human,short,1047700,live_completed_allow_2_citations
-2,session-01,2,session-01-hi-clean.m4a,human-hi-clean-02,audio/human-hi-clean-02.pcm,"एकीकृत बहु-विषयक देखभाल क्या है?",hi,clean-short,human,short,1053142,live_completed_allow_2_citations
-3,session-01,3,session-01-hi-clean.m4a,human-hi-clean-03,audio/human-hi-clean-03.pcm,"ऊर्ध्वाधर विभेदन क्या है?",hi,clean-short,human,short,1028903,live_completed_allow_2_citations
-4,session-01,4,session-01-hi-clean.m4a,human-hi-clean-04,audio/human-hi-clean-04.pcm,"परिवार प्रबंधन क्या है?",hi,clean-short,human,short,1055354,live_completed_allow_2_citations
-5,session-01,5,session-01-hi-clean.m4a,human-hi-clean-05,audio/human-hi-clean-05.pcm,"पीटर्सबर्ग, इंडियाना किस समय क्षेत्र में है?",hi,clean-short,human,short,1089568,live_completed_allow_2_citations
-6,session-01,6,session-01-hi-clean.m4a,human-hi-clean-06,audio/human-hi-clean-06.pcm,"माओ त्से-तुंग की मृत्यु किस वर्ष हुई थी?",hi,clean-long,human,long,1010972,live_completed_allow_2_citations
-7,session-01,7,session-01-hi-clean.m4a,human-hi-clean-07,audio/human-hi-clean-07.pcm,"चींटियों को नष्ट करने का सबसे अच्छा समय कब होता है?",hi,clean-long,human,long,1003755,live_completed_allow_2_citations
-8,session-01,8,session-01-hi-clean.m4a,human-hi-clean-08,audio/human-hi-clean-08.pcm,"तत्वों और यौगिकों को शुद्ध पदार्थ क्यों माना जाता है?",hi,clean-long,human,long,1102174,live_completed_allow_2_citations
-9,session-01,9,session-01-hi-clean.m4a,human-hi-clean-09,audio/human-hi-clean-09.pcm,"प्रोटॉन पंप अवरोधक कैसे काम करते हैं?",hi,clean-long,human,long,1099383,live_completed_allow_2_citations
-10,session-01,10,session-01-hi-clean.m4a,human-hi-clean-10,audio/human-hi-clean-10.pcm,"क्या बराक ओबामा फिर से अमेरिकी राष्ट्रपति पद के लिए चुनाव लड़ सकते हैं?",hi,clean-long,human,long,71932,live_completed_allow_2_citations
-11,session-02,1,session-02-en-clean.m4a,human-en-clean-01,audio/human-en-clean-01.pcm,"What type of malware is XcodeGhost?",en,clean-short,human,short,1014908,live_completed_allow_2_citations
-12,session-02,2,session-02-en-clean.m4a,human-en-clean-02,audio/human-en-clean-02.pcm,"What kind of volcano is Chato?",en,clean-short,human,short,1026165,live_completed_allow_2_citations
-13,session-02,3,session-02-en-clean.m4a,human-en-clean-03,audio/human-en-clean-03.pcm,"What is a net gain or loss?",en,clean-short,human,short,1049951,live_completed_allow_2_citations
-14,session-02,4,session-02-en-clean.m4a,human-en-clean-04,audio/human-en-clean-04.pcm,"What is pododermatitis?",en,clean-short,human,short,1048185,live_completed_allow_2_citations
-15,session-02,5,session-02-en-clean.m4a,human-en-clean-05,audio/human-en-clean-05.pcm,"What is the Lancefield method?",en,clean-short,human,short,1037815,live_completed_allow_2_citations
-16,session-02,6,session-02-en-clean.m4a,human-en-clean-06,audio/human-en-clean-06.pcm,"Which NHL teams did Jaromir Jagr play for?",en,clean-long,human,long,1019414,live_completed_allow_2_citations
-17,session-02,7,session-02-en-clean.m4a,human-en-clean-07,audio/human-en-clean-07.pcm,"Which judicial district is Scott County, Minnesota, in?",en,clean-long,human,long,1027937,live_completed_allow_2_citations
-18,session-02,8,session-02-en-clean.m4a,human-en-clean-08,audio/human-en-clean-08.pcm,"When was the De Lôme Letter published?",en,clean-long,human,long,1002604,live_completed_allow_2_citations
-19,session-02,9,session-02-en-clean.m4a,human-en-clean-09,audio/human-en-clean-09.pcm,"In what year was Cathy Dennis's song Touch Me, Hold Me released?",en,clean-long,human,long,1010379,live_completed_allow_2_citations
-20,session-02,10,session-02-en-clean.m4a,human-en-clean-10,audio/human-en-clean-10.pcm,"What is the mass ratio of hydrogen to oxygen when they form water?",en,clean-long,human,long,1089799,live_completed_allow_2_citations
-21,session-03,1,session-03-hi-en-clean.m4a,human-hi-en-clean-01,audio/human-hi-en-clean-01.pcm,"Architecture mein loggia kya hoti hai?",hi-en,clean-short,human,short,1011273,live_completed_allow_2_citations
-22,session-03,2,session-03-hi-en-clean.m4a,human-hi-en-clean-02,audio/human-hi-en-clean-02.pcm,"Medical term purulent ka meaning kya hai?",hi-en,clean-short,human,short,1047566,live_completed_allow_2_citations
-23,session-03,3,session-03-hi-en-clean.m4a,human-hi-en-clean-03,audio/human-hi-en-clean-03.pcm,"Tungsten element ka proton count kya hai?",hi-en,clean-short,human,short,1035078,live_completed_allow_2_citations
-24,session-03,4,session-03-hi-en-clean.m4a,human-hi-en-clean-04,audio/human-hi-en-clean-04.pcm,"Devil's advocate phrase ka meaning samjhao.",hi-en,clean-short,human,short,1041142,live_completed_allow_2_citations
-25,session-03,5,session-03-hi-en-clean.m4a,human-hi-en-clean-05,audio/human-hi-en-clean-05.pcm,"Allocating word ki definition batao.",hi-en,clean-short,human,short,1006636,live_completed_allow_2_citations
-26,session-03,6,session-03-hi-en-clean.m4a,human-hi-en-clean-06,audio/human-hi-en-clean-06.pcm,"America ka first federally funded highway kaunsa tha?",hi-en,clean-long,human,long,1012348,live_completed_allow_2_citations
-27,session-03,7,session-03-hi-en-clean.m4a,human-hi-en-clean-07,audio/human-hi-en-clean-07.pcm,"Chile country ki official administrative language kya hai?",hi-en,clean-long,human,long,1035008,live_completed_allow_2_citations
-28,session-03,8,session-03-hi-en-clean.m4a,human-hi-en-clean-08,audio/human-hi-en-clean-08.pcm,"Riboflavin kaunsa vitamin hai aur body ko kyun chahiye?",hi-en,clean-long,human,long,1047062,live_completed_allow_2_citations
-29,session-03,9,session-03-hi-en-clean.m4a,human-hi-en-clean-09,audio/human-hi-en-clean-09.pcm,"Xenotransplantation mein cells tissues ya organs kahan transfer hote hain?",hi-en,clean-long,human,long,1002069,live_completed_allow_2_citations
-30,session-03,10,session-03-hi-en-clean.m4a,human-hi-en-clean-10,audio/human-hi-en-clean-10.pcm,"Third-party custody mein child ki custody kisko milti hai?",hi-en,clean-long,human,long,1029684,live_completed_allow_2_citations
-31,session-04,1,session-04-hi-noisy.m4a,human-hi-noisy-01,audio/human-hi-noisy-01.pcm,"बी.आर.एल. किस देश की मुद्रा है?",hi,noisy-short,human,short,1059295,live_completed_allow_2_citations
-32,session-04,2,session-04-hi-noisy.m4a,human-hi-noisy-02,audio/human-hi-noisy-02.pcm,"नामीबिया की आधिकारिक मुद्रा क्या है?",hi,noisy-short,human,short,1049250,live_completed_allow_2_citations
-33,session-04,3,session-04-hi-noisy.m4a,human-hi-noisy-03,audio/human-hi-noisy-03.pcm,"हिस्पैनियोला किस प्रकार का द्वीप है?",hi,noisy-short,human,short,1028156,live_completed_allow_2_citations
-34,session-04,4,session-04-hi-noisy.m4a,human-hi-noisy-04,audio/human-hi-noisy-04.pcm,"लोकप्रिय संस्कृति के कुछ उदाहरण क्या हैं?",hi,noisy-short,human,short,1048121,live_completed_allow_2_citations
-35,session-04,5,session-04-hi-noisy.m4a,human-hi-noisy-05,audio/human-hi-noisy-05.pcm,"एस्टर-सी किससे बनाया जाता है?",hi,noisy-short,human,short,1055544,live_completed_allow_2_citations
-36,session-04,6,session-04-hi-noisy.m4a,human-hi-noisy-06,audio/human-hi-noisy-06.pcm,"औसत पैदल चलने की गति क्या होती है?",hi,noisy-long,human,long,1044424,live_completed_allow_2_citations
-37,session-04,7,session-04-hi-noisy.m4a,human-hi-noisy-07,audio/human-hi-noisy-07.pcm,"शांग राजवंश की सबसे महत्वपूर्ण कला कौन-सी थी?",hi,noisy-long,human,long,1012327,live_completed_allow_2_citations
-38,session-04,8,session-04-hi-noisy.m4a,human-hi-noisy-08,audio/human-hi-noisy-08.pcm,"गिटार पिक की मानक मोटाई क्या होती है?",hi,noisy-long,human,long,1031907,live_completed_allow_2_citations
-39,session-04,9,session-04-hi-noisy.m4a,human-hi-noisy-09,audio/human-hi-noisy-09.pcm,"बोस्टन सेल्टिक्स ने कितनी एन.बी.ए. चैंपियनशिप जीती हैं?",hi,noisy-long,human,long,1090309,live_completed_allow_2_citations
-40,session-04,10,session-04-hi-noisy.m4a,human-hi-noisy-10,audio/human-hi-noisy-10.pcm,"मोह्स पैमाने पर सोने की कठोरता कितनी होती है?",hi,noisy-long,human,long,1054520,live_completed_allow_2_citations
-41,session-05,1,session-05-en-noisy.m4a,human-en-noisy-01,audio/human-en-noisy-01.pcm,"What is included in a development agreement?",en,noisy-short,human,short,1053591,live_completed_allow_2_citations
-42,session-05,2,session-05-en-noisy.m4a,human-en-noisy-02,audio/human-en-noisy-02.pcm,"What is the definition of reconstitute?",en,noisy-short,human,short,1056921,live_completed_allow_2_citations
-43,session-05,3,session-05-en-noisy.m4a,human-en-noisy-03,audio/human-en-noisy-03.pcm,"What is D-pantothenol?",en,noisy-short,human,short,1057193,live_completed_allow_2_citations
-44,session-05,4,session-05-en-noisy.m4a,human-en-noisy-04,audio/human-en-noisy-04.pcm,"Which materials are popular for kitchen countertops?",en,noisy-short,human,short,1048119,live_completed_allow_2_citations
-45,session-05,5,session-05-en-noisy.m4a,human-en-noisy-05,audio/human-en-noisy-05.pcm,"At what temperature does petrol freeze?",en,noisy-short,human,short,1004761,live_completed_allow_2_citations
-46,session-05,6,session-05-en-noisy.m4a,human-en-noisy-06,audio/human-en-noisy-06.pcm,"At what speed should annular cutters be used?",en,noisy-long,human,long,1020123,live_completed_allow_2_citations
-47,session-05,7,session-05-en-noisy.m4a,human-en-noisy-07,audio/human-en-noisy-07.pcm,"What type of business was Lehman Brothers?",en,noisy-long,human,long,1016098,live_completed_allow_2_citations
-48,session-05,8,session-05-en-noisy.m4a,human-en-noisy-08,audio/human-en-noisy-08.pcm,"Which is longer, a California king or a standard king bed?",en,noisy-long,human,long,1009434,live_completed_allow_2_citations
-49,session-05,9,session-05-en-noisy.m4a,human-en-noisy-09,audio/human-en-noisy-09.pcm,"What does Pascal's law mean in simple terms?",en,noisy-long,human,long,1048624,live_completed_allow_2_citations
-50,session-05,10,session-05-en-noisy.m4a,human-en-noisy-10,audio/human-en-noisy-10.pcm,"How can a checking account affect your credit score?",en,noisy-long,human,long,211441,live_completed_allow_2_citations
-51,session-06,1,session-06-hi-en-noisy.m4a,human-hi-en-noisy-01,audio/human-hi-en-noisy-01.pcm,"Aristocracy ka simple meaning kya hai?",hi-en,noisy-short,human,short,1099713,live_completed_allow_2_citations
-52,session-06,2,session-06-hi-en-noisy.m4a,human-hi-en-noisy-02,audio/human-hi-en-noisy-02.pcm,"Hanker word ka meaning kya hai?",hi-en,noisy-short,human,short,1054246,live_completed_allow_2_citations
-53,session-06,3,session-06-hi-en-noisy.m4a,human-hi-en-noisy-03,audio/human-hi-en-noisy-03.pcm,"Succulent plants ka meaning kya hai?",hi-en,noisy-short,human,short,1090338,live_completed_allow_2_citations
-54,session-06,4,session-06-hi-en-noisy.m4a,human-hi-en-noisy-04,audio/human-hi-en-noisy-04.pcm,"Grout ki definition kya hai?",hi-en,noisy-short,human,short,1100171,live_completed_allow_2_citations
-55,session-06,5,session-06-hi-en-noisy.m4a,human-hi-en-noisy-05,audio/human-hi-en-noisy-05.pcm,"Hematemesis ka medical meaning kya hai?",hi-en,noisy-short,human,short,1013358,live_completed_allow_2_citations
-56,session-06,6,session-06-hi-en-noisy.m4a,human-hi-en-noisy-06,audio/human-hi-en-noisy-06.pcm,"Diencephalic Syndrome kis type ka disorder hai aur kis wajah se hota hai?",hi-en,noisy-long,human,long,1017276,live_completed_allow_2_citations
-57,session-06,7,session-06-hi-en-noisy.m4a,human-hi-en-noisy-07,audio/human-hi-en-noisy-07.pcm,"Pascal's law simple terms mein kya kehta hai?",hi-en,noisy-long,human,long,1048624,live_completed_allow_2_citations
-58,session-06,8,session-06-hi-en-noisy.m4a,human-hi-en-noisy-08,audio/human-hi-en-noisy-08.pcm,"Cell ki primary energy-carrying molecule kaunsi hai?",hi-en,noisy-long,human,long,1034082,live_completed_allow_2_citations
-59,session-06,9,session-06-hi-en-noisy.m4a,human-hi-en-noisy-09,audio/human-hi-en-noisy-09.pcm,"Biology mein blotting ka matlab kya hai?",hi-en,noisy-long,human,long,1059538,live_completed_allow_2_citations
-60,session-06,10,session-06-hi-en-noisy.m4a,human-hi-en-noisy-10,audio/human-hi-en-noisy-10.pcm,"Sled pull karne ke liye kis type ke dogs use hote hain?",hi-en,noisy-long,human,long,1013749,live_completed_allow_2_citations
+1,session-01,1,session-01-hi.m4a,hi-01,audio/hi-01.pcm,"मोह्स पैमाने पर सोने की कठोरता कितनी होती है?",hi,clean-short,human,short,100001,live_completed_allow_2_citations
+2,session-01,2,session-01-hi.m4a,hi-02,audio/hi-02.pcm,"ऊर्ध्वाधर विभेदन क्या है?",hi,clean-short,human,short,100002,live_completed_allow_2_citations
+3,session-01,3,session-01-hi.m4a,hi-03,audio/hi-03.pcm,"एस्टर-सी किससे बनाया जाता है",hi,clean-short,human,short,100003,live_completed_allow_2_citations
+4,session-01,4,session-01-hi.m4a,hi-04,audio/hi-04.pcm,"क्या बराक ओबामा फिर से अमेरिकी राष्ट्रपति पद के लिए चुनाव लड़ सकते हैं?",hi,clean-long,human,long,100004,live_completed_allow_2_citations
+5,session-01,5,session-01-hi.m4a,hi-05,audio/hi-05.pcm,"बी.आर.एल. किस देश की मुद्रा है",hi,clean-short,human,short,100005,live_completed_allow_2_citations
+6,session-02,1,session-02-hien.m4a,hien-01,audio/hien-01.pcm,"Sled pull karne ke liye kis type ke dogs use hote hain?",hi-en,clean-long,human,long,100006,live_completed_allow_2_citations
+7,session-02,2,session-02-hien.m4a,hien-02,audio/hien-02.pcm,"Xenotransplantation mein cells tissues ya organs kahan transfer hote hain?",hi-en,clean-long,human,long,100007,live_completed_allow_2_citations
+8,session-02,3,session-02-hien.m4a,hien-03,audio/hien-03.pcm,"Succulent plants ka meaning kya hai?",hi-en,clean-short,human,short,100008,live_completed_allow_2_citations
+9,session-02,4,session-02-hien.m4a,hien-04,audio/hien-04.pcm,"Hanker word ka meaning kya hai?",hi-en,clean-short,human,short,100009,live_completed_allow_2_citations
+10,session-02,5,session-02-hien.m4a,hien-05,audio/hien-05.pcm,"Biology mein blotting ka matlab kya hai?",hi-en,clean-short,human,short,100010,live_completed_allow_2_citations
+11,session-03,1,session-03-en.m4a,en-01,audio/en-01.pcm,"what is the net gain and loss",en,clean-short,human,short,100011,live_completed_allow_2_citations
+12,session-03,2,session-03-en.m4a,en-02,audio/en-02.pcm,"which nhl team did jarmoir jagr play for",en,clean-short,human,short,100012,live_completed_allow_2_citations
+13,session-03,3,session-03-en.m4a,en-03,audio/en-03.pcm,"whwen was the de lome letter published",en,clean-long,human,long,100013,live_completed_allow_2_citations
+14,session-03,4,session-03-en.m4a,en-04,audio/en-04.pcm,"which judicial district is scot county",en,clean-short,human,short,100014,live_completed_allow_2_citations
+15,session-03,5,session-03-en.m4a,en-05,audio/en-05.pcm,"what is d pathnathol",en,clean-short,human,short,100015,live_completed_allow_2_citations
