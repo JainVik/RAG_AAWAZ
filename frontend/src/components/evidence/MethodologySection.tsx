@@ -50,7 +50,7 @@ export const MethodologySection: React.FC<MethodologySectionProps> = ({ provenan
                 <span>Deterministic Evaluation Scope</span>
               </span>
               <p className="text-slate-400">
-                The 500-query benchmark is a frozen held-out evaluation. Results depend strictly on this corpus, index version, dense embedding model, and router contract. Retrieval quality measures passage presence and does not guarantee generation correctness.
+                The 100-query benchmark is an audited evaluation measured across 100 test queries. Results depend strictly on this corpus, index version, dense embedding model, and router contract. Retrieval quality measures passage presence and does not guarantee generation correctness.
               </p>
             </div>
 
