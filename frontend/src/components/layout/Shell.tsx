@@ -61,7 +61,7 @@ export const Shell: React.FC<ShellProps> = ({ children, isDark, onToggleTheme })
         refreshStatus: fetchStatus,
       }}
     >
-      <div className="relative min-h-[100dvh] flex flex-col text-slate-100 overflow-x-hidden selection:bg-cyan-500/30 selection:text-cyan-200">
+      <div className="relative min-h-[100dvh] flex flex-col text-slate-100 selection:bg-cyan-500/30 selection:text-cyan-200">
         {/* Full-Screen Animated 3D WebGL Gradient Waves Background */}
         <div className="fixed inset-0 z-0 pointer-events-none w-screen h-screen overflow-hidden bg-[#070b14]">
           <GradientWaves
