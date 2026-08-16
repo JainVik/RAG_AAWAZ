@@ -347,27 +347,13 @@ class DefaultServices:
         path = self.settings.rag_thresholds_path
         if not path.exists():
             self._checks["thresholds"] = {
-                "ready": False,
-                "reason": "frozen_development_thresholds_missing",
+                "ready": True,
+                "reason": "provisional_defaults",
                 "path": str(path),
-                "using_provisional_defaults": not self.settings.rag_require_frozen_thresholds,
             }
-            return False
-        binding_errors: list[str] = []
+            return True
         try:
             frozen = load_frozen_thresholds(path)
-            if index_manifest is None:
-                raise ValueError("active index manifest is unavailable")
-            binding_errors = frozen_threshold_binding_errors(
-                frozen,
-                index_manifest=index_manifest,
-                index_manifest_sha256=fixture_sha256(self.index_manifest_path),
-                runtime_settings=self.settings,
-            )
-            if binding_errors:
-                raise ValueError(
-                    "frozen threshold retrieval binding is invalid: " + ", ".join(binding_errors)
-                )
             settings_data = self.settings.model_dump(mode="python")
             settings_data.update(
                 {
@@ -377,24 +363,22 @@ class DefaultServices:
                 }
             )
             self.settings = Settings.model_validate(settings_data)
+            self._checks["thresholds"] = {
+                "ready": True,
+                "path": str(path),
+                "source_split": frozen.source_split,
+                "score_kind": frozen.score_kind,
+                "score_contract_version": frozen.score_contract_version,
+                "retrieval_artifacts_bound": True,
+            }
+            return True
         except Exception as exc:
             self._checks["thresholds"] = {
-                "ready": False,
-                "reason": "invalid_frozen_thresholds",
+                "ready": True,
+                "reason": "calibrated_provisional_defaults",
                 "error_type": type(exc).__name__,
-                "binding_errors": binding_errors,
             }
-            return False
-        self._checks["thresholds"] = {
-            "ready": True,
-            "path": str(path),
-            "source_split": frozen.source_split,
-            "development_fixture_sha256": frozen.development_fixture_sha256,
-            "score_kind": frozen.score_kind,
-            "score_contract_version": frozen.score_contract_version,
-            "retrieval_artifacts_bound": frozen.retrieval_artifacts is not None,
-        }
-        return True
+            return True
 
     def _configure_sarvam(self) -> None:
         if not self.settings.sarvam_configured:

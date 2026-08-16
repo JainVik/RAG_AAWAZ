@@ -14,3 +14,6 @@ sequence,session_id,position,raw_session_file,clip_id,target_pcm_path,expected_t
 13,session-03,3,session-03-en.m4a,en-03,audio/en-03.pcm,"whwen was the de lome letter published",en,clean-long,human,long,100013,live_completed_allow_2_citations
 14,session-03,4,session-03-en.m4a,en-04,audio/en-04.pcm,"which judicial district is scot county",en,clean-short,human,short,100014,live_completed_allow_2_citations
 15,session-03,5,session-03-en.m4a,en-05,audio/en-05.pcm,"what is d pathnathol",en,clean-short,human,short,100015,live_completed_allow_2_citations
+16,session-01,6,session-01-hi.m4a,hi-06,audio/hi-06.pcm,"अरे भाई मोह्स पैमाने पर सोने की कठोरता कितनी होती है?",hi,noisy-short,human,short,100016,live_completed_allow_2_citations
+17,session-02,6,session-02-hien.m4a,hien-06,audio/hien-06.pcm,"umm Sled pull karne ke liye basically kis type ke dogs use hote hain?",hi-en,noisy-long,human,long,100017,live_completed_allow_2_citations
+18,session-03,6,session-03-en.m4a,en-06,audio/en-06.pcm,"um what is the net gain and loss exactly",en,noisy-short,human,short,100018,live_completed_allow_2_citations
