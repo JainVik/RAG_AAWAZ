@@ -1,13 +1,12 @@
 import React, { useEffect, useRef } from 'react';
 import type { ChatTurn } from '../../utils/chatSessionHistory';
-import type { ServerLanguageCode, VoiceState } from '../../types/api';
+import type { VoiceState } from '../../types/api';
 import { ChatUserMessage } from './ChatUserMessage';
 import { ChatAssistantMessage } from './ChatAssistantMessage';
 
 interface ChatTimelineProps {
   turns: ChatTurn[];
   liveQuery?: string;
-  liveLanguage?: ServerLanguageCode;
   liveState?: VoiceState;
   isLive?: boolean;
   audioLevel?: number;
@@ -16,7 +15,6 @@ interface ChatTimelineProps {
 export const ChatTimeline: React.FC<ChatTimelineProps> = ({
   turns,
   liveQuery = '',
-  liveLanguage = 'en',
   liveState = 'idle',
   isLive = false,
   audioLevel = 0,

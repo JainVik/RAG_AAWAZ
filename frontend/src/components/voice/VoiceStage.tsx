@@ -140,7 +140,6 @@ export const VoiceStage: React.FC<VoiceStageProps> = (props) => {
           <ChatTimeline
             turns={props.chatTurns}
             liveQuery={props.partialTranscript}
-            liveLanguage={props.selectedLanguage === 'unknown' ? 'en' : (props.selectedLanguage as ServerLanguageCode)}
             liveState={props.textSubmitting ? 'processing' : props.state}
             isLive={isLive}
             audioLevel={props.audioLevel}
