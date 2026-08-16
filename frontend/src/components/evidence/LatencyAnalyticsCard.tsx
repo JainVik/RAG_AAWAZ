@@ -131,12 +131,9 @@ export const LatencyAnalyticsCard: React.FC = () => {
 
       {/* Stage-by-Stage Sub-Latency Table */}
       <div className="overflow-hidden rounded-xl border border-white/8 bg-black/25">
-        <div className="px-4 py-3 border-b border-white/8 flex items-center justify-between">
+        <div className="px-4 py-3 border-b border-white/8">
           <span className="text-xs font-bold text-slate-200">
             End-to-End Pipeline Evaluation (All 8 Stages Across 100 Queries)
-          </span>
-          <span className="text-[10px] font-mono text-slate-400">
-            Local SSD Database • 0.0ms Network DB Latency
           </span>
         </div>
         <div className="divide-y divide-white/5">
