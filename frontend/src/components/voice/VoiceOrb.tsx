@@ -33,7 +33,7 @@ export const VoiceOrb: React.FC<VoiceOrbProps> = ({ state, audioLevel, onClick, 
       type="button"
       onClick={onClick}
       disabled={disabled}
-      className="relative flex items-center justify-center w-64 h-64 sm:w-72 sm:h-72 cursor-pointer select-none group disabled:cursor-not-allowed disabled:opacity-55"
+      className="relative flex items-center justify-center w-64 h-64 sm:w-72 sm:h-72 cursor-pointer select-none group disabled:cursor-not-allowed"
       aria-label={isRecording ? 'Listening. Click to stop and ask.' : 'Click to start voice recording'}
     >
       {/* Outer ambient diffuse glow responding to audioLevel */}
@@ -50,11 +50,9 @@ export const VoiceOrb: React.FC<VoiceOrbProps> = ({ state, audioLevel, onClick, 
         }}
       />
 
-      {/* Main Orb Loader Wrapper */}
+      {/* Main Uiverse Loader Wrapper */}
       <div
-        className={`orb-loader-wrapper group-hover:scale-105 transition-transform duration-200 ${
-          isRecording ? 'orb-loader-recording' : isProcessing ? 'orb-loader-processing' : ''
-        }`}
+        className="loader-wrapper group-hover:scale-105 transition-transform duration-200"
         style={{
           transform: `scale(${scale})`,
         }}
@@ -63,10 +61,10 @@ export const VoiceOrb: React.FC<VoiceOrbProps> = ({ state, audioLevel, onClick, 
         {letters.map((char, idx) => (
           <span
             key={`${displayText}-${idx}`}
-            className="orb-loader-letter"
+            className="loader-letter"
             style={{
               animationDelay: `${idx * 0.1}s`,
-              marginRight: char === ' ' ? '0.35rem' : '0.04rem',
+              marginRight: char === ' ' ? '0.35rem' : '0.02rem',
             }}
           >
             {char === ' ' ? '\u00A0' : char}
@@ -74,11 +72,7 @@ export const VoiceOrb: React.FC<VoiceOrbProps> = ({ state, audioLevel, onClick, 
         ))}
 
         {/* The Rotating Inset-Shadow Ball Element */}
-        <div
-          className={`orb-loader ${
-            isRecording ? 'orb-loader-recording' : isProcessing ? 'orb-loader-processing' : ''
-          }`}
-        />
+        <div className="loader" />
       </div>
 
       {/* Subtle pulse ring when recording */}

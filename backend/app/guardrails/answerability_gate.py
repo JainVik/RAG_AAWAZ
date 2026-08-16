@@ -34,7 +34,7 @@ def check_answerability(
     second = relevance_scores[1] if len(relevance_scores) > 1 else 0.0
     margin = top - second
     if top < minimum_score or (
-        len(relevance_scores) > 1 and margin < minimum_margin
+        top < 0.85 and len(relevance_scores) > 1 and margin < minimum_margin
     ):
         return GuardrailResult(
             decision=GuardrailDecision.ABSTAIN,

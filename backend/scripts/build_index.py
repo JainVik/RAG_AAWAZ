@@ -30,6 +30,7 @@ from app.embeddings.sparse_char_ngram import SparseCharNgramEncoder  # noqa: E40
 from app.ingestion.chunk_factory import ChunkFactory  # noqa: E402
 from app.ingestion.corpus_writer import CORPUS_PAYLOAD_FIELDS  # noqa: E402
 from app.ingestion.loader import PROHIBITED_INDEX_KEYS  # noqa: E402
+from app.harness.circuit_breaker import CircuitBreaker  # noqa: E402
 from app.retrieval.qdrant_store import QdrantStore  # noqa: E402
 
 INDEX_ARTIFACT_VERSION = 2
@@ -846,6 +847,12 @@ def _default_store_factory(
             dense_encoder,
             sparse_encoder,
             collection_metadata=metadata,
+            request_timeout_s=60,
+            circuit_breaker=CircuitBreaker(
+                "qdrant-build",
+                failure_threshold=50,
+                recovery_timeout_s=3.0,
+            ),
         ),
     )
 
@@ -1021,7 +1028,15 @@ async def build_index(
             skip=next_index,
             batch_size=config.batch_size,
         ):
-            written = await store.upsert_chunks(batch, batch_size=len(batch))
+            written = 0
+            for attempt in range(1, 11):
+                try:
+                    written = await store.upsert_chunks(batch, batch_size=len(batch))
+                    break
+                except Exception:
+                    if attempt == 10:
+                        raise
+                    await asyncio.sleep(attempt * 3.0)
             if written != len(batch):
                 raise IndexBuildError(
                     f"Qdrant upsert acknowledged {written} points for a {len(batch)} point batch"

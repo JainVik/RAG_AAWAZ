@@ -179,15 +179,21 @@ class QdrantStore(DenseSearcher, SparseSearcher):
                             self.dense_vector_name: models.VectorParams(
                                 size=self.dense_encoder.dimension,
                                 distance=models.Distance.COSINE,
+                                on_disk=True,
                             )
                         },
                         sparse_vectors_config=(
                             {
-                                self.sparse_vector_name: models.SparseVectorParams()
+                                self.sparse_vector_name: models.SparseVectorParams(
+                                    index=models.SparseIndexParams(
+                                        on_disk=True,
+                                    )
+                                )
                             }
                             if self.sparse_enabled
                             else None
                         ),
+                        on_disk_payload=True,
                         metadata=self._expected_metadata,
                     ),
                 )
