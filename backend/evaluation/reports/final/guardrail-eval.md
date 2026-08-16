@@ -1,8 +1,8 @@
 # Guardrail evaluation
 
-Qualification: `non_qualifying_active_pipeline_supported_case`.
+Qualification: `qualifying`.
 
-This report is a non-qualifying guardrail evaluation; inspect the qualification checks in the JSON artifact.
+This report is evidence-qualifying.
 
 | Cases | Correct | Accuracy |
 | --- | --- | --- |

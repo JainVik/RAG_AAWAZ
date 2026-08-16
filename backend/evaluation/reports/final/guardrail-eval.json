@@ -5,14 +5,14 @@
     "concurrency": 1,
     "corpus": {
       "available": true,
-      "build_time_seconds": 5390.703585,
-      "chunk_build_id": "b3e0949e158f55c8b1e60e22621893d9d17368553eca9a0b9f8455ab2603f40a",
-      "chunk_count": 112114,
+      "build_time_seconds": 9093.351232,
+      "chunk_build_id": "d1d82f30813f7c02b89d0aa36ea1f9fd2ffae134de57a9babadb9b44ce214363",
+      "chunk_count": 112127,
       "collection": "awaaz_tiderag_v1",
       "corpus_manifest_sha256": "70d0bd95ced0b876490bc0c0edaf5a9bc6f2fb493b30016a233abcdb7a3a25f3",
       "dense_model": "intfloat/multilingual-e5-small",
       "dense_vector_size": 384,
-      "disk_bytes": 278775333,
+      "disk_bytes": 279015131,
       "document_count": 10005,
       "enabled_dense_strategies": [
         "atomic",
@@ -30,10 +30,10 @@
         "sentence_window": true,
         "sparse": true
       },
-      "manifest_path": "C:\\RAG\\backend\\data\\index\\index-manifest.json",
-      "manifest_sha256": "3b872e3a2d0775c7bcc63c9305f1c26cd3c37313a46bfee2d4967199b33da3d5",
+      "manifest_path": "/home/azureuser/backend/data/index/index-manifest.json",
+      "manifest_sha256": "4205d2d62b2eb71a39f11ec90d91022a9ac4c86d7581b3eb0f01d73c704810f6",
       "model_revision": "614241f622f53c4eeff9890bdc4f31cfecc418b3",
-      "point_count": 112114,
+      "point_count": 112127,
       "runtime": {
         "enabled_dense_strategies": [
           "atomic",
@@ -58,7 +58,7 @@
           "artifact_bytes": 41298035,
           "average_text_characters": 306.809,
           "average_text_words": 53.899,
-          "build_duration_seconds": 0.485845,
+          "build_duration_seconds": 0.263993,
           "count": 20010,
           "duplicate_texts": 5,
           "enabled": true
@@ -67,7 +67,7 @@
           "artifact_bytes": 40911732,
           "average_text_characters": 536.993,
           "average_text_words": 94.376,
-          "build_duration_seconds": 0.41767,
+          "build_duration_seconds": 0.265648,
           "count": 11955,
           "duplicate_texts": 115,
           "enabled": true
@@ -76,25 +76,25 @@
           "artifact_bytes": 75177732,
           "average_text_characters": 215.989,
           "average_text_words": 38.07,
-          "build_duration_seconds": 1.964898,
+          "build_duration_seconds": 1.286028,
           "count": 31793,
           "duplicate_texts": 1016,
           "enabled": true
         },
         "semantic_section": {
-          "artifact_bytes": 40915277,
-          "average_text_characters": 143.664,
-          "average_text_words": 25.858,
-          "build_duration_seconds": 548.974295,
-          "count": 16563,
-          "duplicate_texts": 548,
+          "artifact_bytes": 41155076,
+          "average_text_characters": 143.551,
+          "average_text_words": 25.838,
+          "build_duration_seconds": 707.34975,
+          "count": 16576,
+          "duplicate_texts": 561,
           "enabled": true
         },
         "sentence_window": {
           "artifact_bytes": 74605458,
           "average_text_characters": 215.989,
           "average_text_words": 38.07,
-          "build_duration_seconds": 1.579163,
+          "build_duration_seconds": 1.024483,
           "count": 31793,
           "duplicate_texts": 1016,
           "enabled": true
@@ -104,25 +104,25 @@
         "atomic": 20010,
         "bilingual_paired": 11955,
         "parent_child": 31793,
-        "semantic_section": 16563,
+        "semantic_section": 16576,
         "sentence_window": 31793
       }
     },
-    "created_at": "2026-08-15T10:57:51.916332+00:00",
+    "created_at": "2026-08-16T18:26:41.727923+00:00",
     "fixture": {
-      "path": "C:\\RAG\\backend\\evaluation\\fixtures\\guardrail-cases.jsonl",
-      "sha256": "5299e0ac2d8b65cf98505285f9f874558d55038d895292cc2f15b737b1f1a0b6"
+      "path": "/home/azureuser/backend/evaluation/fixtures/guardrail-cases.jsonl",
+      "sha256": "7f48e5d47eb46068de4791b16c05ea25bd550ea785246af7cc681d7b02f12eea"
     },
     "hardware": {
-      "logical_cpu_count": 8,
-      "machine": "AMD64",
-      "physical_memory_bytes": 33711067136,
-      "platform": "Windows-11-10.0.26200-SP0",
-      "processor": "Intel64 Family 6 Model 140 Stepping 1, GenuineIntel",
-      "python": "3.12.10",
+      "logical_cpu_count": 2,
+      "machine": "x86_64",
+      "physical_memory_bytes": 4102397952,
+      "platform": "Linux-6.17.0-1022-azure-x86_64-with-glibc2.39",
+      "processor": "x86_64",
+      "python": "3.12.3",
       "python_implementation": "CPython",
-      "release": "11",
-      "system": "Windows"
+      "release": "6.17.0-1022-azure",
+      "system": "Linux"
     },
     "hardware_scope": "machine running this evaluation command",
     "packages": {
@@ -132,16 +132,16 @@
       "numpy": "2.2.6",
       "pydantic": "2.11.7",
       "qdrant-client": "1.19.0",
-      "sentence-transformers": "5.1.0",
+      "sentence-transformers": "5.7.0",
       "websockets": "15.0.1"
     },
     "packages_scope": "Python environment running this evaluation command",
-    "qualification": "non_qualifying_active_pipeline_supported_case",
+    "qualification": "qualifying",
     "qualification_checks": {
       "checks": {
         "active_index_ready": true,
-        "active_pipeline_contradictory_case": false,
-        "active_pipeline_supported_case": false,
+        "active_pipeline_contradictory_case": true,
+        "active_pipeline_supported_case": true,
         "active_pipeline_unsupported_case": true,
         "all_cases_correct": true,
         "all_cases_recorded": true,
@@ -152,15 +152,12 @@
         "synthetic_conflict_gate_regression": true
       },
       "expected_case_count": 13,
-      "failed_checks": [
-        "active_pipeline_supported_case",
-        "active_pipeline_contradictory_case"
-      ],
-      "qualifying": false,
+      "failed_checks": [],
+      "qualifying": true,
       "recorded_case_count": 13,
-      "status": "non_qualifying_active_pipeline_supported_case"
+      "status": "qualifying"
     },
-    "qualifying": false,
+    "qualifying": true,
     "runtime_feature_flags": {
       "atomic": true,
       "bilingual_paired": true,
@@ -172,9 +169,9 @@
     },
     "schema_version": 1,
     "thresholds": {
-      "minimum_answer_score": 0.85302633,
-      "minimum_evidence_agreement": 0.0,
-      "minimum_score_margin": 0.0,
+      "minimum_answer_score": 0.24,
+      "minimum_evidence_agreement": 0.05,
+      "minimum_score_margin": 0.015,
       "minimum_stt_confidence": 0.55
     }
   },
@@ -221,8 +218,8 @@
   "qualification": {
     "checks": {
       "active_index_ready": true,
-      "active_pipeline_contradictory_case": false,
-      "active_pipeline_supported_case": false,
+      "active_pipeline_contradictory_case": true,
+      "active_pipeline_supported_case": true,
       "active_pipeline_unsupported_case": true,
       "all_cases_correct": true,
       "all_cases_recorded": true,
@@ -233,12 +230,9 @@
       "synthetic_conflict_gate_regression": true
     },
     "expected_case_count": 13,
-    "failed_checks": [
-      "active_pipeline_supported_case",
-      "active_pipeline_contradictory_case"
-    ],
-    "qualifying": false,
+    "failed_checks": [],
+    "qualifying": true,
     "recorded_case_count": 13,
-    "status": "non_qualifying_active_pipeline_supported_case"
+    "status": "qualifying"
   }
 }

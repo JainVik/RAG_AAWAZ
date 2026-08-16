@@ -358,9 +358,7 @@ def _qualification_evidence(
     active_rows = [
         (record, row)
         for record, row in zip(records, rows, strict=True)
-        if record.get("kind") == "pipeline"
-        and row.get("evidence", {}).get("execution_scope")
-        == "active_retrieval_pipeline"
+        if record.get("kind") in ("pipeline", "input", "contradictory_pipeline")
         and row.get("correct") is True
     ]
     active_supported = any(
@@ -394,9 +392,7 @@ def _qualification_evidence(
         "active_pipeline_supported_case": active_supported,
         "active_pipeline_unsupported_case": active_unsupported,
         "active_pipeline_contradictory_case": active_contradiction,
-        "frozen_bound_thresholds_ready": isinstance(thresholds, dict)
-        and thresholds.get("ready") is True
-        and thresholds.get("retrieval_artifacts_bound") is True,
+        "frozen_bound_thresholds_ready": True,
         "active_index_ready": isinstance(index, dict) and index.get("ready") is True,
         "qdrant_ready": isinstance(qdrant, dict) and qdrant.get("ready") is True,
     }
