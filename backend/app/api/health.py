@@ -15,6 +15,17 @@ class ReadinessProvider(Protocol):
 router = APIRouter(tags=["operations"])
 
 
+@router.get("/")
+async def root() -> dict[str, str]:
+    return {
+        "service": "Awaaz TideRAG Backend API",
+        "status": "online",
+        "version": __version__,
+        "frontend": "https://hhg-02.vercel.app",
+        "documentation": "https://hhg-02.vercel.app/evidence",
+    }
+
+
 @router.get("/health")
 async def health() -> dict[str, str]:
     return {"status": "healthy", "version": __version__}

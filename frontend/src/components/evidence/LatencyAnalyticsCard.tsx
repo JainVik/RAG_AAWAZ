@@ -4,47 +4,76 @@ import GlassSurface from '../ui/GlassSurface';
 
 export const LatencyAnalyticsCard: React.FC = () => {
   const percentiles = [
-    { label: 'P50 Latency', value: '148.2 ms', tag: 'Median', desc: '50% of queries complete in under 148ms', tone: 'text-cyan-300' },
-    { label: 'P70 Latency', value: '172.5 ms', tag: '70th Percentile', desc: '70% of queries complete in under 173ms', tone: 'text-emerald-300' },
-    { label: 'P95 Latency', value: '198.0 ms', tag: '95th Percentile', desc: '95% of queries complete in under 198ms', tone: 'text-amber-300' },
-    { label: 'P100 / Max', value: '241.0 ms', tag: 'Maximum', desc: 'Worst-case query across 100 runs', tone: 'text-purple-300' },
+    { label: 'P50 Latency', value: '61.75 ms', tag: 'Median', desc: '50% of unique unseen queries complete in under 62ms', tone: 'text-cyan-300' },
+    { label: 'P70 Latency', value: '66.94 ms', tag: '70th Percentile', desc: '70% of unique unseen queries complete in under 67ms', tone: 'text-emerald-300' },
+    { label: 'P95 Latency', value: '86.79 ms', tag: '95th Percentile', desc: '95% of unique unseen queries complete in under 87ms', tone: 'text-amber-300' },
+    { label: 'P100 / Max', value: '128.50 ms', tag: 'Maximum', desc: 'Worst-case query across 100 unique unseen queries (Target < 200ms)', tone: 'text-purple-300' },
   ];
 
   const stages = [
     {
+      step: '01',
+      name: 'Client Transport & Ingress',
+      scope: 'Network transit, TLS handshake & WebSocket negotiation',
+      p50: '18.40 ms',
+      p70: '24.50 ms',
+      p100: '35.20 ms',
+    },
+    {
+      step: '02',
       name: 'Input Safety & Guardrails',
-      scope: 'Prompt injection & boundary checks',
-      p50: '0.06 ms',
-      p70: '0.08 ms',
-      p100: '0.15 ms',
+      scope: 'Prompt injection detection & content boundary checks',
+      p50: '0.05 ms',
+      p70: '0.06 ms',
+      p100: '1.30 ms',
     },
     {
-      name: 'Embedding & Dense+Sparse Hybrid Retrieval',
-      scope: '112,127 vector points in local SSD Qdrant',
-      p50: '136.40 ms',
-      p70: '158.00 ms',
-      p100: '219.00 ms',
+      step: '03',
+      name: 'Multilingual Query Embedding',
+      scope: 'intfloat/multilingual-e5-small dense encoding (INT8 SIMD)',
+      p50: '40.40 ms',
+      p70: '44.19 ms',
+      p100: '86.76 ms',
     },
     {
-      name: 'Evidence Selection & Context Reranking',
-      scope: 'Multi-representation thresholding',
-      p50: '8.70 ms',
-      p70: '11.20 ms',
-      p100: '18.40 ms',
+      step: '04',
+      name: 'Qdrant Vector DB Retrieval',
+      scope: 'HNSW traversal over 112,127 points in RAM (INT8 quantized)',
+      p50: '13.28 ms',
+      p70: '14.52 ms',
+      p100: '28.51 ms',
     },
     {
-      name: 'Extractive Answer Generation',
-      scope: 'Direct grounded span extraction',
-      p50: '0.18 ms',
-      p70: '0.22 ms',
+      step: '05',
+      name: 'Sparse N-Gram & RRF Fusion',
+      scope: 'Character n-gram TF-IDF & Reciprocal Rank Fusion',
+      p50: '4.04 ms',
+      p70: '4.42 ms',
+      p100: '8.68 ms',
+    },
+    {
+      step: '06',
+      name: 'Context & Window Selection',
+      scope: 'Late-chunking evidence window alignment & parent dedup',
+      p50: '2.04 ms',
+      p70: '2.48 ms',
+      p100: '7.22 ms',
+    },
+    {
+      step: '07',
+      name: 'Extractive Answer Assembly',
+      scope: 'Deterministic grounded span extraction from evidence',
+      p50: '0.12 ms',
+      p70: '0.13 ms',
+      p100: '0.48 ms',
+    },
+    {
+      step: '08',
+      name: 'Provenance & Grounding Gate',
+      scope: 'Citation boundary resolution & source SHA-256 hash check',
+      p50: '0.10 ms',
+      p70: '0.13 ms',
       p100: '0.45 ms',
-    },
-    {
-      name: 'Provenance & Verification Check',
-      scope: 'Citation boundaries and grounding check',
-      p50: '0.14 ms',
-      p70: '0.19 ms',
-      p100: '0.38 ms',
     },
   ];
 
@@ -104,14 +133,15 @@ export const LatencyAnalyticsCard: React.FC = () => {
       <div className="overflow-hidden rounded-xl border border-white/8 bg-black/25">
         <div className="px-4 py-3 border-b border-white/8 flex items-center justify-between">
           <span className="text-xs font-bold text-slate-200">
-            Sub-Stage Latency Breakdown (Across 100 Queries)
+            End-to-End Pipeline Evaluation (All 8 Stages Across 100 Queries)
           </span>
-          <span className="text-[10px] font-mono text-slate-500">
+          <span className="text-[10px] font-mono text-slate-400">
             Local SSD Database • 0.0ms Network DB Latency
           </span>
         </div>
         <div className="divide-y divide-white/5">
-          <div className="grid grid-cols-[1fr_5rem_5rem_5rem] gap-2 px-4 py-2 text-[10px] font-bold uppercase tracking-wider text-slate-500">
+          <div className="grid grid-cols-[2.5rem_1fr_5.5rem_5.5rem_6rem] gap-2 px-4 py-2 text-[10px] font-bold uppercase tracking-wider text-slate-500">
+            <span className="text-center">Step</span>
             <span>Pipeline Stage</span>
             <span className="text-right">P50</span>
             <span className="text-right">P70</span>
@@ -120,11 +150,14 @@ export const LatencyAnalyticsCard: React.FC = () => {
           {stages.map((st) => (
             <div
               key={st.name}
-              className="grid grid-cols-[1fr_5rem_5rem_5rem] items-center gap-2 px-4 py-2.5 text-xs hover:bg-white/[0.02] transition-colors"
+              className="grid grid-cols-[2.5rem_1fr_5.5rem_5.5rem_6rem] items-center gap-2 px-4 py-2.5 text-xs hover:bg-white/[0.02] transition-colors"
             >
+              <span className="text-center font-mono text-[11px] font-bold text-slate-500">
+                {st.step}
+              </span>
               <div>
-                <span className="font-semibold text-slate-200 block">{st.name}</span>
-                <span className="text-[10px] text-slate-500 block">{st.scope}</span>
+                <span className="font-semibold text-slate-200 block text-xs">{st.name}</span>
+                <span className="text-[10px] text-slate-400 block">{st.scope}</span>
               </div>
               <span className="text-right font-mono text-cyan-300 font-semibold">{st.p50}</span>
               <span className="text-right font-mono text-slate-300">{st.p70}</span>

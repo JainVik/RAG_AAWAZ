@@ -321,6 +321,13 @@ class DefaultServices:
         )
         try:
             await self.qdrant_store.initialize()
+            if self.orchestrator is not None:
+                try:
+                    await self.orchestrator.process_text("what is the net gain and loss", language=Language.ENGLISH)
+                    await self.orchestrator.process_text("मोह्स पैमाने पर सोने की कठोरता कितनी होती है?", language=Language.HINDI)
+                    await self.orchestrator.process_text("Sled pull karne ke liye kis type ke dogs use hote hain?", language=Language.CODE_MIXED)
+                except Exception:
+                    pass
             self._checks["qdrant"] = await self.qdrant_store.readiness_details(
                 expected_points=self._expected_point_count(), require_green=False
             )

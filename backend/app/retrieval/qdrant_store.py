@@ -311,6 +311,13 @@ class QdrantStore(DenseSearcher, SparseSearcher):
                 using=self.dense_vector_name,
                 query_filter=query_filter,
                 limit=limit,
+                search_params=models.SearchParams(
+                    hnsw_ef=64,
+                    quantization=models.QuantizationSearchParams(
+                        ignore=False,
+                        rescore=True,
+                    ),
+                ),
                 with_payload=True,
                 with_vectors=False,
             ),

@@ -43,8 +43,32 @@ class SentenceTransformerDenseEncoder:
         self.model_revision = revision
         self.dimension = int(self._model.get_sentence_embedding_dimension() or 384)
         self._inference_lock = asyncio.Lock()
+        self._query_cache: dict[str, list[float]] = {}
+        self._max_cache_size = 2048
 
     def _encode(self, texts: Sequence[str], prefix: str) -> list[list[float]]:
+        if prefix == "query":
+            results: list[list[float] | None] = [self._query_cache.get(text) for text in texts]
+            missing_indices = [i for i, v in enumerate(results) if v is None]
+            if not missing_indices:
+                return [res for res in results if res is not None]
+            missing_texts = [texts[i] for i in missing_indices]
+            prepared = [f"query: {text}" for text in missing_texts]
+            vectors = self._model.encode(
+                prepared,
+                batch_size=min(32, max(1, len(prepared))),
+                normalize_embeddings=True,
+                convert_to_numpy=True,
+                show_progress_bar=False,
+            )
+            array = np.asarray(vectors, dtype=np.float32)
+            for idx, row in zip(missing_indices, array, strict=True):
+                vec = [float(val) for val in row]
+                results[idx] = vec
+                if len(self._query_cache) < self._max_cache_size:
+                    self._query_cache[texts[idx]] = vec
+            return [res for res in results if res is not None]
+
         prepared = [f"{prefix}: {text}" for text in texts]
         vectors = self._model.encode(
             prepared,
