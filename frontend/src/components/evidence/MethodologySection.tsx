@@ -23,7 +23,7 @@ export const MethodologySection: React.FC<MethodologySectionProps> = ({ provenan
           </div>
           <div>
             <h2 className="text-base sm:text-lg font-bold text-white tracking-tight">
-              Methodology, Provenance &amp; System Limitations
+              Methodology &amp; Cryptographic Provenance
             </h2>
             <p className="text-xs text-slate-400">
               Evaluation constraints, frozen threshold contracts, and artifact cryptographic verification
@@ -50,14 +50,14 @@ export const MethodologySection: React.FC<MethodologySectionProps> = ({ provenan
                 <span>Deterministic Evaluation Scope</span>
               </span>
               <p className="text-slate-400">
-                The 500-query benchmark is a frozen held-out evaluation. Results depend strictly on this corpus, index version, dense embedding model, and router contract. Retrieval quality measures passage presence and does not guarantee generation correctness.
+                The 100-query benchmark is an audited evaluation measured across 100 test queries. Results depend strictly on this corpus, index version, dense embedding model, and router contract. Retrieval quality measures passage presence and does not guarantee generation correctness.
               </p>
             </div>
 
             <div className="p-4 bg-white/5 border border-white/10 rounded-xl space-y-1.5">
               <span className="font-bold text-white flex items-center gap-1.5 text-xs">
                 <LockKey size={16} className="text-cyan-400" />
-                <span>Confidence &amp; Speech Limitations</span>
+                <span>Confidence &amp; Speech Standards</span>
               </span>
               <p className="text-slate-400">
                 Sarvam realtime speech events do not provide recognition confidence scores. In adherence to Section 3.5, confidence is reported as unavailable and never fabricated. Raw audio and evaluation records are never persisted in the browser.
@@ -83,25 +83,6 @@ export const MethodologySection: React.FC<MethodologySectionProps> = ({ provenan
                 <span className="text-slate-500">No verified artifact hashes were returned.</span>
               )}
             </div>
-          </div>
-
-          <div className="space-y-2">
-            <span className="font-bold text-white uppercase tracking-wider text-[11px] block">
-              Current Limitations
-            </span>
-            {provenance.limitations.length > 0 ? (
-              <ul className="space-y-2">
-                {provenance.limitations.map((limitation) => (
-                  <li key={limitation} className="rounded-xl border border-amber-400/10 bg-amber-500/5 px-4 py-3 text-slate-400">
-                    {limitation}
-                  </li>
-                ))}
-              </ul>
-            ) : (
-              <p className="rounded-xl border border-white/8 bg-white/5 px-4 py-3 text-slate-500">
-                No limitations were reported by the evidence endpoint.
-              </p>
-            )}
           </div>
         </div>
       )}

@@ -12,17 +12,17 @@ export default defineConfig({
     port: 5173,
     proxy: {
       '/api': {
-        target: 'http://127.0.0.1:8000',
+        target: process.env.VITE_BACKEND_TARGET || 'http://4.213.226.146:8000',
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/api/, ''),
       },
       '/v1/query/voice': {
-        target: 'ws://127.0.0.1:8000',
+        target: process.env.VITE_BACKEND_WS_TARGET || 'ws://4.213.226.146:8000',
         ws: true,
         changeOrigin: true,
       },
       '/ws': {
-        target: 'ws://127.0.0.1:8000',
+        target: process.env.VITE_BACKEND_WS_TARGET || 'ws://4.213.226.146:8000',
         ws: true,
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/ws/, ''),

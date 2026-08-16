@@ -87,13 +87,65 @@ export const VoicePillControls: React.FC<VoicePillControlsProps> = ({
     return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
 
-  const currentLangObj = LANGUAGE_REGISTRY.find((l) => l.code === selectedLanguage) || LANGUAGE_REGISTRY[0];
+  const currentLangObj =
+    LANGUAGE_REGISTRY.find((l) => l.code === selectedLanguage) || LANGUAGE_REGISTRY[0];
 
   const validatedLanguages = LANGUAGE_REGISTRY.filter((l) => l.validated);
   const experimentalLanguages = LANGUAGE_REGISTRY.filter((l) => !l.validated);
 
+  const quickPrompts: Array<{
+    label: string;
+    langCode: ServerLanguageCode;
+    query: string;
+    tagColor: string;
+  }> = [
+    {
+      label: 'English',
+      langCode: 'en',
+      query: 'What is the net gain and loss?',
+      tagColor: 'bg-cyan-500/20 text-cyan-300 border-cyan-500/30',
+    },
+    {
+      label: 'हिंदी',
+      langCode: 'hi',
+      query: 'मोह्स पैमाने पर सोने की कठोरता कितनी होती है?',
+      tagColor: 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30',
+    },
+    {
+      label: 'Hinglish',
+      langCode: 'hi-en',
+      query: 'Sled pull karne ke liye kis type ke dogs use hote hain?',
+      tagColor: 'bg-violet-500/20 text-violet-300 border-violet-500/30',
+    },
+  ];
+
   return (
-    <div ref={controlsRef} className="relative flex flex-col items-center select-none">
+    <div ref={controlsRef} className="relative flex flex-col items-center select-none w-full">
+      {/* Sample Question Pills (1 in each language) */}
+      {!isRecording && !isProcessing && (
+        <div className="mb-3 flex flex-wrap items-center justify-center gap-2 max-w-4xl px-2 animate-fade-in">
+          {quickPrompts.map((qp) => (
+            <button
+              key={qp.langCode}
+              type="button"
+              disabled={!canSubmit}
+              onClick={() => onSelectVerifiedPrompt(qp.query, qp.langCode)}
+              className="group flex items-center gap-2 rounded-full border border-white/10 bg-[#091020]/90 px-3.5 py-1.5 text-xs text-slate-300 shadow-lg backdrop-blur-xl transition-all hover:border-cyan-400/40 hover:bg-[#0f1b33] hover:text-white active:scale-95 disabled:cursor-not-allowed disabled:opacity-40 cursor-pointer"
+              title={`Ask verified question in ${qp.label}`}
+            >
+              <span
+                className={`rounded-full border px-2 py-0.5 text-[9px] font-bold tracking-wider ${qp.tagColor}`}
+              >
+                {qp.label}
+              </span>
+              <span className="truncate max-w-[220px] sm:max-w-[280px] text-left font-medium text-slate-200 group-hover:text-white">
+                {qp.query}
+              </span>
+            </button>
+          ))}
+        </div>
+      )}
+
       {/* Recording Duration Floating Badge */}
       {isRecording && (
         <div className="absolute bottom-full mb-3 inline-flex items-center gap-2 px-3.5 py-1 bg-cyan-500/10 border border-cyan-400/30 backdrop-blur-md rounded-full text-[11px] font-mono font-bold text-cyan-300 shadow-xl animate-pulse z-30">

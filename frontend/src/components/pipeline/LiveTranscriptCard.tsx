@@ -9,6 +9,35 @@ interface LiveTranscriptCardProps {
   onSelectSamplePrompt?: (prompt: string) => void;
 }
 
+export interface SampleQuestion {
+  text: string;
+  lang: 'Hindi' | 'Hinglish' | 'English';
+  code: 'hi' | 'hi-en' | 'en';
+}
+
+export const SAMPLE_QUESTIONS: SampleQuestion[] = [
+  // Hindi (5)
+  { text: 'मोह्स पैमाने पर सोने की कठोरता कितनी होती है?', lang: 'Hindi', code: 'hi' },
+  { text: 'ऊर्ध्वाधर विभेदन क्या है?', lang: 'Hindi', code: 'hi' },
+  { text: 'एस्टर-सी किससे बनाया जाता है', lang: 'Hindi', code: 'hi' },
+  { text: 'क्या बराक ओबामा फिर से अमेरिकी राष्ट्रपति पद के लिए चुनाव लड़ सकते हैं?', lang: 'Hindi', code: 'hi' },
+  { text: 'बी.आर.एल. किस देश की मुद्रा है', lang: 'Hindi', code: 'hi' },
+
+  // Hinglish (5)
+  { text: 'Sled pull karne ke liye kis type ke dogs use hote hain?', lang: 'Hinglish', code: 'hi-en' },
+  { text: 'Xenotransplantation mein cells tissues ya organs kahan transfer hote hain?', lang: 'Hinglish', code: 'hi-en' },
+  { text: 'Succulent plants ka meaning kya hai?', lang: 'Hinglish', code: 'hi-en' },
+  { text: 'Hanker word ka meaning kya hai?', lang: 'Hinglish', code: 'hi-en' },
+  { text: 'Biology mein blotting ka matlab kya hai?', lang: 'Hinglish', code: 'hi-en' },
+
+  // English (5)
+  { text: 'what is the net gain and loss', lang: 'English', code: 'en' },
+  { text: 'which nhl team did jarmoir jagr play for', lang: 'English', code: 'en' },
+  { text: 'whwen was the de lome letter published', lang: 'English', code: 'en' },
+  { text: 'which judicial district is scot county', lang: 'English', code: 'en' },
+  { text: 'what is d pathnathol', lang: 'English', code: 'en' },
+];
+
 export const LiveTranscriptCard: React.FC<LiveTranscriptCardProps> = ({
   transcript,
   isPartial,
@@ -16,35 +45,86 @@ export const LiveTranscriptCard: React.FC<LiveTranscriptCardProps> = ({
   confidence,
   onSelectSamplePrompt,
 }) => {
-  const samplePrompts = [
-    { text: 'गोवा सरकारची जलसंधारण योजना काय आहे?', lang: 'मराठी' },
-    { text: 'मुख्यमंत्री रोजगार योजना के लिए क्या पात्रता है?', lang: 'हिंदी' },
-    { text: 'What is the procedure for obtaining a revenue certificate in Goa?', lang: 'English' },
-  ];
-
   if (!transcript) {
     return (
-      <div className="p-6 bg-surface-subtle/70 border border-subtle rounded-2xl space-y-4">
-        <div className="flex items-center gap-2 text-xs font-bold text-secondary uppercase tracking-wider">
-          <ChatCenteredText size={16} className="text-accent-primary" />
-          <span>Sample Questions from Goa Governance Corpus</span>
+      <div className="p-5 sm:p-6 bg-surface-subtle/80 border border-subtle rounded-2xl space-y-4 shadow-sm backdrop-blur-md">
+        <div className="flex items-center justify-between gap-2 border-b border-subtle/50 pb-3">
+          <div className="flex items-center gap-2 text-xs font-bold text-secondary uppercase tracking-wider">
+            <ChatCenteredText size={16} className="text-accent-primary" />
+            <span>Sample Verified Questions (15)</span>
+          </div>
+          <span className="text-[11px] font-mono text-muted">
+            Click any question to ask
+          </span>
         </div>
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
-          {samplePrompts.map((p, idx) => (
-            <button
-              key={idx}
-              type="button"
-              onClick={() => onSelectSamplePrompt?.(p.text)}
-              className="p-3 bg-surface hover:bg-accent-subtle/30 border border-subtle hover:border-accent-border rounded-xl text-left transition-all cursor-pointer group"
-            >
-              <span className="text-[10px] font-semibold font-mono text-accent-primary block mb-1">
-                {p.lang}
-              </span>
-              <p className="text-xs text-primary group-hover:text-accent-primary leading-relaxed font-medium">
-                {p.text}
-              </p>
-            </button>
-          ))}
+
+        {/* 3 Column Grid: Hindi | Hinglish | English */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {/* Hindi Section */}
+          <div className="space-y-2">
+            <div className="flex items-center gap-1.5 text-xs font-bold text-accent-primary px-1">
+              <span className="h-1.5 w-1.5 rounded-full bg-accent-primary" />
+              <span>Hindi (हिंदी)</span>
+            </div>
+            <div className="space-y-1.5">
+              {SAMPLE_QUESTIONS.filter((q) => q.code === 'hi').map((p, idx) => (
+                <button
+                  key={idx}
+                  type="button"
+                  onClick={() => onSelectSamplePrompt?.(p.text)}
+                  className="w-full p-2.5 bg-surface hover:bg-accent-subtle/30 border border-subtle hover:border-accent-border rounded-xl text-left transition-all cursor-pointer group"
+                >
+                  <p className="text-xs text-primary group-hover:text-accent-primary leading-relaxed font-medium">
+                    {p.text}
+                  </p>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Hinglish Section */}
+          <div className="space-y-2">
+            <div className="flex items-center gap-1.5 text-xs font-bold text-amber-500 dark:text-amber-400 px-1">
+              <span className="h-1.5 w-1.5 rounded-full bg-amber-500 dark:bg-amber-400" />
+              <span>Hinglish (Code-Mixed)</span>
+            </div>
+            <div className="space-y-1.5">
+              {SAMPLE_QUESTIONS.filter((q) => q.code === 'hi-en').map((p, idx) => (
+                <button
+                  key={idx}
+                  type="button"
+                  onClick={() => onSelectSamplePrompt?.(p.text)}
+                  className="w-full p-2.5 bg-surface hover:bg-accent-subtle/30 border border-subtle hover:border-accent-border rounded-xl text-left transition-all cursor-pointer group"
+                >
+                  <p className="text-xs text-primary group-hover:text-accent-primary leading-relaxed font-medium">
+                    {p.text}
+                  </p>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* English Section */}
+          <div className="space-y-2">
+            <div className="flex items-center gap-1.5 text-xs font-bold text-emerald-600 dark:text-emerald-400 px-1">
+              <span className="h-1.5 w-1.5 rounded-full bg-emerald-600 dark:bg-emerald-400" />
+              <span>English</span>
+            </div>
+            <div className="space-y-1.5">
+              {SAMPLE_QUESTIONS.filter((q) => q.code === 'en').map((p, idx) => (
+                <button
+                  key={idx}
+                  type="button"
+                  onClick={() => onSelectSamplePrompt?.(p.text)}
+                  className="w-full p-2.5 bg-surface hover:bg-accent-subtle/30 border border-subtle hover:border-accent-border rounded-xl text-left transition-all cursor-pointer group"
+                >
+                  <p className="text-xs text-primary group-hover:text-accent-primary leading-relaxed font-medium">
+                    {p.text}
+                  </p>
+                </button>
+              ))}
+            </div>
+          </div>
         </div>
       </div>
     );

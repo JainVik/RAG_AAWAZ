@@ -25,15 +25,16 @@ const STAGES: ReadonlyArray<{ key: string; label: string; scope?: string }> = [
 function PercentileGrid({ values }: { values: OperationalMetrics['latency_ms'] }) {
   const cells = [
     ['P50', values?.p50],
+    ['P70', values?.p70],
     ['P95', values?.p95],
-    ['MAX', values?.p100],
+    ['P100 / MAX', values?.p100],
   ] as const;
   return (
-    <div className="grid grid-cols-3 gap-2">
+    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
       {cells.map(([label, value]) => (
-        <div key={label} className="rounded-xl border border-white/8 bg-white/5 p-3 text-center">
+        <div key={label} className="rounded-xl border border-white/8 bg-white/5 p-3.5 text-center">
           <span className="block text-[9px] font-bold uppercase tracking-wider text-slate-500">{label}</span>
-          <span className="mt-1 block font-mono text-lg font-bold text-white">
+          <span className="mt-1 block font-mono text-lg font-bold text-cyan-300">
             {value === undefined ? 'Not measured' : formatStageLatency(value)}
           </span>
         </div>

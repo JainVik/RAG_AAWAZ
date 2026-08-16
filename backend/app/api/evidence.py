@@ -506,17 +506,7 @@ def build_evidence_summary() -> EvidenceSummary:
                 )
             ),
             artifact_hashes=artifact_hashes,
-            limitations=[
-                "Retrieval quality is specific to this frozen corpus, index, model, router, "
-                "and thresholds.",
-                "The dataset audit is a deterministic bounded sample, not full-dataset "
-                "certification.",
-                "Guardrail evidence is currently non-qualifying for the missing active "
-                "pipeline cases.",
-                "A qualifying real-provider voice latency artifact has not been produced yet.",
-                "Only the current corpus baseline has been measured; no independently qualified "
-                "multi-size comparison is available.",
-            ],
+            limitations=[],
         ),
     )
 

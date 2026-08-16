@@ -3,7 +3,6 @@ import {
   Check,
   Copy,
   HandPalm,
-  Lightning,
   Quotes,
   Sparkle,
   SpinnerGap,
@@ -47,17 +46,6 @@ const SYNTHESIS_FAILURE_MESSAGES: Record<Exclude<SynthesisResponse['status'], 'c
 function modelDisplayName(model: string): string {
   const shortName = model.split('/').at(-1) || model;
   return shortName.replaceAll('-', ' ').toUpperCase();
-}
-
-function synthesisStatusLabel(
-  loading: boolean,
-  result: SynthesisResponse | null,
-  error: string | null
-): string {
-  if (loading) return 'generating';
-  if (error) return 'unavailable';
-  if (result?.status === 'completed') return 'grounded';
-  return result?.status.replaceAll('_', ' ') ?? 'pending';
 }
 
 function synthesisFailureTitle(result: SynthesisResponse | null): string {
@@ -244,36 +232,11 @@ export const AnswerCards: React.FC<AnswerCardsProps> = ({
       aria-busy={synthesisLoading}
       className="flex h-full min-w-0 flex-col space-y-4 rounded-2xl border border-violet-400/30 bg-[#11152b]/95 p-6 text-left shadow-2xl"
     >
-      <div className="flex flex-wrap items-start justify-between gap-3 border-b border-white/10 pb-3 text-xs text-slate-400">
-        <div>
-          <span className="flex items-center gap-1.5 font-semibold text-violet-300">
-            <Sparkle size={14} weight="fill" />Groq grounded synthesis
-          </span>
-          <span className="mt-1 block text-[10px] text-slate-500">Natural-language answer constrained to the retrieved evidence</span>
-        </div>
-        <div className="flex flex-wrap items-center justify-end gap-2">
-          {synthesisLatencyMs !== null && (
-            <span
-              title="Backend-measured synthesis request time"
-              className="inline-flex items-center gap-1 rounded-full border border-violet-400/25 bg-violet-500/10 px-2 py-1 font-mono text-[11px] font-semibold text-violet-200"
-            >
-              <Lightning size={13} weight="fill" />
-              Generated in {formatResponseLatency(synthesisLatencyMs)}
-            </span>
-          )}
-          {synthesisModel && (
-            <span
-              title={`${synthesisProvider} · ${synthesisModel}`}
-              className="max-w-40 truncate rounded-full border border-white/10 bg-white/5 px-2 py-1 font-mono text-[10px] text-violet-200"
-            >
-              {modelDisplayName(synthesisModel)}
-            </span>
-          )}
-          <span className="rounded-full border border-white/10 bg-white/5 px-2 py-1 font-mono text-[10px] uppercase text-slate-300">
-            {uninvokedSynthesis?.status ??
-              synthesisStatusLabel(synthesisLoading, synthesisResult, synthesisError)}
-          </span>
-        </div>
+      <div className="border-b border-white/10 pb-3 text-xs text-slate-400">
+        <span className="flex items-center gap-1.5 font-semibold text-violet-300">
+          <Sparkle size={14} weight="fill" />Groq grounded synthesis
+        </span>
+        <span className="mt-1 block text-[10px] text-slate-500">Natural-language answer constrained to the retrieved evidence</span>
       </div>
 
       <div className="flex flex-1 flex-col justify-center" aria-live="polite">
@@ -360,23 +323,65 @@ export const AnswerCards: React.FC<AnswerCardsProps> = ({
           {primaryCard}
           {synthesisCard}
         </div>
-        <div
-          aria-label="Query outcome summary"
-          className="mx-auto mt-3 flex w-fit max-w-full flex-wrap items-center justify-center gap-x-2 gap-y-1 rounded-full border border-white/10 bg-[#0a0f1d]/85 px-3 py-1.5 font-mono text-[10px] text-slate-400"
-        >
-          <span className="text-cyan-300">{getLanguageDisplayLabel(result.language)}</span>
-          <span aria-hidden="true">·</span>
-          <span className={primaryOutcome === 'Grounded' ? 'text-emerald-300' : 'text-amber-300'}>{primaryOutcome}</span>
-          <span aria-hidden="true">·</span>
-          <span>{result.citations.length} citation{result.citations.length === 1 ? '' : 's'}</span>
-          {responseLatencyMs !== null && (
-            <>
-              <span aria-hidden="true">·</span>
-              <span>{formatResponseLatency(responseLatencyMs)}</span>
-            </>
+
+        {/* Outcome & Latency Summary Pills aligned to card columns */}
+        <div className={`mt-3.5 grid gap-4 ${hasSynthesisCard ? 'lg:grid-cols-2' : ''}`}>
+          {/* Left Column Pill (Evidence Answer) */}
+          <div className="flex justify-center">
+            <div className="flex items-center gap-x-2 rounded-full border border-cyan-500/30 bg-[#0a1324]/90 px-3.5 py-1.5 font-mono text-[10px] text-slate-300 shadow-sm backdrop-blur-sm">
+              <span className="inline-flex items-center gap-1 font-bold text-cyan-300">
+                <Sparkle size={12} weight="fill" /> Evidence Answer
+              </span>
+              <span className="text-slate-600" aria-hidden="true">·</span>
+              <span className="text-cyan-300">{getLanguageDisplayLabel(result.language)}</span>
+              <span className="text-slate-600" aria-hidden="true">·</span>
+              <span className={primaryOutcome === 'Grounded' ? 'text-emerald-300 font-semibold' : 'text-amber-300'}>{primaryOutcome}</span>
+              <span className="text-slate-600" aria-hidden="true">·</span>
+              <span>{result.citations.length} citation{result.citations.length === 1 ? '' : 's'}</span>
+              {responseLatencyMs !== null && (
+                <>
+                  <span className="text-slate-600" aria-hidden="true">·</span>
+                  <span className="font-bold text-cyan-300">{formatResponseLatency(responseLatencyMs)}</span>
+                </>
+              )}
+            </div>
+          </div>
+
+          {/* Right Column Pill (Groq Grounded Synthesis) */}
+          {hasSynthesisCard && (
+            <div className="flex justify-center">
+              <div className="flex items-center gap-x-2 rounded-full border border-violet-500/30 bg-[#140e29]/90 px-3.5 py-1.5 font-mono text-[10px] text-slate-300 shadow-sm backdrop-blur-sm">
+                <span className="inline-flex items-center gap-1 font-bold text-violet-300">
+                  <Sparkle size={12} weight="fill" /> Groq Synthesis
+                </span>
+                {synthesisModel && (
+                  <>
+                    <span className="text-slate-600" aria-hidden="true">·</span>
+                    <span className="text-violet-200 font-medium">{modelDisplayName(synthesisModel)}</span>
+                  </>
+                )}
+                <span className="text-slate-600" aria-hidden="true">·</span>
+                <span className={synthesisResult?.status === 'completed' ? 'text-emerald-300 font-semibold' : 'text-violet-300'}>
+                  {synthesisResult?.status === 'completed' ? 'Grounded' : synthesisLoading ? 'Generating…' : (synthesisResult?.status ?? 'Pending')}
+                </span>
+                {synthesisResult?.status === 'completed' && (
+                  <>
+                    <span className="text-slate-600" aria-hidden="true">·</span>
+                    <span>{synthesisResult.citations.length} citation{synthesisResult.citations.length === 1 ? '' : 's'}</span>
+                  </>
+                )}
+                {synthesisLatencyMs !== null && (
+                  <>
+                    <span className="text-slate-600" aria-hidden="true">·</span>
+                    <span className="font-bold text-violet-300">{formatResponseLatency(synthesisLatencyMs)}</span>
+                  </>
+                )}
+              </div>
+            </div>
           )}
         </div>
-        <QueryLatencySummary timingsMs={result.timings_ms} />
+
+        <QueryLatencySummary timingsMs={result.timings_ms} responseLatencyMs={responseLatencyMs} />
       </section>
       <CitationDrawer
         isOpen={drawerSource !== null}

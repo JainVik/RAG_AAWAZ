@@ -4,6 +4,9 @@
 .env.*.local
 *.pem
 *.key
+*.tar.gz
+*.tar
+*.zip
 
 # Python & Virtual Environments
 .venv/

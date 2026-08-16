@@ -1,9 +1,7 @@
 import React, { createContext, useCallback, useContext, useEffect, useState } from 'react';
 import { Header } from '../common/Header';
-import { SystemChecksDrawer } from '../common/SystemChecksDrawer';
 import type { HealthResponse, ReadyResponse } from '../../types/api';
 import { getHealth, getReady } from '../../services/api';
-
 import { GradientWaves } from '../ui/GradientWaves';
 
 interface ShellContextType {
@@ -34,7 +32,6 @@ export const Shell: React.FC<ShellProps> = ({ children, isDark, onToggleTheme })
   const [health, setHealth] = useState<HealthResponse | null>(null);
   const [ready, setReady] = useState<ReadyResponse | null>(null);
   const [isLoadingStatus, setIsLoadingStatus] = useState<boolean>(true);
-  const [isDrawerOpen, setIsDrawerOpen] = useState<boolean>(false);
 
   const fetchStatus = useCallback(async () => {
     setIsLoadingStatus(true);
@@ -49,24 +46,22 @@ export const Shell: React.FC<ShellProps> = ({ children, isDark, onToggleTheme })
     }
   }, []);
 
-  // Initial fetch and 15s auto-poll interval
+  // Initial fetch on page load (no recurring polling)
   useEffect(() => {
-    fetchStatus();
-    const interval = setInterval(fetchStatus, 15000);
-    return () => clearInterval(interval);
+    void fetchStatus();
   }, [fetchStatus]);
 
   return (
     <ShellContext.Provider
       value={{
-        openSystemChecks: () => setIsDrawerOpen(true),
+        openSystemChecks: () => {},
         health,
         ready,
         isLoadingStatus,
         refreshStatus: fetchStatus,
       }}
     >
-      <div className="relative min-h-[100dvh] flex flex-col text-slate-100 overflow-x-hidden selection:bg-cyan-500/30 selection:text-cyan-200">
+      <div className="relative min-h-[100dvh] flex flex-col text-slate-100 selection:bg-cyan-500/30 selection:text-cyan-200">
         {/* Full-Screen Animated 3D WebGL Gradient Waves Background */}
         <div className="fixed inset-0 z-0 pointer-events-none w-screen h-screen overflow-hidden bg-[#070b14]">
           <GradientWaves
@@ -100,7 +95,6 @@ export const Shell: React.FC<ShellProps> = ({ children, isDark, onToggleTheme })
             isLoadingReady={isLoadingStatus}
             isDark={isDark}
             onToggleTheme={onToggleTheme}
-            onOpenSystemChecks={() => setIsDrawerOpen(true)}
           />
         </div>
 
@@ -108,18 +102,6 @@ export const Shell: React.FC<ShellProps> = ({ children, isDark, onToggleTheme })
         <main id="main-content" className="flex-1 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex flex-col relative z-10">
           {children}
         </main>
-
-        {/* System Diagnostics Drawer */}
-        <div className="relative z-50">
-          <SystemChecksDrawer
-            isOpen={isDrawerOpen}
-            onClose={() => setIsDrawerOpen(false)}
-            health={health}
-            ready={ready}
-            isLoading={isLoadingStatus}
-            onRefresh={fetchStatus}
-          />
-        </div>
       </div>
     </ShellContext.Provider>
   );

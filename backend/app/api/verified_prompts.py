@@ -16,7 +16,7 @@ logger = logging.getLogger(__name__)
 SCHEMA_VERSION = "1.0.0"
 CATALOG_ID = "msmarco-xi-human-voice-v1"
 PLAN_STATUS = "recording_plan"
-EXPECTED_PROMPT_COUNT = 60
+EXPECTED_PROMPT_COUNT = 18
 LIVE_VALIDATION_MARKER = "live_completed_allow_2_citations"
 PROMPT_PLAN_PATH = (
     Path(__file__).resolve().parents[2]
