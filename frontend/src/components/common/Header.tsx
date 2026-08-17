@@ -2,6 +2,7 @@ import React from 'react';
 import { NavLink } from 'react-router-dom';
 import { Microphone, ChartBar, Sun, MoonStars } from '@phosphor-icons/react';
 import { TeamAvatarGroup } from './TeamAvatarGroup';
+import { LiveStatsCounter } from './LiveStatsCounter';
 
 interface HeaderProps {
   isDark?: boolean;
@@ -23,6 +24,11 @@ export const Header: React.FC<HeaderProps> = ({ isDark = true, onToggleTheme }) 
       </a>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative flex items-center justify-center">
+        {/* Top-Left Live Stats Counters Badge */}
+        <div className="absolute left-4 sm:left-6 lg:left-8 flex items-center">
+          <LiveStatsCounter />
+        </div>
+
         {/* Centered Clean Nav Pills with Liquid Glass */}
         <nav aria-label="Main Navigation" className="refractive-glass-pill flex items-center gap-1.5 p-1.5">
           <NavLink

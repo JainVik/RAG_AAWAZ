@@ -76,6 +76,10 @@ export function trackQueryCompleted(params: QueryCompletedParams) {
     citations_count: params.citations_count,
     groq_synthesis_used: params.groq_synthesis_used,
   });
+
+  if (typeof window !== 'undefined') {
+    window.dispatchEvent(new CustomEvent('vani:query_completed', { detail: params }));
+  }
 }
 
 /**
