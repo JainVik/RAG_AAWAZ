@@ -18,6 +18,7 @@ import {
   type AudioCaptureHandle,
   type SilenceDetectionState,
 } from '../utils/audio';
+import { playMicOffSound, playMicOnSound } from '../utils/soundEffects';
 
 export interface UseVoiceRecorderReturn {
   state: VoiceRecorderState;
@@ -140,6 +141,7 @@ export function useVoiceRecorder(): UseVoiceRecorderReturn {
       return;
     }
     stopCapture();
+    playMicOffSound();
     transition('processing');
     setPipelineState('STT_FINAL');
     if (!sendFrame({ type: 'end_of_stream', version: '1' })) {
@@ -216,6 +218,7 @@ export function useVoiceRecorder(): UseVoiceRecorderReturn {
       recordingStartedRef.current = Date.now();
       silenceStateRef.current = createSilenceDetectionState(recordingStartedRef.current);
       transition('recording');
+      playMicOnSound();
       setPipelineState('AUDIO_RECEIVED');
 
       const socket = new WebSocket(getVoiceWebSocketUrl());
@@ -373,6 +376,7 @@ export function useVoiceRecorder(): UseVoiceRecorderReturn {
   const cancelRecording = useCallback(() => {
     sessionRef.current += 1;
     cleanup();
+    playMicOffSound();
     setError(null);
     setPartialTranscript('');
     setPipelineState(null);

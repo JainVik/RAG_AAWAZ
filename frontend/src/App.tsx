@@ -6,6 +6,8 @@ import { trackPageView } from './utils/analytics';
 const AskPage = lazy(() => import('./pages/AskPage').then((module) => ({ default: module.AskPage })));
 const EvidencePage = lazy(() => import('./pages/EvidencePage').then((module) => ({ default: module.EvidencePage })));
 
+import { playThemeSound } from './utils/soundEffects';
+
 function PageViewTracker() {
   const location = useLocation();
   useEffect(() => {
@@ -22,6 +24,14 @@ export default function App() {
     return window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
   });
 
+  const handleToggleTheme = () => {
+    setIsDark((prev) => {
+      const next = !prev;
+      playThemeSound(next);
+      return next;
+    });
+  };
+
   useEffect(() => {
     if (isDark) {
       document.documentElement.classList.add('dark');
@@ -35,7 +45,7 @@ export default function App() {
   return (
     <BrowserRouter>
       <PageViewTracker />
-      <Shell isDark={isDark} onToggleTheme={() => setIsDark((prev) => !prev)}>
+      <Shell isDark={isDark} onToggleTheme={handleToggleTheme}>
         <Suspense fallback={<div className="py-20 text-center text-sm text-slate-600 dark:text-slate-400">Loading workspace…</div>}><Routes>
           <Route path="/" element={<Navigate to="/ask" replace />} />
           <Route path="/ask" element={<AskPage />} />
