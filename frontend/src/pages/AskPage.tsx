@@ -25,6 +25,11 @@ import {
   loadChatSession,
   saveChatSession,
 } from '../utils/chatSessionHistory';
+import {
+  trackGuardrailRejected,
+  trackQueryCompleted,
+  trackQuerySubmitted,
+} from '../utils/analytics';
 
 export const AskPage: React.FC = () => {
   const [showTextModal, setShowTextModal] = useState(false);
@@ -40,6 +45,7 @@ export const AskPage: React.FC = () => {
 
   const closeButtonRef = useRef<HTMLButtonElement>(null);
   const verifiedPromptsRequestedRef = useRef(false);
+  const trackedRequestIdsRef = useRef<Set<string>>(new Set());
   const { openSystemChecks, ready } = useShell();
   const canSubmit = ready?.status === 'ready';
   const voice = useVoiceRecorder();
@@ -70,6 +76,34 @@ export const AskPage: React.FC = () => {
   // Sync turn creation to chat history when a new query response arrives
   useEffect(() => {
     if (!activeResult?.transcript.trim()) return;
+
+    // Track query completion and guardrail rejection exactly once per unique request
+    if (activeResult.request_id && !trackedRequestIdsRef.current.has(activeResult.request_id)) {
+      trackedRequestIdsRef.current.add(activeResult.request_id);
+
+      const isRejected =
+        activeResult.guardrail?.decision !== 'ALLOW' ||
+        activeResult.state === 'ABSTAINED' ||
+        activeResult.state === 'UNSAFE';
+
+      if (isRejected) {
+        trackGuardrailRejected({
+          reason:
+            activeResult.guardrail?.reason ||
+            (activeResult.state === 'UNSAFE' ? 'safety_gate' : 'out_of_domain'),
+          query_snippet: activeResult.transcript,
+        });
+      }
+
+      const totalLatency =
+        activeResult.timings_ms?.total ?? activeResult.timings_ms?.e2e_total ?? 0;
+      trackQueryCompleted({
+        total_latency_ms: totalLatency,
+        has_citations: Boolean(activeResult.citations && activeResult.citations.length > 0),
+        citations_count: activeResult.citations?.length ?? 0,
+        groq_synthesis_used: Boolean(activeResult.synthesis),
+      });
+    }
 
     // Update session recent queries
     setRecentQueries((current) => {
@@ -148,6 +182,15 @@ export const AskPage: React.FC = () => {
       setTextError('The backend is not operationally ready. Open System checks for details.');
       return;
     }
+
+    const targetLanguage = languageOverride ?? toBackendLanguage(voice.selectedLanguage);
+
+    trackQuerySubmitted({
+      input_mode: 'text',
+      language: targetLanguage,
+      source: sourceType === 'sample' ? 'quick_prompt' : 'text_box',
+    });
+
     setLastQuerySource(sourceType);
     setTextResult(null);
     voice.resetToIdle();
@@ -156,7 +199,7 @@ export const AskPage: React.FC = () => {
     try {
       const response = await sendTextQuery({
         query: queryText,
-        language: languageOverride ?? toBackendLanguage(voice.selectedLanguage),
+        language: targetLanguage,
         request_id: crypto.randomUUID(),
         deadline_ms: null,
       });
@@ -210,7 +253,14 @@ export const AskPage: React.FC = () => {
           setTextError(null);
           voice.startRecording();
         }}
-        onStopAndAsk={voice.stopAndAsk}
+        onStopAndAsk={() => {
+          trackQuerySubmitted({
+            input_mode: 'voice',
+            language: toBackendLanguage(voice.selectedLanguage),
+            source: 'mic',
+          });
+          voice.stopAndAsk();
+        }}
         onCancelRecording={voice.cancelRecording}
         onReset={handleReset}
         onClearSession={handleClearSession}

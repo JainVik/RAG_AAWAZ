@@ -1,9 +1,18 @@
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { lazy, Suspense, useEffect, useState } from 'react';
 import { Shell } from './components/layout/Shell';
+import { trackPageView } from './utils/analytics';
 
 const AskPage = lazy(() => import('./pages/AskPage').then((module) => ({ default: module.AskPage })));
 const EvidencePage = lazy(() => import('./pages/EvidencePage').then((module) => ({ default: module.EvidencePage })));
+
+function PageViewTracker() {
+  const location = useLocation();
+  useEffect(() => {
+    trackPageView(location.pathname + location.search);
+  }, [location]);
+  return null;
+}
 
 export default function App() {
   const [isDark, setIsDark] = useState<boolean>(() => {
@@ -25,6 +34,7 @@ export default function App() {
 
   return (
     <BrowserRouter>
+      <PageViewTracker />
       <Shell isDark={isDark} onToggleTheme={() => setIsDark((prev) => !prev)}>
         <Suspense fallback={<div className="py-20 text-center text-sm text-slate-600 dark:text-slate-400">Loading workspace…</div>}><Routes>
           <Route path="/" element={<Navigate to="/ask" replace />} />

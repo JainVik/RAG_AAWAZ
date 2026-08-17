@@ -8,6 +8,7 @@ import {
   User,
 } from '@phosphor-icons/react';
 import { TEAM_MEMBERS, type TeamMember, type SocialType } from '../../config/team';
+import { trackDevProfileClicked } from '../../utils/analytics';
 
 interface TeamAvatarGroupProps {
   members?: TeamMember[];
@@ -78,6 +79,13 @@ export const TeamAvatarGroup: React.FC<TeamAvatarGroupProps> = ({
                   href={member.profileUrl}
                   target="_blank"
                   rel="noopener noreferrer"
+                  onClick={() => {
+                    trackDevProfileClicked({
+                      dev_name: member.name,
+                      link_type: 'portfolio',
+                      url: member.profileUrl,
+                    });
+                  }}
                   aria-label={`${member.name} - View Profile`}
                   className="block relative rounded-full ring-2 ring-white/90 dark:ring-slate-900/90 shadow-sm transition-all duration-200 ease-out transform hover:scale-115 hover:ring-blue-500 hover:shadow-[0_0_14px_rgba(59,130,246,0.6)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 focus-visible:ring-offset-2 focus-visible:scale-115 cursor-pointer"
                 >
@@ -122,6 +130,13 @@ export const TeamAvatarGroup: React.FC<TeamAvatarGroupProps> = ({
                             href={link.url}
                             target="_blank"
                             rel="noopener noreferrer"
+                            onClick={() => {
+                              trackDevProfileClicked({
+                                dev_name: member.name,
+                                link_type: link.type,
+                                url: link.url,
+                              });
+                            }}
                             className="flex items-center justify-between px-2.5 py-1.5 rounded-lg text-[11px] font-semibold text-slate-800 dark:text-slate-200 bg-black/5 hover:bg-blue-500/15 hover:text-blue-600 dark:bg-white/5 dark:hover:bg-blue-400/20 dark:hover:text-blue-400 transition-all group/link shadow-xs cursor-pointer"
                           >
                             <div className="flex items-center gap-1.5">
