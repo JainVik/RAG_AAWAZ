@@ -5,16 +5,17 @@
   height: 100%;
   overflow: hidden;
   background: 
-    radial-gradient(ellipse 80% 50% at 50% -20%, rgba(6, 182, 212, 0.25), transparent 70%),
-    radial-gradient(ellipse 60% 50% at 50% 120%, rgba(30, 64, 175, 0.35), transparent 80%),
-    #050814;
+    radial-gradient(ellipse 80% 50% at 50% -20%, rgba(124, 58, 237, 0.25), transparent 70%),
+    radial-gradient(ellipse 70% 60% at 75% 35%, rgba(67, 56, 202, 0.20), transparent 70%),
+    radial-gradient(ellipse 60% 50% at 50% 120%, rgba(46, 16, 101, 0.45), transparent 80%),
+    #03050c;
   transition: background 400ms cubic-bezier(1, 0.0, 0.4, 1);
 }
 
 html:not(.dark) .gradient-waves-container {
   background: 
-    radial-gradient(ellipse 80% 50% at 50% -20%, rgba(0, 82, 245, 0.12), transparent 70%),
-    radial-gradient(ellipse 60% 50% at 50% 120%, rgba(124, 58, 237, 0.08), transparent 80%),
+    radial-gradient(ellipse 80% 50% at 50% -20%, rgba(124, 58, 237, 0.10), transparent 70%),
+    radial-gradient(ellipse 60% 50% at 50% 120%, rgba(79, 70, 229, 0.08), transparent 80%),
     var(--bg-canvas, #E8E8E9);
 }
 

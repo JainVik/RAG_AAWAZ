@@ -127,8 +127,8 @@ export const VoicePillControls: React.FC<VoicePillControlsProps> = ({
 
   return (
     <div ref={controlsRef} className="relative flex flex-col items-center select-none w-full">
-      {/* Sample Question Pills (1 in each language) with Liquid Glass */}
-      {showQuickPrompts && !isRecording && !isProcessing && (
+      {/* Sample Question Pills (1 in each language) with Liquid Glass - hidden when any bottom dropdown is open */}
+      {showQuickPrompts && !isRecording && !isProcessing && !openMenu && (
         <div className="mb-3 flex flex-wrap items-center justify-center gap-2 max-w-4xl px-2 animate-fade-in">
           {quickPrompts.map((qp) => (
             <button
