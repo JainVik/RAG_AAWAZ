@@ -1,6 +1,7 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
 import { Microphone, ChartBar, Sun, MoonStars } from '@phosphor-icons/react';
+import { TeamAvatarGroup } from './TeamAvatarGroup';
 
 interface HeaderProps {
   isDark?: boolean;
@@ -53,9 +54,9 @@ export const Header: React.FC<HeaderProps> = ({ isDark = true, onToggleTheme }) 
           </NavLink>
         </nav>
 
-        {/* Top-Right Theme Toggle Trigger with Liquid Glass */}
-        {onToggleTheme && (
-          <div className="absolute right-4 sm:right-6 lg:right-8 flex items-center">
+        {/* Top-Right Controls with Theme Toggle and Developer Avatars */}
+        <div className="absolute right-4 sm:right-6 lg:right-8 flex items-center gap-2.5 sm:gap-3">
+          {onToggleTheme && (
             <button
               type="button"
               onClick={onToggleTheme}
@@ -69,8 +70,10 @@ export const Header: React.FC<HeaderProps> = ({ isDark = true, onToggleTheme }) 
                 <MoonStars size={18} weight="bold" className="text-blue-600 transition-transform duration-300 group-hover:-rotate-12" />
               )}
             </button>
-          </div>
-        )}
+          )}
+
+          <TeamAvatarGroup />
+        </div>
       </div>
     </header>
   );
