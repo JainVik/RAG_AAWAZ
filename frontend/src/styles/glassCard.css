@@ -54,8 +54,8 @@ html:not(.dark) {
   position: relative;
   color: var(--c-content);
   background-color: color-mix(in srgb, var(--c-glass) var(--glass-bg-opacity, 12%), transparent);
-  backdrop-filter: blur(8px) url(#liquid-glass) saturate(var(--saturation));
-  -webkit-backdrop-filter: blur(8px) saturate(var(--saturation));
+  -webkit-backdrop-filter: blur(16px) saturate(var(--saturation));
+  backdrop-filter: blur(16px) saturate(var(--saturation));
   border-radius: 1.25rem;
   box-shadow: 
     inset 0 0 0 1px color-mix(in srgb, var(--c-light) calc(var(--glass-reflex-light) * 10%), transparent),
@@ -79,8 +79,8 @@ html:not(.dark) {
   position: relative;
   color: var(--c-content);
   background-color: color-mix(in srgb, var(--c-glass) var(--glass-bg-opacity, 12%), transparent);
-  backdrop-filter: blur(8px) url(#liquid-glass-subtle) saturate(var(--saturation));
-  -webkit-backdrop-filter: blur(8px) saturate(var(--saturation));
+  -webkit-backdrop-filter: blur(16px) saturate(var(--saturation));
+  backdrop-filter: blur(16px) saturate(var(--saturation));
   border-radius: 99em;
   box-shadow: 
     inset 0 0 0 1px color-mix(in srgb, var(--c-light) calc(var(--glass-reflex-light) * 10%), transparent),
@@ -176,8 +176,8 @@ html:not(.dark) {
   padding: 1rem 1.25rem;
   border-radius: 0.875rem;
   background-color: color-mix(in srgb, var(--c-action) 6%, color-mix(in srgb, var(--c-glass) var(--glass-box-bg-opacity, 14%), transparent));
-  backdrop-filter: blur(8px) url(#liquid-glass-subtle) saturate(var(--saturation));
-  -webkit-backdrop-filter: blur(8px) saturate(var(--saturation));
+  -webkit-backdrop-filter: blur(12px) saturate(var(--saturation));
+  backdrop-filter: blur(12px) saturate(var(--saturation));
   border-top: 3px solid color-mix(in srgb, var(--c-action) 50%, transparent);
   box-shadow: 
     inset 0 0 0 1px color-mix(in srgb, var(--c-light) calc(var(--glass-reflex-light) * 12%), transparent),
@@ -227,8 +227,8 @@ html:not(.dark) {
   position: relative;
   border-radius: 99em;
   background-color: color-mix(in srgb, var(--c-glass) var(--glass-btn-bg-opacity, 18%), transparent);
-  backdrop-filter: blur(6px) url(#liquid-glass-subtle) saturate(var(--saturation));
-  -webkit-backdrop-filter: blur(6px) saturate(var(--saturation));
+  -webkit-backdrop-filter: blur(10px) saturate(var(--saturation));
+  backdrop-filter: blur(10px) saturate(var(--saturation));
   box-shadow: 
     inset 0 0 0 1px color-mix(in srgb, var(--c-light) calc(var(--glass-reflex-light) * 12%), transparent),
     inset 2px 1px 0px -1px color-mix(in srgb, var(--c-light) calc(var(--glass-reflex-light) * 90%), transparent), 
