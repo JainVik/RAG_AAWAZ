@@ -3,6 +3,7 @@ from __future__ import annotations
 import asyncio
 import hashlib
 import json
+import logging
 import re
 import time
 from dataclasses import dataclass
@@ -20,6 +21,7 @@ from app.generation.grounded_generator import (
 from app.generation.synthesis_context import SynthesisContext
 from app.harness.circuit_breaker import CircuitBreaker
 
+logger = logging.getLogger(__name__)
 _NUMBER_PATTERN = re.compile(r"(?<!\w)\d[\d,./:%-]*(?!\w)")
 
 
@@ -192,10 +194,13 @@ def _request_payload(
         "context, summarize what the available information covers naturally (for example, phrasing as "
         "'According to the information I have, ...' or stating the specific context directly). "
         "Do not refer to 'retrieved passages', 'documents', or 'database'. Produce at most two concise "
-        "factual sentences. Each claim must name its evidence IDs and include at least one verbatim "
-        "supporting quote copied exactly from that evidence. Set status to insufficient_evidence with "
-        "null answer and no claims only if the evidence is completely irrelevant or cannot answer the "
-        "question. The answer must equal the claim sentences joined by single spaces. Follow answer_language.\n\nINPUT_JSON:\n"
+        "factual sentences. "
+        "RULES FOR CLAIMS AND ANSWER: "
+        "1. Every single sentence in your answer must have a corresponding claim entry in 'claims'. "
+        "2. The 'answer' string must be the exact concatenation of all claim.sentence strings joined by a single space. "
+        "3. Each claim must name its evidence IDs and include at least one verbatim supporting quote copied from that evidence. "
+        "Set status to insufficient_evidence with null answer and no claims only if the evidence is "
+        "completely irrelevant or cannot answer the question. Follow answer_language.\n\nINPUT_JSON:\n"
         + json.dumps(task, ensure_ascii=False, separators=(",", ":"))
     )
     evidence_ids = list(evidence_by_id)
@@ -234,6 +239,30 @@ def _message_content(payload: Any) -> str:
     return content
 
 
+_CONVERSATIONAL_PREFIX_PATTERN = re.compile(
+    r"^(?:according to (?:the )?(?:information|available information|provided information) (?:i|we) have,?\s*|based on (?:the )?(?:information|available information|provided information) (?:i|we) have,?\s*|in the provided information,?\s*)",
+    re.IGNORECASE,
+)
+
+
+def _is_exact_quote(quote: str, hit_text: str) -> bool:
+    if quote in hit_text:
+        return True
+    norm_quote = " ".join(quote.split()).casefold()
+    norm_hit = " ".join(hit_text.split()).casefold()
+    return norm_quote in norm_hit
+
+
+def _normalize_tokens(text: str) -> str:
+    parts = [
+        _CONVERSATIONAL_PREFIX_PATTERN.sub("", s.strip())
+        for s in re.split(r"[.!?।॥;\n]+", text.strip())
+        if s.strip()
+    ]
+    merged = " ".join(parts).casefold()
+    return " ".join(re.findall(r"\w+", merged))
+
+
 def _validate_grounding(
     structured: _StructuredAnswer,
     evidence_by_id: dict[str, SearchHit],
@@ -245,7 +274,18 @@ def _validate_grounding(
 
     assert structured.answer is not None
     canonical_answer = " ".join(claim.sentence.strip() for claim in structured.claims)
-    if " ".join(structured.answer.split()) != " ".join(canonical_answer.split()):
+
+    if (
+        " ".join(structured.answer.split()) != " ".join(canonical_answer.split())
+        and _normalize_tokens(structured.answer) != _normalize_tokens(canonical_answer)
+    ):
+        logger.warning(
+            "Answer mismatch: structured.answer=%r, canonical_answer=%r, norm_s=%r, norm_c=%r",
+            structured.answer,
+            canonical_answer,
+            _normalize_tokens(structured.answer),
+            _normalize_tokens(canonical_answer),
+        )
         raise GroqGroundingFailed("The answer did not exactly match its claim sentences")
 
     used_ids: list[str] = []
@@ -263,8 +303,15 @@ def _validate_grounding(
                 hit is None
                 or support.evidence_id not in claim_ids
                 or not quote
-                or quote not in hit.text
+                or not _is_exact_quote(quote, hit.text)
             ):
+                logger.warning(
+                    "Quote check failed: hit_is_none=%s, not_in_claim_ids=%s, quote=%r, hit_text=%r",
+                    hit is None,
+                    support.evidence_id not in claim_ids,
+                    quote,
+                    hit.text if hit is not None else None,
+                )
                 raise GroqGroundingFailed("A supporting quote was not an exact evidence span")
             quoted_ids.add(support.evidence_id)
             quoted_text.append(quote)
