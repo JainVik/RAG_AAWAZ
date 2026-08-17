@@ -22,15 +22,15 @@ export const Header: React.FC<HeaderProps> = () => {
       </a>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-center">
-        {/* Centered Clean Nav Pills */}
-        <nav aria-label="Main Navigation" className="flex items-center gap-1.5 bg-[#0a1020]/90 p-1.5 rounded-full border border-white/10 shadow-xl backdrop-blur-xl">
+        {/* Centered Clean Nav Pills with Liquid Glass */}
+        <nav aria-label="Main Navigation" className="refractive-glass-pill flex items-center gap-1.5 p-1.5">
           <NavLink
             to="/ask"
             className={({ isActive }) =>
-              `flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-semibold transition-all cursor-pointer ${
+              `flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-bold transition-all cursor-pointer ${
                 isActive
-                  ? 'bg-blue-600 text-white shadow-md border border-blue-400/40'
-                  : 'text-slate-400 hover:text-white hover:bg-white/5'
+                  ? 'bg-gradient-to-tr from-blue-600 via-blue-500 to-cyan-400 text-white shadow-[0_0_20px_rgba(37,99,235,0.45)]'
+                  : 'text-slate-400 hover:text-white hover:bg-white/5 font-medium'
               }`
             }
           >
@@ -41,10 +41,10 @@ export const Header: React.FC<HeaderProps> = () => {
           <NavLink
             to="/evidence"
             className={({ isActive }) =>
-              `flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-semibold transition-all cursor-pointer ${
+              `flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-bold transition-all cursor-pointer ${
                 isActive
-                  ? 'bg-blue-600 text-white shadow-md border border-blue-400/40'
-                  : 'text-slate-400 hover:text-white hover:bg-white/5'
+                  ? 'bg-gradient-to-tr from-blue-600 via-blue-500 to-cyan-400 text-white shadow-[0_0_20px_rgba(37,99,235,0.45)]'
+                  : 'text-slate-400 hover:text-white hover:bg-white/5 font-medium'
               }`
             }
           >

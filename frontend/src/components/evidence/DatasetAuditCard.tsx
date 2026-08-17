@@ -20,13 +20,13 @@ export const DatasetAuditCard: React.FC<DatasetAuditCardProps> = ({ audit }) => 
       borderRadius={20}
       brightness={35}
       opacity={0.85}
-      className="p-6 transition-all hover:border-cyan-500/30"
+      className="p-6 transition-all hover:border-blue-500/30"
     >
       <div className="space-y-6">
         {/* Header & Qualification Status */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-white/10 pb-4">
           <div className="flex items-center gap-3">
-            <div className="p-2.5 rounded-xl bg-blue-500/10 border border-blue-400/20 text-cyan-400">
+            <div className="p-2.5 rounded-xl bg-blue-500/10 border border-blue-400/20 text-blue-400">
               <FileText size={22} weight="bold" />
             </div>
             <div>
@@ -46,7 +46,7 @@ export const DatasetAuditCard: React.FC<DatasetAuditCardProps> = ({ audit }) => 
 
           <div className="flex items-center gap-2">
             <span className="text-[11px] font-mono text-slate-400">Scope:</span>
-            <span className="px-2.5 py-1 rounded-lg text-xs font-mono font-bold bg-white/5 border border-white/10 text-cyan-300">
+            <span className="px-2.5 py-1 rounded-lg text-xs font-mono font-bold bg-white/5 border border-white/10 text-blue-300">
               {audit.audited_row_count} Rows Audited
             </span>
           </div>
@@ -95,7 +95,7 @@ export const DatasetAuditCard: React.FC<DatasetAuditCardProps> = ({ audit }) => 
             <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
               Passage Hit Ratio
             </span>
-            <span className="text-cyan-400 font-mono font-bold text-sm block">
+            <span className="text-blue-400 font-mono font-bold text-sm block">
               {audit.selected_passage_ratio === null ? 'Not measured' : `${(audit.selected_passage_ratio * 100).toFixed(1)}%`}
             </span>
             <span className="text-[10px] text-slate-500 block">Selected candidate ratio</span>
@@ -107,7 +107,7 @@ export const DatasetAuditCard: React.FC<DatasetAuditCardProps> = ({ audit }) => 
           {/* Query Type Distribution */}
           <div className="p-3.5 bg-white/5 border border-white/8 rounded-xl space-y-2">
             <div className="flex items-center gap-1.5 text-xs font-bold text-slate-300">
-              <ChartPieSlice size={15} className="text-cyan-400" />
+              <ChartPieSlice size={15} className="text-blue-400" />
               <span>Query Type Distribution</span>
             </div>
             <div className="grid grid-cols-3 gap-2 text-center pt-1">
@@ -123,7 +123,7 @@ export const DatasetAuditCard: React.FC<DatasetAuditCardProps> = ({ audit }) => 
           {/* Dataset Pinned Details */}
           <div className="p-3.5 bg-white/5 border border-white/8 rounded-xl space-y-1.5 text-xs">
             <div className="flex items-center gap-1.5 text-xs font-bold text-slate-300 mb-1">
-              <ListNumbers size={15} className="text-cyan-400" />
+              <ListNumbers size={15} className="text-blue-400" />
               <span>Provenance &amp; Split</span>
             </div>
             <div className="flex justify-between text-[11px]">

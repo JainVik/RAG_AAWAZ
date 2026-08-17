@@ -1,7 +1,6 @@
 import React from 'react';
 import { CaretDown, Database, Cpu, HardDrives, ShieldCheck } from '@phosphor-icons/react';
 import type { CorpusIndexInfo } from '../../types/api';
-import GlassSurface from '../ui/GlassSurface';
 
 interface CorpusIndexCardProps {
   corpus: CorpusIndexInfo;
@@ -10,16 +9,11 @@ interface CorpusIndexCardProps {
 export const CorpusIndexCard: React.FC<CorpusIndexCardProps> = ({ corpus }) => {
   const count = (value: number | null) => value === null ? 'Not available' : value.toLocaleString();
   return (
-    <GlassSurface
-      borderRadius={20}
-      brightness={35}
-      opacity={0.85}
-      className="p-6 sm:p-8 space-y-6 transition-all hover:border-cyan-500/30"
-    >
+    <article className="refractive-glass-card refractive-glass-card-primary p-6 sm:p-8 space-y-6">
       {/* Header */}
       <div className="flex flex-wrap items-center justify-between gap-3 pb-4 border-b border-white/10">
         <div className="flex items-center gap-3">
-          <div className="p-2.5 rounded-xl bg-cyan-500/10 border border-cyan-400/20 text-cyan-400">
+          <div className="p-2.5 rounded-xl bg-blue-500/15 border border-blue-400/30 text-blue-300">
             <Database size={22} weight="bold" />
           </div>
           <div>
@@ -40,9 +34,9 @@ export const CorpusIndexCard: React.FC<CorpusIndexCardProps> = ({ corpus }) => {
 
       {/* Corpus Facts Stats Row */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-        <div className="p-4 bg-white/5 border border-white/8 rounded-xl space-y-1">
+        <div className="p-4 bg-white/[0.04] border border-white/10 rounded-xl space-y-1 transition-all hover:bg-white/[0.07]">
           <div className="flex items-center gap-1.5 text-xs text-slate-400 font-semibold">
-            <HardDrives size={15} className="text-cyan-400" />
+            <HardDrives size={15} className="text-blue-400" />
             <span>Corpus Documents</span>
           </div>
           <div className="font-mono text-2xl font-bold text-white font-mono-tabular">
@@ -53,12 +47,12 @@ export const CorpusIndexCard: React.FC<CorpusIndexCardProps> = ({ corpus }) => {
           </p>
         </div>
 
-        <div className="p-4 bg-white/5 border border-white/8 rounded-xl space-y-1">
+        <div className="p-4 bg-white/[0.04] border border-white/10 rounded-xl space-y-1 transition-all hover:bg-white/[0.07]">
           <div className="flex items-center gap-1.5 text-xs text-slate-400 font-semibold">
-            <Database size={15} className="text-cyan-400" />
+            <Database size={15} className="text-blue-400" />
             <span>Indexed Chunks</span>
           </div>
-          <div className="font-mono text-2xl font-bold text-cyan-300 font-mono-tabular">
+          <div className="font-mono text-2xl font-bold text-blue-300 font-mono-tabular">
             {count(corpus.indexed_chunks_count)}
           </div>
           <p className="text-[11px] text-slate-400">
@@ -66,7 +60,7 @@ export const CorpusIndexCard: React.FC<CorpusIndexCardProps> = ({ corpus }) => {
           </p>
         </div>
 
-        <div className="p-4 bg-white/5 border border-white/8 rounded-xl space-y-1">
+        <div className="p-4 bg-white/[0.04] border border-white/10 rounded-xl space-y-1 transition-all hover:bg-white/[0.07]">
           <div className="flex items-center gap-1.5 text-xs text-slate-400 font-semibold">
             <ShieldCheck size={15} className="text-emerald-400" />
             <span>Evaluation Fixtures</span>
@@ -80,37 +74,37 @@ export const CorpusIndexCard: React.FC<CorpusIndexCardProps> = ({ corpus }) => {
         </div>
       </div>
 
-      <details className="overflow-hidden rounded-xl border border-white/8 bg-black/15">
-        <summary className="flex cursor-pointer list-none items-center justify-between gap-3 px-4 py-3 text-xs font-bold text-slate-200">
+      <details className="glass-inner-box overflow-hidden">
+        <summary className="flex cursor-pointer list-none items-center justify-between gap-3 text-xs font-bold text-slate-200">
           <span>Evaluator details · embedding and index bindings</span>
-          <CaretDown size={15} className="text-slate-500" />
+          <CaretDown size={15} className="text-slate-400" />
         </summary>
-        <div className="grid grid-cols-1 gap-4 border-t border-white/8 p-4 sm:grid-cols-2">
-          <div className="space-y-2.5 rounded-xl border border-white/8 bg-white/5 p-4">
-            <div className="flex items-center gap-2 text-xs font-bold text-cyan-300">
+        <div className="mt-3 grid grid-cols-1 gap-4 border-t border-white/10 pt-3 sm:grid-cols-2">
+          <div className="space-y-2.5 rounded-xl border border-white/10 bg-white/[0.04] p-4">
+            <div className="flex items-center gap-2 text-xs font-bold text-blue-300">
               <Cpu size={16} />
               <span>Dense embedding</span>
             </div>
             <div className="space-y-1.5 text-xs">
               <div className="flex justify-between gap-3"><span className="text-slate-400">Model</span><span className="text-right font-mono font-semibold text-white">{corpus.dense_model}</span></div>
-              <div className="flex justify-between gap-3"><span className="text-slate-400">Dimension / metric</span><span className="font-mono text-cyan-300">{corpus.dense_dim}d / {corpus.dense_distance}</span></div>
+              <div className="flex justify-between gap-3"><span className="text-slate-400">Dimension / metric</span><span className="font-mono text-blue-300">{corpus.dense_dim}d / {corpus.dense_distance}</span></div>
               <div className="flex justify-between gap-3"><span className="text-slate-400">Corpus language</span><span className="font-mono text-white">{corpus.language}</span></div>
             </div>
           </div>
-          <div className="space-y-2.5 rounded-xl border border-white/8 bg-white/5 p-4">
-            <div className="flex items-center gap-2 text-xs font-bold text-cyan-300">
+          <div className="space-y-2.5 rounded-xl border border-white/10 bg-white/[0.04] p-4">
+            <div className="flex items-center gap-2 text-xs font-bold text-blue-300">
               <Database size={16} />
               <span>Vector and sparse index</span>
             </div>
             <div className="space-y-1.5 text-xs">
               <div className="flex justify-between gap-3"><span className="text-slate-400">Collection</span><span className="text-right font-mono font-semibold text-white">{corpus.qdrant_collection}</span></div>
               <div className="flex justify-between gap-3"><span className="text-slate-400">Sparse model</span><span className="text-right font-mono text-white">{corpus.sparse_model}</span></div>
-              <div className="flex justify-between gap-3"><span className="text-slate-400">Revision</span><span className="max-w-52 truncate font-mono text-cyan-300" title={corpus.revision ?? undefined}>{corpus.revision ?? 'Not available'}</span></div>
+              <div className="flex justify-between gap-3"><span className="text-slate-400">Revision</span><span className="max-w-52 truncate font-mono text-blue-300" title={corpus.revision ?? undefined}>{corpus.revision ?? 'Not available'}</span></div>
               <div className="flex justify-between gap-3"><span className="text-slate-400">Build ID</span><span className="max-w-52 truncate font-mono text-slate-300" title={corpus.index_build_id ?? undefined}>{corpus.index_build_id ?? 'Not available'}</span></div>
             </div>
           </div>
         </div>
       </details>
-    </GlassSurface>
+    </article>
   );
 };

@@ -3,6 +3,7 @@ import { Header } from '../common/Header';
 import type { HealthResponse, ReadyResponse } from '../../types/api';
 import { getHealth, getReady } from '../../services/api';
 import { GradientWaves } from '../ui/GradientWaves';
+import { LiquidGlassDefs } from '../ui/LiquidGlassDefs';
 
 interface ShellContextType {
   openSystemChecks: () => void;
@@ -61,9 +62,12 @@ export const Shell: React.FC<ShellProps> = ({ children, isDark, onToggleTheme })
         refreshStatus: fetchStatus,
       }}
     >
-      <div className="relative min-h-[100dvh] flex flex-col text-slate-100 selection:bg-cyan-500/30 selection:text-cyan-200">
+      <div className="relative min-h-[100dvh] flex flex-col text-slate-100 selection:bg-blue-500/30 selection:text-blue-200">
+        {/* Global SVG Optical Displacement Definitions */}
+        <LiquidGlassDefs />
+
         {/* Full-Screen Animated 3D WebGL Gradient Waves Background */}
-        <div className="fixed inset-0 z-0 pointer-events-none w-screen h-screen overflow-hidden bg-[#070b14]">
+        <div className="fixed inset-0 z-0 pointer-events-none w-screen h-screen overflow-hidden bg-canvas">
           <GradientWaves
             horizonColor="#050814"
             waveColor="#1e40af"

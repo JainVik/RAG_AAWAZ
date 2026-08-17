@@ -10,15 +10,15 @@ export const MethodologySection: React.FC<MethodologySectionProps> = ({ provenan
   const [isOpen, setIsOpen] = useState(false);
 
   return (
-    <div className="bg-[#0e1424] border border-white/10 rounded-2xl overflow-hidden shadow-sm">
+    <div className="refractive-glass-card refractive-glass-card-primary overflow-hidden">
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
-        className="w-full p-6 sm:p-8 flex items-center justify-between text-left hover:bg-white/[0.02] transition-colors cursor-pointer"
+        className="w-full p-6 sm:p-8 flex items-center justify-between text-left hover:bg-white/[0.04] transition-colors cursor-pointer"
         aria-expanded={isOpen}
       >
         <div className="flex items-center gap-3">
-          <div className="p-2 rounded-xl bg-slate-500/10 border border-slate-500/20 text-slate-300">
+          <div className="p-2.5 rounded-xl bg-blue-500/15 border border-blue-400/30 text-blue-300">
             <BookOpen size={22} weight="bold" />
           </div>
           <div>
@@ -44,9 +44,9 @@ export const MethodologySection: React.FC<MethodologySectionProps> = ({ provenan
         <div className="p-6 sm:p-8 pt-0 border-t border-white/10 space-y-6 text-xs text-slate-300 leading-relaxed font-sans">
           {/* Methodological Statements */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="p-4 bg-white/5 border border-white/10 rounded-xl space-y-1.5">
+            <div className="p-4 bg-white/[0.04] border border-white/10 rounded-xl space-y-1.5 transition-all hover:bg-white/[0.07]">
               <span className="font-bold text-white flex items-center gap-1.5 text-xs">
-                <ShieldCheck size={16} className="text-cyan-400" />
+                <ShieldCheck size={16} className="text-blue-400" />
                 <span>Deterministic Evaluation Scope</span>
               </span>
               <p className="text-slate-400">
@@ -54,9 +54,9 @@ export const MethodologySection: React.FC<MethodologySectionProps> = ({ provenan
               </p>
             </div>
 
-            <div className="p-4 bg-white/5 border border-white/10 rounded-xl space-y-1.5">
+            <div className="p-4 bg-white/[0.04] border border-white/10 rounded-xl space-y-1.5 transition-all hover:bg-white/[0.07]">
               <span className="font-bold text-white flex items-center gap-1.5 text-xs">
-                <LockKey size={16} className="text-cyan-400" />
+                <LockKey size={16} className="text-blue-400" />
                 <span>Confidence &amp; Speech Standards</span>
               </span>
               <p className="text-slate-400">
@@ -70,10 +70,10 @@ export const MethodologySection: React.FC<MethodologySectionProps> = ({ provenan
             <span className="font-bold text-white uppercase tracking-wider text-[11px] block">
               Cryptographic Artifact Hashes (SHA256)
             </span>
-            <div className="p-4 bg-black/40 border border-white/10 rounded-xl space-y-2 font-mono text-[11px]">
+            <div className="p-4 bg-black/40 border border-white/10 rounded-xl space-y-2 font-mono text-[11px] backdrop-blur-sm">
               {Object.entries(provenance.artifact_hashes).map(([file, hash]) => (
                 <div key={file} className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 py-1 border-b border-white/5 last:border-0">
-                  <span className="text-cyan-300 font-semibold">{file}</span>
+                  <span className="text-blue-300 font-semibold">{file}</span>
                   <span className="text-slate-400 truncate max-w-md" title={String(hash)}>
                     {String(hash)}
                   </span>

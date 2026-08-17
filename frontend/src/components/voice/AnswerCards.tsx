@@ -161,10 +161,10 @@ export const AnswerCards: React.FC<AnswerCardsProps> = ({
   };
 
   const primaryCard = (
-    <article className="flex h-full min-w-0 flex-col space-y-4 rounded-2xl border border-cyan-500/30 bg-[#0e1529]/90 p-6 text-left shadow-2xl">
+    <article className="refractive-glass-card refractive-glass-card-primary flex h-full min-w-0 flex-col space-y-4 p-6 text-left">
       <div className="flex flex-wrap items-start justify-between gap-3 border-b border-white/10 pb-3 text-xs text-slate-400">
         <div>
-          <span className="flex items-center gap-1.5 font-semibold text-cyan-400">
+          <span className="flex items-center gap-1.5 font-semibold text-blue-400">
             <Sparkle size={14} weight="fill" />Evidence answer
           </span>
           <span className="mt-1 block text-[10px] text-slate-500">Exact answer assembled from retrieved passages</span>
@@ -177,14 +177,18 @@ export const AnswerCards: React.FC<AnswerCardsProps> = ({
             {result.answer}
           </p>
         ) : result.guardrail.decision === 'ABSTAIN' || result.state === 'ABSTAINED' ? (
-          <div className="flex gap-2 rounded-xl border border-amber-500/20 bg-amber-500/10 p-3 text-xs text-amber-300">
-            <HandPalm size={18} className="shrink-0" />
-            {result.guardrail.user_message ?? 'The corpus does not contain enough verified evidence.'}
+          <div className="glass-inner-box flex gap-2.5 text-xs text-slate-200">
+            <HandPalm size={18} className="shrink-0 text-slate-400" />
+            <span className="leading-relaxed text-slate-300">
+              {result.guardrail.user_message ?? 'The corpus does not contain enough verified evidence.'}
+            </span>
           </div>
         ) : (
-          <div className="flex gap-2 rounded-xl border border-rose-500/20 bg-rose-500/10 p-3 text-xs text-rose-300">
+          <div className="glass-inner-box flex gap-2.5 text-xs text-rose-300">
             <WarningOctagon size={18} className="shrink-0" />
-            {result.guardrail.user_message ?? `Request ended in ${result.state}.`}
+            <span className="leading-relaxed">
+              {result.guardrail.user_message ?? `Request ended in ${result.state}.`}
+            </span>
           </div>
         )}
       </div>
@@ -194,7 +198,7 @@ export const AnswerCards: React.FC<AnswerCardsProps> = ({
           type="button"
           disabled={!result.citations.length}
           onClick={() => setDrawerSource('primary')}
-          className="inline-flex items-center gap-2 rounded-lg border border-cyan-500/30 bg-cyan-500/10 px-3 py-1.5 text-xs font-semibold text-cyan-300 disabled:opacity-40"
+          className="glass-btn inline-flex items-center gap-2 px-3.5 py-1.5 text-xs font-semibold text-blue-300 disabled:opacity-40"
         >
           <Quotes size={15} weight="fill" />
           {result.citations.length} citation{result.citations.length === 1 ? '' : 's'}
@@ -203,7 +207,7 @@ export const AnswerCards: React.FC<AnswerCardsProps> = ({
           <button
             type="button"
             onClick={() => void copyAnswer('primary', result.answer)}
-            className="inline-flex items-center gap-1 text-xs text-slate-400 hover:text-white"
+            className="inline-flex items-center gap-1 text-xs text-slate-400 hover:text-white transition-colors"
           >
             {copied === 'primary' ? <Check size={14} className="text-emerald-400" /> : <Copy size={14} />}
             {copied === 'primary' ? 'Copied' : 'Copy answer'}
@@ -216,7 +220,7 @@ export const AnswerCards: React.FC<AnswerCardsProps> = ({
   const synthesisCard = hasSynthesisCard ? (
     <article
       aria-busy={synthesisLoading}
-      className="flex h-full min-w-0 flex-col space-y-4 rounded-2xl border border-violet-400/30 bg-[#11152b]/95 p-6 text-left shadow-2xl"
+      className="refractive-glass-card refractive-glass-card-synthesis flex h-full min-w-0 flex-col space-y-4 p-6 text-left"
     >
       <div className="border-b border-white/10 pb-3 text-xs text-slate-400">
         <span className="flex items-center gap-1.5 font-semibold text-violet-300">
@@ -227,10 +231,10 @@ export const AnswerCards: React.FC<AnswerCardsProps> = ({
 
       <div className="flex flex-1 flex-col justify-center" aria-live="polite">
         {synthesisLoading ? (
-          <div className="flex items-center gap-3 rounded-xl border border-violet-400/15 bg-violet-500/5 p-4 text-sm text-violet-200">
+          <div className="glass-inner-box flex items-center gap-3 text-sm text-violet-200">
             <SpinnerGap size={20} className="shrink-0 animate-spin" />
             <div>
-              <p className="font-semibold">Preparing the grounded synthesis…</p>
+              <p className="font-semibold text-white">Preparing the grounded synthesis…</p>
               <p className="mt-1 text-xs text-slate-400">Your evidence answer is already ready.</p>
             </div>
           </div>
@@ -241,21 +245,21 @@ export const AnswerCards: React.FC<AnswerCardsProps> = ({
             </p>
           </div>
         ) : uninvokedSynthesis ? (
-          <div className="flex gap-3 rounded-xl border border-amber-500/20 bg-amber-500/10 p-4 text-sm text-amber-200">
-            <HandPalm size={20} className="shrink-0" />
+          <div className="glass-inner-box flex gap-3 text-sm text-slate-200">
+            <HandPalm size={20} className="shrink-0 text-slate-400" />
             <div>
-              <p className="font-semibold">{uninvokedSynthesis.title}</p>
-              <p className="mt-1 text-xs leading-relaxed text-amber-100/75">
+              <p className="font-semibold text-white">{uninvokedSynthesis.title}</p>
+              <p className="mt-1 text-xs leading-relaxed text-slate-300">
                 {uninvokedSynthesis.message}
               </p>
             </div>
           </div>
         ) : (
-          <div className="flex gap-3 rounded-xl border border-amber-500/20 bg-amber-500/10 p-4 text-sm text-amber-200">
-            <WarningOctagon size={20} className="shrink-0" />
+          <div className="glass-inner-box flex gap-3 text-sm text-slate-200">
+            <WarningOctagon size={20} className="shrink-0 text-slate-400" />
             <div>
-              <p className="font-semibold">{synthesisFailureTitle(synthesisResult)}</p>
-              <p className="mt-1 text-xs leading-relaxed text-amber-100/75">
+              <p className="font-semibold text-white">{synthesisFailureTitle(synthesisResult)}</p>
+              <p className="mt-1 text-xs leading-relaxed text-slate-300">
                 {synthesisError ??
                   (synthesisResult && synthesisResult.status !== 'completed'
                     ? synthesisResult.guardrail.user_message ?? SYNTHESIS_FAILURE_MESSAGES[synthesisResult.status]
@@ -271,7 +275,7 @@ export const AnswerCards: React.FC<AnswerCardsProps> = ({
           type="button"
           disabled={!synthesisResult?.citations.length}
           onClick={() => setDrawerSource('synthesis')}
-          className="inline-flex items-center gap-2 rounded-lg border border-violet-400/30 bg-violet-500/10 px-3 py-1.5 text-xs font-semibold text-violet-200 disabled:opacity-40"
+          className="glass-btn inline-flex items-center gap-2 px-3.5 py-1.5 text-xs font-semibold text-violet-200 disabled:opacity-40"
         >
           <Quotes size={15} weight="fill" />
           {synthesisResult?.citations.length ?? 0} citation{(synthesisResult?.citations.length ?? 0) === 1 ? '' : 's'}
@@ -280,7 +284,7 @@ export const AnswerCards: React.FC<AnswerCardsProps> = ({
           <button
             type="button"
             onClick={() => void copyAnswer('synthesis', synthesisResult.answer)}
-            className="inline-flex items-center gap-1 text-xs text-slate-400 hover:text-white"
+            className="inline-flex items-center gap-1 text-xs text-slate-400 hover:text-white transition-colors"
           >
             {copied === 'synthesis' ? <Check size={14} className="text-emerald-400" /> : <Copy size={14} />}
             {copied === 'synthesis' ? 'Copied' : 'Copy answer'}
@@ -311,18 +315,20 @@ export const AnswerCards: React.FC<AnswerCardsProps> = ({
         <div className={`mt-3.5 grid gap-4 ${hasSynthesisCard ? 'lg:grid-cols-2' : ''}`}>
           {/* Left Column Pill (Evidence Answer) */}
           <div className="flex justify-center">
-            <div className="flex items-center gap-x-2 rounded-full border border-cyan-500/30 bg-[#0a1324]/90 px-3.5 py-1.5 font-mono text-[10px] text-slate-300 shadow-sm backdrop-blur-sm">
-              <span className="inline-flex items-center gap-1 font-bold text-cyan-300">
+            <div aria-label="Query outcome summary" className="refractive-glass-pill flex items-center gap-x-2 px-3.5 py-1.5 font-mono text-[10px] text-slate-300">
+              <span className="inline-flex items-center gap-1 font-bold text-blue-300">
                 <Sparkle size={12} weight="fill" /> Evidence Answer
               </span>
               <span className="text-slate-600" aria-hidden="true">·</span>
-              <span className="text-cyan-300">{getLanguageDisplayLabel(result.language)}</span>
+              <span className="text-blue-300">{getLanguageDisplayLabel(result.language)}</span>
               <span className="text-slate-600" aria-hidden="true">·</span>
               <span className={primaryOutcome === 'Grounded' ? 'text-emerald-300 font-semibold' : 'text-amber-300'}>{primaryOutcome}</span>
+              <span className="text-slate-600" aria-hidden="true">·</span>
+              <span>{result.citations.length} citation{result.citations.length === 1 ? '' : 's'}</span>
               {responseLatencyMs !== null && (
                 <>
                   <span className="text-slate-600" aria-hidden="true">·</span>
-                  <span className="font-bold text-cyan-300">{formatResponseLatency(responseLatencyMs)}</span>
+                  <span className="font-bold text-blue-300">{formatResponseLatency(responseLatencyMs)}</span>
                 </>
               )}
             </div>
@@ -331,7 +337,7 @@ export const AnswerCards: React.FC<AnswerCardsProps> = ({
           {/* Right Column Pill (Groq Grounded Synthesis) */}
           {hasSynthesisCard && (
             <div className="flex justify-center">
-              <div className="flex items-center gap-x-2 rounded-full border border-violet-500/30 bg-[#140e29]/90 px-3.5 py-1.5 font-mono text-[10px] text-slate-300 shadow-sm backdrop-blur-sm">
+              <div className="refractive-glass-pill flex items-center gap-x-2 px-3.5 py-1.5 font-mono text-[10px] text-slate-300">
                 <span className="inline-flex items-center gap-1 font-bold text-violet-300">
                   <Sparkle size={12} weight="fill" /> Groq Synthesis
                 </span>
@@ -345,10 +351,16 @@ export const AnswerCards: React.FC<AnswerCardsProps> = ({
                 <span className={synthesisResult?.status === 'completed' ? 'text-emerald-300 font-semibold' : 'text-violet-300'}>
                   {synthesisResult?.status === 'completed' ? 'Grounded' : synthesisLoading ? 'Generating…' : (synthesisResult?.status ?? 'Pending')}
                 </span>
+                {synthesisResult?.citations && (
+                  <>
+                    <span className="text-slate-600" aria-hidden="true">·</span>
+                    <span>{synthesisResult.citations.length} citation{synthesisResult.citations.length === 1 ? '' : 's'}</span>
+                  </>
+                )}
                 {synthesisLatencyMs !== null && (
                   <>
                     <span className="text-slate-600" aria-hidden="true">·</span>
-                    <span className="font-bold text-violet-300">{formatResponseLatency(synthesisLatencyMs)}</span>
+                    <span className="font-bold text-violet-300">Generated in {formatResponseLatency(synthesisLatencyMs)}</span>
                   </>
                 )}
               </div>

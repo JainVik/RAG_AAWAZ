@@ -89,7 +89,7 @@ export const VoiceStage: React.FC<VoiceStageProps> = (props) => {
             {isRecording ? (
               <>
                 <h2 className="text-3xl font-bold text-white">Listening…</h2>
-                <p className="max-w-xl text-base leading-relaxed text-cyan-300 font-medium">
+                <p className="max-w-xl text-base leading-relaxed text-blue-300 font-medium">
                   {props.partialTranscript || 'Speak your complete question.'}
                 </p>
                 <span className="text-[10px] text-slate-500">Live draft — auto-stops after 1.5 seconds of silence</span>
@@ -119,7 +119,7 @@ export const VoiceStage: React.FC<VoiceStageProps> = (props) => {
             )}
 
             {props.error && !props.result && (
-              <div className="max-w-md rounded-xl border border-rose-500/30 bg-rose-500/10 p-3 text-xs text-rose-300">
+              <div className="glass-inner-box max-w-md p-3 text-xs text-rose-300">
                 {props.error.message}
               </div>
             )}
@@ -127,7 +127,7 @@ export const VoiceStage: React.FC<VoiceStageProps> = (props) => {
               <button
                 type="button"
                 onClick={props.onOpenDiagnostics}
-                className="rounded-xl border border-amber-500/30 bg-amber-500/10 px-4 py-2 text-xs text-amber-200"
+                className="glass-btn px-4 py-2 text-xs font-semibold text-amber-200"
               >
                 Backend not ready — view checks
               </button>

@@ -36,22 +36,22 @@ export const TextInputPanel: React.FC<TextInputPanelProps> = ({
     <div className="w-full space-y-6">
       <div className="flex flex-wrap items-center justify-end gap-4 border-b border-white/10 pb-4">
         <div className="flex items-center gap-2">
-          <span className="flex items-center gap-1 text-xs font-semibold text-slate-300"><Globe size={14} className="text-cyan-400" />Language hint</span>
-          <div className="flex gap-1 rounded-lg border border-white/10 bg-white/5 p-1">
+          <span className="flex items-center gap-1 text-xs font-semibold text-slate-300"><Globe size={14} className="text-blue-400" />Language hint</span>
+          <div className="flex gap-1 rounded-lg border border-white/10 bg-white/5 p-1 backdrop-blur-md">
             {LANGUAGE_BUTTONS.map((language) => (
-              <button key={language.id} type="button" disabled={disabled || isLoading} onClick={() => onLanguageChange(language.id)} className={`rounded-md px-2.5 py-1 text-xs disabled:opacity-50 ${selectedLanguage === language.id ? 'border border-cyan-400/30 bg-cyan-500/20 text-cyan-300' : 'text-slate-400 hover:text-white'}`}>{language.label}</button>
+              <button key={language.id} type="button" disabled={disabled || isLoading} onClick={() => onLanguageChange(language.id)} className={`rounded-md px-2.5 py-1 text-xs transition-all disabled:opacity-50 cursor-pointer ${selectedLanguage === language.id ? 'bg-gradient-to-tr from-blue-600 via-blue-500 to-cyan-400 text-white font-bold shadow-[0_0_15px_rgba(37,99,235,0.4)]' : 'text-slate-400 hover:text-white hover:bg-white/5'}`}>{language.label}</button>
             ))}
           </div>
         </div>
       </div>
       <div className="space-y-2">
         <label htmlFor="text-query-input" className="block text-xs font-bold text-slate-200">Ask a question grounded in the MSMARCO-XI corpus</label>
-        <textarea id="text-query-input" rows={4} value={query} maxLength={MAX_CHARS} disabled={disabled || isLoading} onChange={(event) => setQuery(event.target.value)} onKeyDown={(event) => { if ((event.ctrlKey || event.metaKey) && event.key === 'Enter') { event.preventDefault(); submit(); } }} placeholder="Type a factual question in English, Hindi, or Hinglish..." className="min-h-[100px] w-full resize-y rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white placeholder:text-slate-500 focus:border-cyan-400 disabled:opacity-60" />
+        <textarea id="text-query-input" rows={4} value={query} maxLength={MAX_CHARS} disabled={disabled || isLoading} onChange={(event) => setQuery(event.target.value)} onKeyDown={(event) => { if ((event.ctrlKey || event.metaKey) && event.key === 'Enter') { event.preventDefault(); submit(); } }} placeholder="Type a factual question in English, Hindi, or Hinglish..." className="min-h-[110px] w-full resize-y rounded-xl border border-white/10 bg-black/20 px-4 py-3 text-sm text-white placeholder:text-slate-500 focus:border-blue-400 focus:bg-black/30 backdrop-blur-sm transition-all disabled:opacity-60" />
         <div className="flex justify-between px-1 text-xs text-slate-400"><span>Ctrl+Enter to submit</span><span className="font-mono">{query.length.toLocaleString()} / {MAX_CHARS.toLocaleString()}</span></div>
       </div>
       <div className="flex justify-end gap-3">
-        <button type="button" onClick={() => setQuery('')} disabled={!query || isLoading} className="inline-flex items-center gap-1.5 rounded-xl border border-white/10 bg-white/5 px-4 py-2 text-xs font-semibold text-slate-300 disabled:opacity-40"><Eraser size={15} />Clear</button>
-        <button type="button" onClick={submit} disabled={cannotSubmit} className="inline-flex items-center gap-2 rounded-xl bg-cyan-600 px-6 py-2 text-xs font-bold text-white disabled:opacity-40">
+        <button type="button" onClick={() => setQuery('')} disabled={!query || isLoading} className="glass-btn inline-flex items-center gap-1.5 px-4 py-2 text-xs font-semibold text-slate-300 disabled:opacity-40 cursor-pointer"><Eraser size={15} />Clear</button>
+        <button type="button" onClick={submit} disabled={cannotSubmit} className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-tr from-blue-600 via-blue-500 to-cyan-400 px-6 py-2.5 text-xs font-bold text-white shadow-[0_0_20px_rgba(37,99,235,0.45)] hover:shadow-[0_0_25px_rgba(6,182,212,0.6)] cursor-pointer transform hover:scale-105 active:scale-95 transition-all disabled:opacity-40 disabled:cursor-not-allowed disabled:transform-none">
           {isLoading ? <><CircleNotch size={15} className="animate-spin" />Querying...</> : <><PaperPlaneRight size={15} weight="bold" />Send question</>}
         </button>
       </div>

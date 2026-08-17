@@ -1,7 +1,6 @@
 import React from 'react';
 import { Stack, CheckCircle, Info } from '@phosphor-icons/react';
 import type { ChunkRepresentation } from '../../types/api';
-import GlassSurface from '../ui/GlassSurface';
 
 interface ChunkRepresentationsCardProps {
   representations: ChunkRepresentation[];
@@ -11,19 +10,14 @@ export const ChunkRepresentationsCard: React.FC<ChunkRepresentationsCardProps> =
   representations,
 }) => {
   const totalPoints = representations.reduce((sum, representation) => sum + representation.chunk_count, 0);
-  const segmentTones = ['bg-cyan-400', 'bg-blue-400', 'bg-violet-400', 'bg-fuchsia-400', 'bg-emerald-400'];
+  const segmentTones = ['bg-blue-600', 'bg-blue-500', 'bg-blue-400', 'bg-indigo-500', 'bg-indigo-400'];
 
   return (
-    <GlassSurface
-      borderRadius={20}
-      brightness={35}
-      opacity={0.85}
-      className="p-6 sm:p-8 space-y-6 transition-all hover:border-cyan-500/30"
-    >
+    <article className="refractive-glass-card refractive-glass-card-primary p-6 sm:p-8 space-y-6">
       {/* Header */}
       <div className="flex flex-wrap items-center justify-between gap-3 pb-4 border-b border-white/10">
         <div className="flex items-center gap-3">
-          <div className="p-2.5 rounded-xl bg-purple-500/10 border border-purple-400/20 text-purple-400">
+          <div className="p-2.5 rounded-xl bg-blue-500/15 border border-blue-400/30 text-blue-300">
             <Stack size={22} weight="bold" />
           </div>
           <div>
@@ -37,13 +31,13 @@ export const ChunkRepresentationsCard: React.FC<ChunkRepresentationsCardProps> =
         </div>
 
         <div className="flex items-center gap-1.5 text-xs text-slate-400 font-mono">
-          <Info size={14} className="text-cyan-400" />
+          <Info size={14} className="text-blue-400" />
           <span>Automated runtime routing • No manual selection</span>
         </div>
       </div>
 
       <div className="space-y-6">
-        <div className="flex h-3 overflow-hidden rounded-full bg-white/5" aria-label="Indexed point distribution by representation">
+        <div className="flex h-3 overflow-hidden rounded-full bg-white/5 border border-white/10" aria-label="Indexed point distribution by representation">
           {representations.map((representation, index) => (
             <span
               key={representation.strategy}
@@ -59,7 +53,7 @@ export const ChunkRepresentationsCard: React.FC<ChunkRepresentationsCardProps> =
           {representations.map((rep, index) => (
             <div
               key={rep.strategy}
-              className="flex flex-col justify-between space-y-3 rounded-xl border border-white/8 bg-white/5 p-4 transition-all hover:border-cyan-500/30"
+              className="flex flex-col justify-between space-y-3 rounded-xl border border-white/10 bg-white/[0.04] p-4 transition-all hover:border-blue-400/50 hover:bg-white/[0.08]"
             >
               <div className="space-y-2">
                 <div className="flex items-center justify-between gap-2">
@@ -86,7 +80,7 @@ export const ChunkRepresentationsCard: React.FC<ChunkRepresentationsCardProps> =
                 </div>
                 <div className="rounded-lg bg-black/25 p-2">
                   <span className="block text-[9px] uppercase text-slate-500 font-sans">Avg chars</span>
-                  <span className="text-xs font-bold text-cyan-300">{rep.avg_text_length}</span>
+                  <span className="text-xs font-bold text-blue-300">{rep.avg_text_length}</span>
                 </div>
                 <div className="rounded-lg bg-black/25 p-2">
                   <span className="block text-[9px] uppercase text-slate-500 font-sans">Artifact</span>
@@ -99,6 +93,6 @@ export const ChunkRepresentationsCard: React.FC<ChunkRepresentationsCardProps> =
           ))}
         </div>
       </div>
-    </GlassSurface>
+    </article>
   );
 };

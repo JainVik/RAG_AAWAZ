@@ -42,12 +42,12 @@ export const ChatAssistantMessage: React.FC<ChatAssistantMessageProps> = ({
           />
           <div className="flex items-center gap-2">
             <span className="font-extrabold text-sm tracking-tight text-white">
-              VANI <span className="text-cyan-400">RAG</span>
+              VANI <span className="text-blue-400">RAG</span>
             </span>
             <span className="text-slate-600">·</span>
             {isListening ? (
-              <span className="text-[11px] font-bold text-cyan-300 animate-pulse flex items-center gap-1.5">
-                <span className="w-1.5 h-1.5 rounded-full bg-cyan-400" />
+              <span className="text-[11px] font-bold text-blue-300 animate-pulse flex items-center gap-1.5">
+                <span className="w-1.5 h-1.5 rounded-full bg-blue-400" />
                 Listening to speech…
               </span>
             ) : isProcessing ? (
@@ -65,8 +65,8 @@ export const ChatAssistantMessage: React.FC<ChatAssistantMessageProps> = ({
 
         {/* Live in-flight speech preview if listening */}
         {isListening && liveTranscript && (
-          <div className="w-full max-w-2xl rounded-2xl border border-cyan-500/20 bg-cyan-950/20 p-4 backdrop-blur-xl">
-            <p className="text-sm font-medium text-cyan-200 italic leading-relaxed">
+          <div className="w-full max-w-2xl rounded-2xl border border-blue-500/20 bg-blue-950/20 p-4 backdrop-blur-xl">
+            <p className="text-sm font-medium text-blue-200 italic leading-relaxed">
               "{liveTranscript}"
             </p>
           </div>

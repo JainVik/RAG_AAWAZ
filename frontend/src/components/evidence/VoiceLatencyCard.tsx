@@ -31,7 +31,7 @@ function TimingSummary({
 }) {
   return (
     <div className="space-y-3 rounded-xl border border-white/8 bg-white/5 p-4">
-      <span className="block text-xs font-bold text-cyan-300">{title}</span>
+      <span className="block text-xs font-bold text-blue-300">{title}</span>
       <div className="grid grid-cols-3 gap-2 text-center font-mono">
         {[['P50', p50], ['P95', p95], ['MAX', maximum]].map(([label, value]) => (
           <div key={String(label)} className="rounded-lg bg-black/20 p-2">
@@ -52,7 +52,7 @@ export const VoiceLatencyCard: React.FC<VoiceLatencyCardProps> = ({ latency }) =
       borderRadius={20}
       brightness={35}
       opacity={0.85}
-      className="space-y-6 p-6 transition-all hover:border-cyan-500/30 sm:p-8"
+      className="space-y-6 p-6 transition-all hover:border-blue-500/30 sm:p-8"
     >
       <div className="flex flex-wrap items-center justify-between gap-3 border-b border-white/10 pb-4">
         <div className="flex items-center gap-3">
@@ -81,8 +81,8 @@ export const VoiceLatencyCard: React.FC<VoiceLatencyCardProps> = ({ latency }) =
               <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Measured rows</span>
               <p className="mt-1 font-mono text-3xl font-bold text-white">{latency.sample_count}</p>
             </div>
-            <div className="flex gap-2 rounded-xl border border-cyan-400/15 bg-cyan-500/5 p-4 text-xs leading-relaxed text-slate-400">
-              <Info size={17} className="shrink-0 text-cyan-400" />
+            <div className="flex gap-2 rounded-xl border border-blue-400/15 bg-blue-500/5 p-4 text-xs leading-relaxed text-slate-400">
+              <Info size={17} className="shrink-0 text-blue-400" />
               <span>No aggregate voice percentile is shown until the cold/warm, multilingual, transcript-match, timing-coverage, and zero-failure checks pass.</span>
             </div>
           </div>
@@ -94,7 +94,7 @@ export const VoiceLatencyCard: React.FC<VoiceLatencyCardProps> = ({ latency }) =
             <div className="grid grid-cols-1 gap-2.5 border-t border-white/8 p-4 sm:grid-cols-2">
               {latency.pending_criteria.map((criterion) => (
                 <div key={criterion} className="flex items-start gap-2.5 rounded-xl border border-white/8 bg-white/5 p-3 text-xs text-slate-300">
-                  <CheckCircle size={16} weight="fill" className="mt-0.5 shrink-0 text-cyan-400" />
+                  <CheckCircle size={16} weight="fill" className="mt-0.5 shrink-0 text-blue-400" />
                   <span className="leading-relaxed">{criterion}</span>
                 </div>
               ))}
