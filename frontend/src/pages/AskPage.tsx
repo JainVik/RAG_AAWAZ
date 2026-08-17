@@ -25,6 +25,11 @@ import {
   loadChatSession,
   saveChatSession,
 } from '../utils/chatSessionHistory';
+import {
+  trackGuardrailRejected,
+  trackQueryCompleted,
+  trackQuerySubmitted,
+} from '../utils/analytics';
 
 export const AskPage: React.FC = () => {
   const [showTextModal, setShowTextModal] = useState(false);
@@ -40,6 +45,7 @@ export const AskPage: React.FC = () => {
 
   const closeButtonRef = useRef<HTMLButtonElement>(null);
   const verifiedPromptsRequestedRef = useRef(false);
+  const trackedRequestIdsRef = useRef<Set<string>>(new Set());
   const { openSystemChecks, ready } = useShell();
   const canSubmit = ready?.status === 'ready';
   const voice = useVoiceRecorder();
@@ -70,6 +76,34 @@ export const AskPage: React.FC = () => {
   // Sync turn creation to chat history when a new query response arrives
   useEffect(() => {
     if (!activeResult?.transcript.trim()) return;
+
+    // Track query completion and guardrail rejection exactly once per unique request
+    if (activeResult.request_id && !trackedRequestIdsRef.current.has(activeResult.request_id)) {
+      trackedRequestIdsRef.current.add(activeResult.request_id);
+
+      const isRejected =
+        activeResult.guardrail?.decision !== 'ALLOW' ||
+        activeResult.state === 'ABSTAINED' ||
+        activeResult.state === 'UNSAFE';
+
+      if (isRejected) {
+        trackGuardrailRejected({
+          reason:
+            activeResult.guardrail?.reason ||
+            (activeResult.state === 'UNSAFE' ? 'safety_gate' : 'out_of_domain'),
+          query_snippet: activeResult.transcript,
+        });
+      }
+
+      const totalLatency =
+        activeResult.timings_ms?.total ?? activeResult.timings_ms?.e2e_total ?? 0;
+      trackQueryCompleted({
+        total_latency_ms: totalLatency,
+        has_citations: Boolean(activeResult.citations && activeResult.citations.length > 0),
+        citations_count: activeResult.citations?.length ?? 0,
+        groq_synthesis_used: Boolean(activeResult.synthesis),
+      });
+    }
 
     // Update session recent queries
     setRecentQueries((current) => {
@@ -148,6 +182,15 @@ export const AskPage: React.FC = () => {
       setTextError('The backend is not operationally ready. Open System checks for details.');
       return;
     }
+
+    const targetLanguage = languageOverride ?? toBackendLanguage(voice.selectedLanguage);
+
+    trackQuerySubmitted({
+      input_mode: 'text',
+      language: targetLanguage,
+      source: sourceType === 'sample' ? 'quick_prompt' : 'text_box',
+    });
+
     setLastQuerySource(sourceType);
     setTextResult(null);
     voice.resetToIdle();
@@ -156,7 +199,7 @@ export const AskPage: React.FC = () => {
     try {
       const response = await sendTextQuery({
         query: queryText,
-        language: languageOverride ?? toBackendLanguage(voice.selectedLanguage),
+        language: targetLanguage,
         request_id: crypto.randomUUID(),
         deadline_ms: null,
       });
@@ -210,7 +253,14 @@ export const AskPage: React.FC = () => {
           setTextError(null);
           voice.startRecording();
         }}
-        onStopAndAsk={voice.stopAndAsk}
+        onStopAndAsk={() => {
+          trackQuerySubmitted({
+            input_mode: 'voice',
+            language: toBackendLanguage(voice.selectedLanguage),
+            source: 'mic',
+          });
+          voice.stopAndAsk();
+        }}
         onCancelRecording={voice.cancelRecording}
         onReset={handleReset}
         onClearSession={handleClearSession}
@@ -236,11 +286,11 @@ export const AskPage: React.FC = () => {
           role="dialog"
           aria-modal="true"
           aria-labelledby="text-dialog-title"
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 p-4 backdrop-blur-md"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/20 dark:bg-black/30 p-4 backdrop-blur-[2px]"
         >
-          <div className="w-full max-w-2xl overflow-hidden rounded-2xl border border-white/12 bg-[#0e1424] shadow-2xl">
-            <div className="flex items-center justify-between border-b border-white/10 p-4">
-              <div id="text-dialog-title" className="flex items-center gap-2 text-xs font-bold text-cyan-400">
+          <div className="refractive-glass-card refractive-glass-card-primary w-full max-w-2xl overflow-hidden shadow-2xl">
+            <div className="flex items-center justify-between border-b border-black/10 dark:border-white/10 p-4">
+              <div id="text-dialog-title" className="flex items-center gap-2 text-xs font-bold text-blue-600 dark:text-blue-400">
                 <TextT size={18} />
                 <span>Text query</span>
               </div>
@@ -249,21 +299,21 @@ export const AskPage: React.FC = () => {
                 type="button"
                 aria-label="Close text query dialog"
                 onClick={() => setShowTextModal(false)}
-                className="rounded-lg p-1 text-slate-400 hover:text-white"
+                className="rounded-lg p-1 text-slate-500 hover:text-black dark:text-slate-400 dark:hover:text-white transition-colors cursor-pointer"
               >
                 <X size={18} />
               </button>
             </div>
             <div className="space-y-4 p-6">
               {!canSubmit && (
-                <div className="flex items-start gap-2 rounded-xl border border-amber-500/30 bg-amber-500/10 p-3 text-xs text-amber-200">
-                  <WarningCircle size={18} className="shrink-0" />
-                  Backend readiness has not passed. Query submission is disabled.
+                <div className="glass-inner-box flex items-start gap-2 text-xs text-black dark:text-slate-200">
+                  <WarningCircle size={18} className="shrink-0 text-amber-600 dark:text-slate-400" />
+                  <span className="leading-relaxed text-black dark:text-slate-300">Backend readiness has not passed. Query submission is disabled.</span>
                 </div>
               )}
               {textError && (
-                <div className="rounded-xl border border-red-500/30 bg-red-500/10 p-3 text-xs text-red-300">
-                  {textError}
+                <div className="glass-inner-box flex items-start gap-2 text-xs text-rose-800 dark:text-rose-300">
+                  <span className="leading-relaxed">{textError}</span>
                 </div>
               )}
               <TextInputPanel

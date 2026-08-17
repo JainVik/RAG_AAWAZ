@@ -88,23 +88,23 @@ export const VoiceStage: React.FC<VoiceStageProps> = (props) => {
           <div className="flex min-h-[100px] w-full flex-col items-center justify-center space-y-3 px-4 pb-3">
             {isRecording ? (
               <>
-                <h2 className="text-3xl font-bold text-white">Listening…</h2>
-                <p className="max-w-xl text-base leading-relaxed text-cyan-300 font-medium">
+                <h2 className="text-3xl font-bold text-black dark:text-white">Listening…</h2>
+                <p className="max-w-xl text-base leading-relaxed text-blue-600 dark:text-blue-300 font-medium">
                   {props.partialTranscript || 'Speak your complete question.'}
                 </p>
-                <span className="text-[10px] text-slate-500">Live draft — auto-stops after 1.5 seconds of silence</span>
+                <span className="text-[10px] text-black dark:text-slate-500 font-medium">Live draft — auto-stops after 1.5 seconds of silence</span>
               </>
             ) : isRequesting ? (
               <>
-                <h2 className="text-2xl font-bold text-white">Requesting microphone…</h2>
-                <p className="text-xs text-slate-400">Allow microphone access in the browser prompt.</p>
+                <h2 className="text-2xl font-bold text-black dark:text-white">Requesting microphone…</h2>
+                <p className="text-xs text-black dark:text-slate-400">Allow microphone access in the browser prompt.</p>
               </>
             ) : isProcessing ? (
               <>
-                <h2 className="text-2xl font-bold text-white">
+                <h2 className="text-2xl font-bold text-black dark:text-white">
                   {effectiveState ? PIPELINE_STATE_TO_USER_STATUS[effectiveState] : 'Processing…'}
                 </h2>
-                <p className="text-xs text-slate-400">Searching the verified MSMARCO-XI evidence index.</p>
+                <p className="text-xs text-black dark:text-slate-400">Searching the verified MSMARCO-XI evidence index.</p>
               </>
             ) : props.result ? (
               <AnswerCards
@@ -115,11 +115,11 @@ export const VoiceStage: React.FC<VoiceStageProps> = (props) => {
                 onDismiss={props.onReset}
               />
             ) : (
-              <h2 className="text-3xl font-bold text-white">Ask with voice or text</h2>
+              <h2 className="text-3xl font-bold text-black dark:text-white">Ask with voice or text</h2>
             )}
 
             {props.error && !props.result && (
-              <div className="max-w-md rounded-xl border border-rose-500/30 bg-rose-500/10 p-3 text-xs text-rose-300">
+              <div className="glass-inner-box max-w-md p-3 text-xs text-black dark:text-rose-300">
                 {props.error.message}
               </div>
             )}
@@ -127,7 +127,7 @@ export const VoiceStage: React.FC<VoiceStageProps> = (props) => {
               <button
                 type="button"
                 onClick={props.onOpenDiagnostics}
-                className="rounded-xl border border-amber-500/30 bg-amber-500/10 px-4 py-2 text-xs text-amber-200"
+                className="glass-btn px-4 py-2 text-xs font-semibold text-amber-700 dark:text-amber-200"
               >
                 Backend not ready — view checks
               </button>
@@ -140,7 +140,6 @@ export const VoiceStage: React.FC<VoiceStageProps> = (props) => {
           <ChatTimeline
             turns={props.chatTurns}
             liveQuery={props.partialTranscript}
-            liveLanguage={props.selectedLanguage === 'unknown' ? 'en' : (props.selectedLanguage as ServerLanguageCode)}
             liveState={props.textSubmitting ? 'processing' : props.state}
             isLive={isLive}
             audioLevel={props.audioLevel}

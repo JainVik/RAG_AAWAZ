@@ -1,35 +1,93 @@
 @import "tailwindcss";
+@import "./styles/glassCard.css";
+
+@custom-variant dark (&:is(.dark, .dark *));
+
+@theme {
+  --color-canvas: var(--bg-canvas);
+  --color-surface-base: var(--bg-surface-base);
+  --color-surface-card: var(--bg-surface-card);
+  --color-surface-elevated: var(--bg-surface-elevated);
+  
+  --color-border-faint: var(--border-faint);
+  --color-border-subtle: var(--border-subtle);
+  --color-border-strong: var(--border-strong);
+  
+  --color-text-primary: var(--text-primary);
+  --color-text-secondary: var(--text-secondary);
+  --color-text-muted: var(--text-muted);
+  --color-text-faint: var(--text-faint);
+  
+  --color-accent-primary: var(--accent-primary);
+  --color-accent-hover: var(--accent-hover);
+  --color-accent-subtle: var(--accent-subtle);
+  --color-accent-border: var(--accent-border);
+  
+  --color-synthesis-primary: var(--synthesis-primary);
+  --color-synthesis-hover: var(--synthesis-hover);
+  --color-synthesis-subtle: var(--synthesis-subtle);
+  --color-synthesis-border: var(--synthesis-border);
+  
+  --color-status-ready: var(--status-ready);
+  --color-status-ready-bg: var(--status-ready-bg);
+  --color-status-ready-border: var(--status-ready-border);
+  
+  --color-status-warning: var(--status-warning);
+  --color-status-warning-bg: var(--status-warning-bg);
+  --color-status-warning-border: var(--status-warning-border);
+  
+  --color-status-error: var(--status-error);
+  --color-status-error-bg: var(--status-error-bg);
+  --color-status-error-border: var(--status-error-border);
+
+  --color-status-neutral: var(--status-neutral);
+  --color-status-neutral-bg: var(--status-neutral-bg);
+  --color-status-neutral-border: var(--status-neutral-border);
+
+  --font-sans: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans Devanagari', sans-serif;
+  --font-mono: ui-monospace, 'Cascadia Code', 'Consolas', monospace;
+}
 
 @layer base {
-  :root {
-    --bg-canvas: #070b14;
+  :root,
+  html.dark {
+    --bg-canvas: #050814;
+    --bg-surface-base: #0a0f1d;
     --bg-surface: #0e1424;
+    --bg-surface-card: #0e1424;
     --bg-surface-subtle: #141c33;
-    --bg-surface-elevated: #1a2442;
+    --bg-surface-elevated: #141c33;
     
-    --border-subtle: rgba(255, 255, 255, 0.08);
-    --border-strong: rgba(255, 255, 255, 0.16);
+    --border-faint: rgba(255, 255, 255, 0.06);
+    --border-subtle: rgba(255, 255, 255, 0.10);
+    --border-strong: rgba(255, 255, 255, 0.18);
     
     --text-primary: #f8fafc;
-    --text-secondary: #94a3b8;
-    --text-muted: #64748b;
+    --text-secondary: #cbd5e1;
+    --text-muted: #94a3b8;
+    --text-faint: #64748b;
     
     --accent-primary: #3b82f6;
     --accent-hover: #60a5fa;
-    --accent-subtle: rgba(59, 130, 246, 0.15);
-    --accent-border: rgba(59, 130, 246, 0.35);
+    --accent-subtle: rgba(59, 130, 246, 0.12);
+    --accent-border: rgba(59, 130, 246, 0.30);
+
+    --synthesis-primary: #a855f7;
+    --synthesis-hover: #c084fc;
+    --synthesis-subtle: rgba(168, 85, 247, 0.12);
+    --synthesis-border: rgba(168, 85, 247, 0.30);
     
     --status-ready: #10b981;
     --status-ready-bg: rgba(16, 185, 129, 0.12);
-    --status-ready-border: rgba(16, 185, 129, 0.3);
+    --status-ready-border: rgba(16, 185, 129, 0.25);
     
     --status-warning: #f59e0b;
     --status-warning-bg: rgba(245, 158, 11, 0.12);
-    --status-warning-border: rgba(245, 158, 11, 0.3);
+    --status-warning-border: rgba(245, 158, 11, 0.25);
     
-    --status-error: #ef4444;
-    --status-error-bg: rgba(239, 68, 68, 0.12);
-    --status-error-border: rgba(239, 68, 68, 0.3);
+    --status-error: #f43f5e;
+    --status-error-bg: rgba(244, 63, 94, 0.12);
+    --status-error-border: rgba(244, 63, 94, 0.25);
     
     --status-neutral: #94a3b8;
     --status-neutral-bg: rgba(148, 163, 184, 0.1);
@@ -39,35 +97,48 @@
     --font-mono: ui-monospace, 'Cascadia Code', 'Consolas', monospace;
   }
 
-  .light {
-    --bg-canvas: #f8fafc;
-    --bg-surface: #ffffff;
-    --bg-surface-subtle: #f1f5f9;
-    --bg-surface-elevated: #ffffff;
+  html:not(.dark) {
+    --bg-canvas: #E8E8E9;
+    --bg-surface-base: rgba(232, 232, 233, 0.65);
+    --bg-surface: rgba(232, 232, 233, 0.45);
+    --bg-surface-card: rgba(232, 232, 233, 0.45);
+    --bg-surface-subtle: rgba(232, 232, 233, 0.35);
+    --bg-surface-elevated: rgba(232, 232, 233, 0.75);
     
-    --border-subtle: #e2e8f0;
-    --border-strong: #cbd5e1;
+    --border-faint: rgba(0, 0, 0, 0.06);
+    --border-subtle: rgba(0, 0, 0, 0.12);
+    --border-strong: rgba(0, 0, 0, 0.20);
     
-    --text-primary: #0f172a;
-    --text-secondary: #475569;
-    --text-muted: #64748b;
+    --text-primary: #000000;
+    --text-secondary: #111827;
+    --text-muted: #374151;
+    --text-faint: #4b5563;
     
-    --accent-primary: #2563eb;
-    --accent-hover: #1d4ed8;
-    --accent-subtle: #eff6ff;
-    --accent-border: #bfdbfe;
+    --accent-primary: #0052f5;
+    --accent-hover: #0041c4;
+    --accent-subtle: rgba(0, 82, 245, 0.10);
+    --accent-border: rgba(0, 82, 245, 0.25);
+
+    --synthesis-primary: #7c3aed;
+    --synthesis-hover: #6d28d9;
+    --synthesis-subtle: rgba(124, 58, 237, 0.10);
+    --synthesis-border: rgba(124, 58, 237, 0.25);
     
     --status-ready: #059669;
-    --status-ready-bg: #ecfdf5;
-    --status-ready-border: #a7f3d0;
+    --status-ready-bg: rgba(5, 150, 105, 0.12);
+    --status-ready-border: rgba(5, 150, 105, 0.30);
     
     --status-warning: #d97706;
-    --status-warning-bg: #fffbeb;
-    --status-warning-border: #fde68a;
+    --status-warning-bg: rgba(217, 119, 6, 0.12);
+    --status-warning-border: rgba(217, 119, 6, 0.30);
     
-    --status-error: #dc2626;
-    --status-error-bg: #fef2f2;
-    --status-error-border: #fecaca;
+    --status-error: #e11d48;
+    --status-error-bg: rgba(225, 29, 72, 0.12);
+    --status-error-border: rgba(225, 29, 72, 0.30);
+    
+    --status-neutral: #374151;
+    --status-neutral-bg: rgba(55, 65, 81, 0.10);
+    --status-neutral-border: rgba(55, 65, 81, 0.20);
   }
 
   * {
@@ -93,21 +164,29 @@
 
 /* Custom design utilities */
 .bg-canvas { background-color: var(--bg-canvas); }
+.bg-surface-base { background-color: var(--bg-surface-base); }
 .bg-surface { background-color: var(--bg-surface); }
+.bg-surface-card { background-color: var(--bg-surface-card); }
 .bg-surface-subtle { background-color: var(--bg-surface-subtle); }
 .bg-surface-elevated { background-color: var(--bg-surface-elevated); }
 
+.border-faint { border-color: var(--border-faint); }
 .border-subtle { border-color: var(--border-subtle); }
 .border-strong { border-color: var(--border-strong); }
 
 .text-primary { color: var(--text-primary); }
 .text-secondary { color: var(--text-secondary); }
 .text-muted { color: var(--text-muted); }
+.text-faint { color: var(--text-faint); }
 
 .text-accent-primary { color: var(--accent-primary); }
 .bg-accent-primary { background-color: var(--accent-primary); }
 .bg-accent-subtle { background-color: var(--accent-subtle); }
 .border-accent-border { border-color: var(--accent-border); }
+
+.text-synthesis-primary { color: var(--synthesis-primary); }
+.bg-synthesis-subtle { background-color: var(--synthesis-subtle); }
+.border-synthesis-border { border-color: var(--synthesis-border); }
 
 /* Accessible Focus States */
 :focus-visible {

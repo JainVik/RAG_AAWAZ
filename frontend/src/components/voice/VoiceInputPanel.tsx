@@ -109,8 +109,8 @@ export const VoiceInputPanel: React.FC<VoiceInputPanelProps> = ({
         <div className="space-y-1">
           {isRecording ? (
             <div className="space-y-1">
-              <div className="inline-flex items-center gap-2 px-3 py-1 bg-rose-50 text-rose-700 border border-rose-200 dark:bg-rose-950/40 dark:text-rose-400 dark:border-rose-900 rounded-full text-xs font-semibold">
-                <span className="w-2 h-2 rounded-full bg-rose-600 animate-ping" />
+              <div className="inline-flex items-center gap-2 px-3 py-1 bg-status-error-bg text-rose-700 dark:text-rose-300 border border-status-error-border rounded-full text-xs font-semibold">
+                <span className="w-2 h-2 rounded-full bg-rose-500 animate-ping" />
                 <span>Listening (16kHz PCM Stream)</span>
               </div>
               <div className="font-mono text-xl font-bold text-primary">
@@ -168,7 +168,7 @@ export const VoiceInputPanel: React.FC<VoiceInputPanelProps> = ({
             <button
               type="button"
               onClick={onStartRecording}
-              className="flex items-center gap-2.5 px-6 py-3.5 bg-accent-primary hover:bg-accent-hover text-white rounded-xl text-sm font-bold shadow-md transition-all cursor-pointer transform hover:scale-[1.02] active:scale-[0.98]"
+              className="flex items-center gap-2.5 px-6 py-3.5 bg-gradient-to-tr from-blue-600 via-blue-500 to-cyan-400 text-white rounded-xl text-sm font-bold shadow-[0_0_20px_rgba(37,99,235,0.45)] hover:shadow-[0_0_25px_rgba(6,182,212,0.6)] transition-all cursor-pointer transform hover:scale-[1.02] active:scale-[0.98]"
             >
               <Microphone size={18} weight="bold" />
               <span>Ask another question</span>
@@ -177,7 +177,7 @@ export const VoiceInputPanel: React.FC<VoiceInputPanelProps> = ({
             <button
               type="button"
               onClick={onStartRecording}
-              className="group flex items-center gap-3 px-8 py-4 bg-accent-primary hover:bg-accent-hover text-white rounded-2xl text-base font-bold shadow-lg transition-all cursor-pointer transform hover:scale-[1.02] active:scale-[0.98]"
+              className="group flex items-center gap-3 px-8 py-4 bg-gradient-to-tr from-blue-600 via-blue-500 to-cyan-400 text-white rounded-2xl text-base font-bold shadow-[0_0_25px_rgba(37,99,235,0.5)] hover:shadow-[0_0_35px_rgba(6,182,212,0.7)] transition-all cursor-pointer transform hover:scale-[1.02] active:scale-[0.98]"
             >
               <div className="p-1 rounded-lg bg-white/20">
                 <Microphone size={22} weight="bold" />
@@ -202,10 +202,10 @@ export const VoiceInputPanel: React.FC<VoiceInputPanelProps> = ({
 
       {/* Error / Alert Display */}
       {error && (
-        <div className="p-4 bg-rose-50/70 dark:bg-rose-950/30 border border-rose-200 dark:border-rose-900 rounded-xl flex items-start gap-3">
+        <div className="p-4 bg-status-error-bg border border-status-error-border rounded-xl flex items-start gap-3">
           <WarningOctagon size={20} className="text-rose-600 dark:text-rose-400 mt-0.5 shrink-0" weight="fill" />
           <div className="flex-1 min-w-0">
-            <h4 className="text-xs font-bold text-rose-900 dark:text-rose-300">
+            <h4 className="text-xs font-bold text-rose-800 dark:text-rose-200">
               {error.type === 'permission_denied'
                 ? 'Microphone Permission Required'
                 : error.type === 'no_microphone'
@@ -214,7 +214,7 @@ export const VoiceInputPanel: React.FC<VoiceInputPanelProps> = ({
                 ? 'Speech Too Short'
                 : 'Audio Streaming Error'}
             </h4>
-            <p className="text-xs text-rose-700 dark:text-rose-400 mt-0.5 leading-relaxed">
+            <p className="text-xs text-rose-700 dark:text-rose-300 mt-0.5 leading-relaxed">
               {error.message}
             </p>
             <div className="mt-3 flex items-center gap-3">

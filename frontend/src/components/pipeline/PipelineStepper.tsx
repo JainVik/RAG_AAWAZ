@@ -64,29 +64,29 @@ export const PipelineStepper: React.FC<PipelineStepperProps> = ({ state, timings
   return (
     <div
       aria-live="polite"
-      className="p-4 sm:p-5 bg-surface border border-subtle rounded-2xl shadow-xs space-y-3"
+      className="refractive-glass-card refractive-glass-card-primary p-4 sm:p-5 space-y-3"
     >
       {/* Top Banner with Current Active State */}
       <div className="flex items-center justify-between gap-3">
         <div className="flex items-center gap-2.5">
           {isInFlight ? (
-            <div className="p-1.5 rounded-lg bg-accent-subtle text-accent-primary">
+            <div className="p-1.5 rounded-lg bg-accent-subtle text-accent-primary border border-accent-border">
               <CircleNotch size={18} className="animate-spin" />
             </div>
           ) : isTerminalSuccess ? (
-            <div className="p-1.5 rounded-lg bg-emerald-50 text-emerald-600 dark:bg-emerald-950/40 dark:text-emerald-400">
+            <div className="p-1.5 rounded-lg bg-status-ready-bg text-emerald-600 dark:text-emerald-400 border border-status-ready-border">
               <CheckCircle size={18} weight="fill" />
             </div>
           ) : isTerminalAbstain ? (
-            <div className="p-1.5 rounded-lg bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300">
+            <div className="p-1.5 rounded-lg bg-black/5 dark:bg-white/5 text-black dark:text-slate-300 border border-black/10 dark:border-white/10">
               <HandPalm size={18} weight="fill" />
             </div>
           ) : isTerminalFallback ? (
-            <div className="p-1.5 rounded-lg bg-amber-50 text-amber-700 dark:bg-amber-950/40 dark:text-amber-400">
+            <div className="p-1.5 rounded-lg bg-status-warning-bg text-amber-600 dark:text-amber-300 border border-status-warning-border">
               <ClockAfternoon size={18} weight="fill" />
             </div>
           ) : (
-            <div className="p-1.5 rounded-lg bg-rose-50 text-rose-600 dark:bg-rose-950/40 dark:text-rose-400">
+            <div className="p-1.5 rounded-lg bg-status-error-bg text-rose-600 dark:text-rose-300 border border-status-error-border">
               <XCircle size={18} weight="fill" />
             </div>
           )}
@@ -134,7 +134,7 @@ export const PipelineStepper: React.FC<PipelineStepperProps> = ({ state, timings
             >
               <div className="flex items-center justify-center gap-1 text-[11px]">
                 {isPast ? (
-                  <CheckCircle size={12} className="text-emerald-600 dark:text-emerald-400" />
+                  <CheckCircle size={12} className="text-emerald-400" />
                 ) : isCurrent ? (
                   <CircleNotch size={12} className="animate-spin text-accent-primary" />
                 ) : (

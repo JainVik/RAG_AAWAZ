@@ -6,9 +6,6 @@ export interface GlassSurfaceProps {
   width?: number | string;
   height?: number | string;
   borderRadius?: number | string;
-  borderWidth?: number;
-  brightness?: number;
-  opacity?: number;
   blur?: number;
   displace?: number;
   distortionScale?: number;
@@ -26,9 +23,6 @@ export const GlassSurface: React.FC<GlassSurfaceProps> = ({
   width,
   height,
   borderRadius = 16,
-  borderWidth = 1,
-  brightness = 100,
-  opacity = 0.85,
   blur = 16,
   displace = 8,
   distortionScale = 20,
@@ -44,19 +38,13 @@ export const GlassSurface: React.FC<GlassSurfaceProps> = ({
   const filterId = `glass-filter-${uniqueId}`;
 
   const containerStyle = useMemo<React.CSSProperties>(() => {
-    const brightMultiplier = brightness / 100;
     return {
       width: width !== undefined ? (typeof width === 'number' ? `${width}px` : width) : undefined,
       height: height !== undefined ? (typeof height === 'number' ? `${height}px` : height) : undefined,
       borderRadius: typeof borderRadius === 'number' ? `${borderRadius}px` : borderRadius,
-      border: `${borderWidth}px solid rgba(255, 255, 255, 0.12)`,
-      background: `rgba(11, 18, 32, ${opacity})`,
-      backdropFilter: `blur(${blur}px) brightness(${brightMultiplier}) saturate(140%)`,
-      WebkitBackdropFilter: `blur(${blur}px) brightness(${brightMultiplier}) saturate(140%)`,
-      boxShadow: `0 8px 32px 0 rgba(0, 0, 0, 0.4), inset 0 1px 1px 0 rgba(255, 255, 255, 0.12)`,
       ...style,
     };
-  }, [width, height, borderRadius, borderWidth, opacity, blur, brightness, style]);
+  }, [width, height, borderRadius, style]);
 
   return (
     <div

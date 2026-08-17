@@ -10,6 +10,7 @@ import {
   Sparkle,
   Check,
   CaretUp,
+  ArrowRight,
 } from '@phosphor-icons/react';
 import type { LanguageHint, ServerLanguageCode, VerifiedPromptCatalog, VoiceState } from '../../types/api';
 import { LANGUAGE_REGISTRY } from '../../types/api';
@@ -104,49 +105,72 @@ export const VoicePillControls: React.FC<VoicePillControlsProps> = ({
     langCode: ServerLanguageCode;
     query: string;
     tagColor: string;
+    hideQueryText?: boolean;
   }> = [
     {
       label: 'English',
       langCode: 'en',
       query: 'What is the net gain and loss?',
-      tagColor: 'bg-cyan-500/20 text-cyan-300 border-cyan-500/30',
+      tagColor: 'bg-blue-500/10 dark:bg-blue-500/20 text-blue-700 dark:text-blue-300 border-blue-500/30',
     },
     {
       label: 'हिंदी',
       langCode: 'hi',
       query: 'मोह्स पैमाने पर सोने की कठोरता कितनी होती है?',
-      tagColor: 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30',
+      tagColor: 'bg-blue-500/10 dark:bg-blue-500/20 text-blue-700 dark:text-blue-300 border-blue-500/30',
     },
     {
       label: 'Hinglish',
       langCode: 'hi-en',
       query: 'Sled pull karne ke liye kis type ke dogs use hote hain?',
-      tagColor: 'bg-violet-500/20 text-violet-300 border-violet-500/30',
+      tagColor: 'bg-blue-500/10 dark:bg-blue-500/20 text-blue-700 dark:text-blue-300 border-blue-500/30',
+    },
+    {
+      label: 'Context Left The Chat 🚪',
+      langCode: 'en',
+      query: "Goa we commin'",
+      tagColor: 'bg-rose-500/10 dark:bg-rose-500/20 text-rose-700 dark:text-rose-300 border-rose-500/30',
+      hideQueryText: true,
     },
   ];
 
   return (
     <div ref={controlsRef} className="relative flex flex-col items-center select-none w-full">
-      {/* Sample Question Pills (1 in each language) */}
-      {showQuickPrompts && !isRecording && !isProcessing && (
+      {/* Sample Question Pills with Liquid Glass - hidden when any bottom dropdown is open */}
+      {showQuickPrompts && !isRecording && !isProcessing && !openMenu && (
         <div className="mb-3 flex flex-wrap items-center justify-center gap-2 max-w-4xl px-2 animate-fade-in">
           {quickPrompts.map((qp) => (
             <button
-              key={qp.langCode}
+              key={`${qp.langCode}-${qp.label}`}
               type="button"
               disabled={!canSubmit}
               onClick={() => onSelectVerifiedPrompt(qp.query, qp.langCode)}
-              className="group flex items-center gap-2 rounded-full border border-white/10 bg-[#091020]/90 px-3.5 py-1.5 text-xs text-slate-300 shadow-lg backdrop-blur-xl transition-all hover:border-cyan-400/40 hover:bg-[#0f1b33] hover:text-white active:scale-95 disabled:cursor-not-allowed disabled:opacity-40 cursor-pointer"
-              title={`Ask verified question in ${qp.label}`}
+              className="glass-btn group flex items-center gap-2 px-3.5 py-1.5 text-xs text-black dark:text-slate-300 transition-all hover:text-black dark:hover:text-white active:scale-95 disabled:cursor-not-allowed disabled:opacity-40 cursor-pointer"
+              title={`Ask sample question: ${qp.query}`}
             >
-              <span
-                className={`rounded-full border px-2 py-0.5 text-[9px] font-bold tracking-wider ${qp.tagColor}`}
-              >
-                {qp.label}
-              </span>
-              <span className="truncate max-w-[220px] sm:max-w-[280px] text-left font-medium text-slate-200 group-hover:text-white">
-                {qp.query}
-              </span>
+              {qp.hideQueryText ? (
+                <>
+                  <span className="font-medium text-black dark:text-slate-200 group-hover:text-black dark:group-hover:text-white">
+                    {qp.label}
+                  </span>
+                  <ArrowRight
+                    size={12}
+                    weight="bold"
+                    className="text-slate-400 dark:text-slate-500 transition-transform group-hover:translate-x-0.5 group-hover:text-black dark:group-hover:text-white shrink-0"
+                  />
+                </>
+              ) : (
+                <>
+                  <span
+                    className={`rounded-full border px-2 py-0.5 text-[9px] font-bold tracking-wider ${qp.tagColor}`}
+                  >
+                    {qp.label}
+                  </span>
+                  <span className="truncate max-w-[220px] sm:max-w-[280px] text-left font-medium text-black dark:text-slate-200 group-hover:text-black dark:group-hover:text-white">
+                    {qp.query}
+                  </span>
+                </>
+              )}
             </button>
           ))}
         </div>
@@ -154,8 +178,8 @@ export const VoicePillControls: React.FC<VoicePillControlsProps> = ({
 
       {/* Recording Duration Floating Badge */}
       {isRecording && (
-        <div className="absolute bottom-full mb-3 inline-flex items-center gap-2 px-3.5 py-1 bg-cyan-500/10 border border-cyan-400/30 backdrop-blur-md rounded-full text-[11px] font-mono font-bold text-cyan-300 shadow-xl animate-pulse z-30">
-          <span className="w-2 h-2 rounded-full bg-cyan-400 animate-ping" />
+        <div className="absolute bottom-full mb-3 inline-flex items-center gap-2 px-3.5 py-1 bg-blue-500/10 border border-blue-400/30 backdrop-blur-md rounded-full text-[11px] font-mono font-bold text-blue-400 shadow-xl animate-pulse z-30">
+          <span className="w-2 h-2 rounded-full bg-blue-400 animate-ping" />
           <span>Listening: {formatTime(recordingDuration)} / 1:00 · Auto-stop on</span>
         </div>
       )}
@@ -163,17 +187,17 @@ export const VoicePillControls: React.FC<VoicePillControlsProps> = ({
       {/* Floating language-selection tray */}
       {openMenu === 'language' && (
         <div
-          className="absolute bottom-full mb-3 w-80 max-h-80 overflow-y-auto bg-[#0e1424]/95 backdrop-blur-2xl border border-white/15 rounded-2xl p-2.5 shadow-2xl z-30 animate-fade-in space-y-2"
+          className="refractive-glass-card refractive-glass-card-primary absolute bottom-full mb-3 w-80 max-h-80 overflow-y-auto p-2.5 shadow-2xl z-30 animate-fade-in space-y-2"
         >
           {/* Header */}
-          <div className="px-2 py-1 text-[10px] font-bold text-slate-400 uppercase tracking-wider flex items-center justify-between border-b border-white/10 pb-1.5">
+          <div className="px-2 py-1 text-[10px] font-bold text-black dark:text-slate-400 uppercase tracking-wider flex items-center justify-between border-b border-black/10 dark:border-white/10 pb-1.5">
             <span>Spoken Language Hint</span>
-            <span className="text-[9px] font-mono text-cyan-400">Provider language hints</span>
+            <span className="text-[9px] font-mono text-blue-600 dark:text-blue-400">Provider language hints</span>
           </div>
 
           {/* Validated Corpus Languages */}
           <div>
-            <div className="px-2 py-0.5 text-[9px] font-bold text-emerald-400 uppercase tracking-wider">
+            <div className="px-2 py-0.5 text-[9px] font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-wider">
               Validated Corpus Languages
             </div>
             <div className="space-y-1 mt-1">
@@ -187,19 +211,19 @@ export const VoicePillControls: React.FC<VoicePillControlsProps> = ({
                   }}
                   className={`w-full p-2 rounded-xl text-left flex items-center justify-between transition-colors cursor-pointer text-xs ${
                     selectedLanguage === opt.code
-                      ? 'bg-blue-600/20 text-cyan-300 border border-cyan-400/30 font-semibold'
-                      : 'text-slate-300 hover:bg-white/5 hover:text-white'
+                      ? 'bg-blue-500/15 text-blue-600 dark:text-blue-300 border border-blue-400/30 font-semibold'
+                      : 'text-black dark:text-slate-300 hover:bg-black/5 dark:hover:bg-white/5 hover:text-black dark:hover:text-white'
                   }`}
                 >
                   <div className="flex items-center gap-2">
-                    <span className="font-medium text-white">{opt.nativeLabel}</span>
-                    <span className="text-[10px] text-slate-400">({opt.label})</span>
+                    <span className="font-medium text-black dark:text-white">{opt.nativeLabel}</span>
+                    <span className="text-[10px] text-slate-600 dark:text-slate-400">({opt.label})</span>
                   </div>
                   <div className="flex items-center gap-1.5">
-                    <span className="text-[9px] font-mono px-1.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+                    <span className="text-[9px] font-mono px-1.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30">
                       Validated
                     </span>
-                    {selectedLanguage === opt.code && <Check size={14} className="text-cyan-400 shrink-0" />}
+                    {selectedLanguage === opt.code && <Check size={14} className="text-blue-500 dark:text-blue-400 shrink-0" />}
                   </div>
                 </button>
               ))}
@@ -208,7 +232,7 @@ export const VoicePillControls: React.FC<VoicePillControlsProps> = ({
 
           {/* Experimental / Not Benchmarked Languages */}
           <div>
-            <div className="px-2 py-0.5 text-[9px] font-bold text-amber-400/90 uppercase tracking-wider">
+            <div className="px-2 py-0.5 text-[9px] font-bold text-amber-600 dark:text-amber-400/90 uppercase tracking-wider">
               Accepted by API (Not benchmarked)
             </div>
             <div className="space-y-1 mt-1">
@@ -222,19 +246,19 @@ export const VoicePillControls: React.FC<VoicePillControlsProps> = ({
                   }}
                   className={`w-full p-1.5 px-2 rounded-xl text-left flex items-center justify-between transition-colors cursor-pointer text-xs ${
                     selectedLanguage === opt.code
-                      ? 'bg-blue-600/20 text-cyan-300 border border-cyan-400/30 font-semibold'
-                      : 'text-slate-300 hover:bg-white/5 hover:text-white'
+                      ? 'bg-blue-500/15 text-blue-600 dark:text-blue-300 border border-blue-400/30 font-semibold'
+                      : 'text-black dark:text-slate-300 hover:bg-black/5 dark:hover:bg-white/5 hover:text-black dark:hover:text-white'
                   }`}
                 >
                   <div className="flex items-center gap-2">
-                    <span className="font-medium text-white">{opt.nativeLabel}</span>
-                    <span className="text-[10px] text-slate-400">({opt.label})</span>
+                    <span className="font-medium text-black dark:text-white">{opt.nativeLabel}</span>
+                    <span className="text-[10px] text-slate-600 dark:text-slate-400">({opt.label})</span>
                   </div>
                   <div className="flex items-center gap-1.5">
-                    <span className="text-[9px] font-mono px-1.5 py-0.5 rounded-full bg-white/5 text-slate-400 border border-white/10">
+                    <span className="text-[9px] font-mono px-1.5 py-0.5 rounded-full bg-black/5 dark:bg-white/5 text-slate-700 dark:text-slate-400 border border-black/10 dark:border-white/10">
                       Experimental
                     </span>
-                    {selectedLanguage === opt.code && <Check size={14} className="text-cyan-400 shrink-0" />}
+                    {selectedLanguage === opt.code && <Check size={14} className="text-blue-500 dark:text-blue-400 shrink-0" />}
                   </div>
                 </button>
               ))}
@@ -262,20 +286,20 @@ export const VoicePillControls: React.FC<VoicePillControlsProps> = ({
       {/* Floating Hover Tray 3: Input Mode Switcher Menu */}
       {openMenu === 'mode' && (
         <div
-          className="absolute bottom-full mb-3 w-56 bg-[#0e1424]/95 backdrop-blur-2xl border border-white/15 rounded-2xl p-2 shadow-2xl z-30 animate-fade-in space-y-1"
+          className="refractive-glass-card refractive-glass-card-primary absolute bottom-full mb-3 w-56 p-2 shadow-2xl z-30 animate-fade-in space-y-1"
         >
-          <div className="px-2.5 py-1 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+          <div className="px-2.5 py-1 text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
             Input Mode
           </div>
           <button
             type="button"
             onClick={() => setOpenMenu(null)}
-            className="w-full p-2 rounded-xl text-left flex items-center gap-2.5 bg-blue-600/20 text-cyan-300 border border-cyan-400/30 text-xs font-semibold"
+            className="w-full p-2 rounded-xl text-left flex items-center gap-2.5 bg-blue-500/15 text-blue-600 dark:text-blue-300 border border-blue-400/30 text-xs font-semibold"
           >
             <Microphone size={16} />
             <div>
               <span>Voice Mode (Primary)</span>
-              <span className="text-[10px] text-slate-400 block font-normal">Realtime 16kHz PCM Stream</span>
+              <span className="text-[10px] text-slate-500 dark:text-slate-400 block font-normal">Realtime 16kHz PCM Stream</span>
             </div>
           </button>
           <button
@@ -284,19 +308,19 @@ export const VoicePillControls: React.FC<VoicePillControlsProps> = ({
               onToggleTextMode();
               setOpenMenu(null);
             }}
-            className="w-full p-2 rounded-xl text-left flex items-center gap-2.5 text-slate-300 hover:bg-white/5 hover:text-white transition-colors cursor-pointer text-xs"
+            className="w-full p-2 rounded-xl text-left flex items-center gap-2.5 text-black dark:text-slate-300 hover:bg-black/5 dark:hover:bg-white/5 hover:text-black dark:hover:text-white transition-colors cursor-pointer text-xs"
           >
             <TextT size={16} />
             <div>
               <span>Text Test Mode</span>
-              <span className="text-[10px] text-slate-400 block font-normal">4,096 char deterministic input</span>
+              <span className="text-[10px] text-slate-600 dark:text-slate-400 block font-normal">4,096 char deterministic input</span>
             </div>
           </button>
         </div>
       )}
 
-      {/* SLIM REFINED DOCK BAR */}
-      <div className="h-12 px-1.5 sm:px-3 bg-[#0a0f1d]/90 hover:bg-[#0a0f1d] backdrop-blur-2xl border border-white/12 rounded-full shadow-[0_12px_40px_rgba(0,0,0,0.7)] flex items-center gap-0.5 sm:gap-1.5 transition-all duration-300">
+      {/* SLIM REFINED DOCK BAR with Liquid Glass */}
+      <div className="refractive-glass-pill h-12 px-1.5 sm:px-3 shadow-[0_12px_40px_rgba(0,0,0,0.15)] dark:shadow-[0_12px_40px_rgba(0,0,0,0.7)] flex items-center gap-0.5 sm:gap-1.5 transition-all duration-300">
         {/* GROUP 1: Mode Selector (Hover Reveal) */}
         <div className="relative">
           <button
@@ -304,12 +328,12 @@ export const VoicePillControls: React.FC<VoicePillControlsProps> = ({
             onClick={() => setOpenMenu((current) => current === 'mode' ? null : 'mode')}
             aria-haspopup="menu"
             aria-expanded={openMenu === 'mode'}
-            className="h-9 px-2.5 rounded-full bg-white/5 hover:bg-white/10 text-slate-300 hover:text-white border border-white/8 flex items-center gap-1.5 text-xs font-medium transition-all cursor-pointer"
+            className="glass-btn h-9 px-2.5 flex items-center gap-1.5 text-xs font-medium text-black dark:text-slate-300 hover:text-black dark:hover:text-white transition-all cursor-pointer"
             title="Input Mode Options"
           >
-            <Microphone size={15} className="text-cyan-400" weight="bold" />
+            <Microphone size={15} className="text-blue-500 dark:text-blue-400" weight="bold" />
             <span className="hidden sm:inline text-[11px]">Voice</span>
-            <CaretUp size={11} className="hidden text-slate-500 sm:block" />
+            <CaretUp size={11} className="hidden text-slate-400 dark:text-slate-500 sm:block" />
           </button>
         </div>
 
@@ -320,17 +344,17 @@ export const VoicePillControls: React.FC<VoicePillControlsProps> = ({
             onClick={() => setOpenMenu((current) => current === 'questions' ? null : 'questions')}
             aria-haspopup="dialog"
             aria-expanded={openMenu === 'questions'}
-            className="h-9 px-2.5 rounded-full bg-white/5 hover:bg-white/10 text-slate-300 hover:text-white border border-white/8 flex items-center gap-1.5 text-xs font-medium transition-all cursor-pointer"
+            className="glass-btn h-9 px-2.5 flex items-center gap-1.5 text-xs font-medium text-black dark:text-slate-300 hover:text-black dark:hover:text-white transition-all cursor-pointer"
             title="Verified questions and recent session queries"
           >
-            <Sparkle size={15} className="text-cyan-400" />
+            <Sparkle size={15} className="text-blue-500 dark:text-blue-400" />
             <span className="hidden sm:inline text-[11px]">Questions</span>
-            <CaretUp size={11} className="hidden text-slate-500 sm:block" />
+            <CaretUp size={11} className="hidden text-slate-400 dark:text-slate-500 sm:block" />
           </button>
         </div>
 
         {/* Divider */}
-        <div className="h-5 w-[1px] bg-white/10 mx-1" />
+        <div className="h-5 w-[1px] bg-black/10 dark:bg-white/10 mx-1" />
 
         {/* GROUP 3: Central Core Actions (Cancel / Glowing Mic / Reset) */}
         <div className="flex items-center gap-1.5">
@@ -339,7 +363,7 @@ export const VoicePillControls: React.FC<VoicePillControlsProps> = ({
             <button
               type="button"
               onClick={isTerminal ? onReset : onCancelRecording}
-              className="w-9 h-9 rounded-full bg-white/5 hover:bg-white/10 text-slate-300 hover:text-white border border-white/10 flex items-center justify-center transition-all cursor-pointer active:scale-95"
+              className="glass-btn w-9 h-9 flex items-center justify-center text-black dark:text-slate-300 hover:text-black dark:hover:text-white transition-all cursor-pointer active:scale-95"
               title={isTerminal ? 'Reset conversation' : 'Cancel request'}
             >
               {isTerminal ? <ArrowCounterClockwise size={15} /> : <X size={15} />}
@@ -361,7 +385,7 @@ export const VoicePillControls: React.FC<VoicePillControlsProps> = ({
             <button
               type="button"
               disabled
-              className="h-9 px-4 rounded-full bg-blue-600/40 text-cyan-200 border border-cyan-400/30 flex items-center gap-1.5 text-xs font-medium cursor-not-allowed opacity-80"
+              className="h-9 px-4 rounded-full bg-blue-600/10 dark:bg-blue-600/30 text-blue-800 dark:text-blue-200 border border-blue-400/30 flex items-center gap-1.5 text-xs font-medium cursor-not-allowed opacity-80"
             >
               <CircleNotch size={15} className="animate-spin" />
               <span>{isRequesting ? 'Connecting' : 'Thinking'}</span>
@@ -374,14 +398,14 @@ export const VoicePillControls: React.FC<VoicePillControlsProps> = ({
               className="h-9 px-4 rounded-full bg-gradient-to-tr from-blue-600 via-blue-500 to-cyan-400 text-white shadow-[0_0_20px_rgba(37,99,235,0.5)] hover:shadow-[0_0_30px_rgba(6,182,212,0.7)] flex items-center gap-1.5 text-xs font-bold transition-all cursor-pointer transform hover:scale-105 active:scale-95 disabled:cursor-not-allowed disabled:opacity-40"
               title="Start recording"
             >
-              <Microphone size={16} weight="bold" />
-              <span>Speak</span>
+              <Microphone size={16} weight="fill" />
+              <span>Ask VANI</span>
             </button>
           )}
         </div>
 
         {/* Divider */}
-        <div className="h-5 w-[1px] bg-white/10 mx-1" />
+        <div className="h-5 w-[1px] bg-black/10 dark:bg-white/10 mx-1" />
 
         {/* GROUP 4: Language Selector (Hover Reveal) */}
         <div className="relative">
@@ -391,28 +415,28 @@ export const VoicePillControls: React.FC<VoicePillControlsProps> = ({
             aria-haspopup="menu"
             aria-expanded={openMenu === 'language'}
             disabled={isRecording || isProcessing}
-            className="h-9 px-2.5 rounded-full bg-white/5 hover:bg-white/10 text-slate-300 hover:text-white border border-white/8 flex items-center gap-1.5 text-xs font-medium transition-all cursor-pointer disabled:opacity-50"
+            className="glass-btn h-9 px-2.5 flex items-center gap-1.5 text-xs font-medium text-black dark:text-slate-300 hover:text-black dark:hover:text-white transition-all cursor-pointer disabled:opacity-50"
             title="Spoken Language Configuration"
           >
-            <Globe size={15} className="text-cyan-400" />
+            <Globe size={15} className="text-blue-500 dark:text-blue-400" />
             <span className="font-mono text-[11px] uppercase">
               {currentLangObj.nativeLabel}
             </span>
-            <CaretUp size={11} className="hidden text-slate-500 sm:block" />
+            <CaretUp size={11} className="hidden text-slate-400 dark:text-slate-500 sm:block" />
           </button>
         </div>
 
         {showNewConversation && (
           <>
-            <div className="h-5 w-[1px] bg-white/10 mx-1" />
+            <div className="h-5 w-[1px] bg-black/10 dark:bg-white/10 mx-1" />
             <button
               type="button"
               onClick={onClearSession}
               aria-label="Start new conversation"
-              className="flex h-9 shrink-0 cursor-pointer items-center gap-1.5 rounded-full border border-white/10 bg-white/5 px-2 text-xs font-semibold text-slate-300 transition-all hover:border-cyan-400/40 hover:bg-white/10 hover:text-white active:scale-95 sm:px-3.5"
+              className="glass-btn flex h-9 shrink-0 cursor-pointer items-center gap-1.5 px-2 text-xs font-semibold text-black dark:text-slate-300 transition-all hover:text-black dark:hover:text-white active:scale-95 sm:px-3.5"
               title="Start new conversation"
             >
-              <ArrowCounterClockwise size={14} className="text-cyan-400" />
+              <ArrowCounterClockwise size={14} className="text-blue-500 dark:text-blue-400" />
               <span className="hidden sm:inline">New Conversation</span>
             </button>
           </>

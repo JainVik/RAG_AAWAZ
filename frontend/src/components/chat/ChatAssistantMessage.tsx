@@ -41,22 +41,22 @@ export const ChatAssistantMessage: React.FC<ChatAssistantMessageProps> = ({
             animated={false}
           />
           <div className="flex items-center gap-2">
-            <span className="font-extrabold text-sm tracking-tight text-white">
-              VANI <span className="text-cyan-400">RAG</span>
+            <span className="font-extrabold text-sm tracking-tight text-black dark:text-white">
+              VANI <span className="text-blue-600 dark:text-blue-400">RAG</span>
             </span>
-            <span className="text-slate-600">·</span>
+            <span className="text-slate-400 dark:text-slate-600">·</span>
             {isListening ? (
-              <span className="text-[11px] font-bold text-cyan-300 animate-pulse flex items-center gap-1.5">
-                <span className="w-1.5 h-1.5 rounded-full bg-cyan-400" />
+              <span className="text-[11px] font-bold text-blue-600 dark:text-blue-300 animate-pulse flex items-center gap-1.5">
+                <span className="w-1.5 h-1.5 rounded-full bg-blue-500 dark:bg-blue-400" />
                 Listening to speech…
               </span>
             ) : isProcessing ? (
-              <span className="text-[11px] font-bold text-violet-300 animate-pulse flex items-center gap-1.5">
-                <span className="w-1.5 h-1.5 rounded-full bg-violet-400" />
+              <span className="text-[11px] font-bold text-violet-600 dark:text-violet-300 animate-pulse flex items-center gap-1.5">
+                <span className="w-1.5 h-1.5 rounded-full bg-violet-500 dark:bg-violet-400" />
                 Searching verified index &amp; synthesizing…
               </span>
             ) : (
-              <span className="text-[11px] font-medium text-slate-400">
+              <span className="text-[11px] font-medium text-black dark:text-slate-400">
                 Grounded Multilingual Evidence
               </span>
             )}
@@ -65,8 +65,8 @@ export const ChatAssistantMessage: React.FC<ChatAssistantMessageProps> = ({
 
         {/* Live in-flight speech preview if listening */}
         {isListening && liveTranscript && (
-          <div className="w-full max-w-2xl rounded-2xl border border-cyan-500/20 bg-cyan-950/20 p-4 backdrop-blur-xl">
-            <p className="text-sm font-medium text-cyan-200 italic leading-relaxed">
+          <div className="w-full max-w-2xl rounded-2xl border border-blue-500/30 bg-blue-500/10 dark:border-blue-500/20 dark:bg-blue-950/20 p-4 backdrop-blur-xl">
+            <p className="text-sm font-medium text-blue-950 dark:text-blue-200 italic leading-relaxed">
               "{liveTranscript}"
             </p>
           </div>
