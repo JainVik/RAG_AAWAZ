@@ -6,7 +6,8 @@
  * and 10-layer micro-specular edge reflections matching the reference design.
  */
 
-:root {
+:root,
+html.dark {
   --c-glass: #bbbbbc;
   --c-light: #ffffff;
   --c-dark: #000000;

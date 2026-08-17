@@ -1,6 +1,8 @@
 @import "tailwindcss";
 @import "./styles/glassCard.css";
 
+@custom-variant dark (&:is(.dark, .dark *));
+
 @theme {
   --color-canvas: var(--bg-canvas);
   --color-surface-base: var(--bg-surface-base);
@@ -47,7 +49,8 @@
 }
 
 @layer base {
-  :root {
+  :root,
+  html.dark {
     --bg-canvas: #050814;
     --bg-surface-base: #0a0f1d;
     --bg-surface: #0e1424;
