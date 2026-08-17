@@ -18,11 +18,11 @@ router = APIRouter(tags=["operations"])
 @router.get("/")
 async def root() -> dict[str, str]:
     return {
-        "service": "Awaaz TideRAG Backend API",
+        "service": "VANI RAG (Awaaz TideRAG) Backend API",
         "status": "online",
         "version": __version__,
-        "frontend": "https://hhg-02.vercel.app",
-        "documentation": "https://hhg-02.vercel.app/evidence",
+        "frontend": "https://vani-rag.susdev.in",
+        "documentation": "https://vani-rag.susdev.in/evidence",
     }
 
 
