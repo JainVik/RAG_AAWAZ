@@ -10,6 +10,7 @@ import {
   Sparkle,
   Check,
   CaretUp,
+  ArrowRight,
 } from '@phosphor-icons/react';
 import type { LanguageHint, ServerLanguageCode, VerifiedPromptCatalog, VoiceState } from '../../types/api';
 import { LANGUAGE_REGISTRY } from '../../types/api';
@@ -104,6 +105,7 @@ export const VoicePillControls: React.FC<VoicePillControlsProps> = ({
     langCode: ServerLanguageCode;
     query: string;
     tagColor: string;
+    hideQueryText?: boolean;
   }> = [
     {
       label: 'English',
@@ -123,30 +125,52 @@ export const VoicePillControls: React.FC<VoicePillControlsProps> = ({
       query: 'Sled pull karne ke liye kis type ke dogs use hote hain?',
       tagColor: 'bg-blue-500/10 dark:bg-blue-500/20 text-blue-700 dark:text-blue-300 border-blue-500/30',
     },
+    {
+      label: 'Context Left The Chat 🚪',
+      langCode: 'en',
+      query: "Goa we commin'",
+      tagColor: 'bg-rose-500/10 dark:bg-rose-500/20 text-rose-700 dark:text-rose-300 border-rose-500/30',
+      hideQueryText: true,
+    },
   ];
 
   return (
     <div ref={controlsRef} className="relative flex flex-col items-center select-none w-full">
-      {/* Sample Question Pills (1 in each language) with Liquid Glass - hidden when any bottom dropdown is open */}
+      {/* Sample Question Pills with Liquid Glass - hidden when any bottom dropdown is open */}
       {showQuickPrompts && !isRecording && !isProcessing && !openMenu && (
         <div className="mb-3 flex flex-wrap items-center justify-center gap-2 max-w-4xl px-2 animate-fade-in">
           {quickPrompts.map((qp) => (
             <button
-              key={qp.langCode}
+              key={`${qp.langCode}-${qp.label}`}
               type="button"
               disabled={!canSubmit}
               onClick={() => onSelectVerifiedPrompt(qp.query, qp.langCode)}
               className="glass-btn group flex items-center gap-2 px-3.5 py-1.5 text-xs text-black dark:text-slate-300 transition-all hover:text-black dark:hover:text-white active:scale-95 disabled:cursor-not-allowed disabled:opacity-40 cursor-pointer"
-              title={`Ask verified question in ${qp.label}`}
+              title={`Ask sample question: ${qp.query}`}
             >
-              <span
-                className={`rounded-full border px-2 py-0.5 text-[9px] font-bold tracking-wider ${qp.tagColor}`}
-              >
-                {qp.label}
-              </span>
-              <span className="truncate max-w-[220px] sm:max-w-[280px] text-left font-medium text-black dark:text-slate-200 group-hover:text-black dark:group-hover:text-white">
-                {qp.query}
-              </span>
+              {qp.hideQueryText ? (
+                <>
+                  <span className="font-medium text-black dark:text-slate-200 group-hover:text-black dark:group-hover:text-white">
+                    {qp.label}
+                  </span>
+                  <ArrowRight
+                    size={12}
+                    weight="bold"
+                    className="text-slate-400 dark:text-slate-500 transition-transform group-hover:translate-x-0.5 group-hover:text-black dark:group-hover:text-white shrink-0"
+                  />
+                </>
+              ) : (
+                <>
+                  <span
+                    className={`rounded-full border px-2 py-0.5 text-[9px] font-bold tracking-wider ${qp.tagColor}`}
+                  >
+                    {qp.label}
+                  </span>
+                  <span className="truncate max-w-[220px] sm:max-w-[280px] text-left font-medium text-black dark:text-slate-200 group-hover:text-black dark:group-hover:text-white">
+                    {qp.query}
+                  </span>
+                </>
+              )}
             </button>
           ))}
         </div>
