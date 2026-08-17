@@ -109,7 +109,7 @@ export const VoiceInputPanel: React.FC<VoiceInputPanelProps> = ({
         <div className="space-y-1">
           {isRecording ? (
             <div className="space-y-1">
-              <div className="inline-flex items-center gap-2 px-3 py-1 bg-status-error-bg text-rose-300 border border-status-error-border rounded-full text-xs font-semibold">
+              <div className="inline-flex items-center gap-2 px-3 py-1 bg-status-error-bg text-rose-700 dark:text-rose-300 border border-status-error-border rounded-full text-xs font-semibold">
                 <span className="w-2 h-2 rounded-full bg-rose-500 animate-ping" />
                 <span>Listening (16kHz PCM Stream)</span>
               </div>
@@ -203,9 +203,9 @@ export const VoiceInputPanel: React.FC<VoiceInputPanelProps> = ({
       {/* Error / Alert Display */}
       {error && (
         <div className="p-4 bg-status-error-bg border border-status-error-border rounded-xl flex items-start gap-3">
-          <WarningOctagon size={20} className="text-rose-400 mt-0.5 shrink-0" weight="fill" />
+          <WarningOctagon size={20} className="text-rose-600 dark:text-rose-400 mt-0.5 shrink-0" weight="fill" />
           <div className="flex-1 min-w-0">
-            <h4 className="text-xs font-bold text-rose-200">
+            <h4 className="text-xs font-bold text-rose-800 dark:text-rose-200">
               {error.type === 'permission_denied'
                 ? 'Microphone Permission Required'
                 : error.type === 'no_microphone'
@@ -214,7 +214,7 @@ export const VoiceInputPanel: React.FC<VoiceInputPanelProps> = ({
                 ? 'Speech Too Short'
                 : 'Audio Streaming Error'}
             </h4>
-            <p className="text-xs text-rose-300 mt-0.5 leading-relaxed">
+            <p className="text-xs text-rose-700 dark:text-rose-300 mt-0.5 leading-relaxed">
               {error.message}
             </p>
             <div className="mt-3 flex items-center gap-3">
@@ -222,7 +222,7 @@ export const VoiceInputPanel: React.FC<VoiceInputPanelProps> = ({
                 <button
                   type="button"
                   onClick={onStartRecording}
-                  className="text-xs font-bold text-rose-200 underline cursor-pointer hover:opacity-80"
+                  className="text-xs font-bold text-rose-800 dark:text-rose-200 underline cursor-pointer hover:opacity-80"
                 >
                   Try again
                 </button>

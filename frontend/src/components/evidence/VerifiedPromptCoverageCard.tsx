@@ -20,19 +20,19 @@ export const VerifiedPromptCoverageCard: React.FC<VerifiedPromptCoverageCardProp
 
   return (
     <article className="refractive-glass-card refractive-glass-card-primary space-y-5 p-6 sm:p-8">
-      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-white/10 pb-4">
+      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-black/10 dark:border-white/10 pb-4">
         <div className="flex items-center gap-3">
-          <div className="rounded-xl border border-violet-400/30 bg-violet-500/15 p-2.5 text-violet-300">
+          <div className="rounded-xl border border-violet-400/30 bg-violet-500/10 dark:bg-violet-500/15 p-2.5 text-violet-600 dark:text-violet-300">
             <MicrophoneStage size={22} weight="bold" />
           </div>
           <div>
-            <h2 className="font-bold text-white">Verified voice-question palette</h2>
-            <p className="text-xs text-slate-400">
+            <h2 className="font-bold text-black dark:text-white">Verified voice-question palette</h2>
+            <p className="text-xs text-black dark:text-slate-400">
               Corpus-backed prompts prepared for the human voice benchmark
             </p>
           </div>
         </div>
-        <span className="rounded-full border border-violet-500/30 bg-violet-500/10 px-3 py-1 text-xs font-semibold text-violet-200">
+        <span className="rounded-full border border-violet-500/30 bg-violet-500/10 px-3 py-1 text-xs font-semibold text-violet-700 dark:text-violet-200">
           Recording plan · not a benchmark
         </span>
       </div>
@@ -53,8 +53,8 @@ export const VerifiedPromptCoverageCard: React.FC<VerifiedPromptCoverageCardProp
             <Coverage label="English" count={catalog.coverage.languages.en} />
             <Coverage label="Hindi + English" count={catalog.coverage.languages['hi-en']} />
           </div>
-          <div className="glass-inner-box flex items-start gap-2 p-3 text-xs text-slate-300">
-            <CheckCircle size={16} weight="fill" className="mt-0.5 shrink-0 text-blue-400" />
+          <div className="glass-inner-box flex items-start gap-2 p-3 text-xs text-black dark:text-slate-300">
+            <CheckCircle size={16} weight="fill" className="mt-0.5 shrink-0 text-blue-600 dark:text-blue-400" />
             <span>
               Every prompt already completed against the live text retrieval path with cited evidence.
               Audio recording and voice-latency qualification are still measured separately.
@@ -62,8 +62,8 @@ export const VerifiedPromptCoverageCard: React.FC<VerifiedPromptCoverageCardProp
           </div>
         </>
       ) : (
-        <div className="glass-inner-box flex items-start gap-2 p-3 text-xs text-slate-200">
-          <Warning size={16} className="mt-0.5 shrink-0 text-amber-400" />
+        <div className="glass-inner-box flex items-start gap-2 p-3 text-xs text-black dark:text-slate-200">
+          <Warning size={16} className="mt-0.5 shrink-0 text-amber-500 dark:text-amber-400" />
           <span>{error ?? 'Verified question palette is unavailable.'}</span>
         </div>
       )}
@@ -72,15 +72,15 @@ export const VerifiedPromptCoverageCard: React.FC<VerifiedPromptCoverageCardProp
 };
 
 const Stat = ({ label, value }: { label: string; value: string | number }) => (
-  <div className="rounded-xl border border-white/10 bg-white/[0.04] p-3 transition-all hover:bg-white/[0.07]">
-    <p className="text-[10px] font-semibold uppercase tracking-wide text-slate-400">{label}</p>
-    <p className="mt-1 font-mono text-xl font-bold text-white">{value}</p>
+  <div className="rounded-xl border border-black/10 dark:border-white/10 bg-black/[0.03] dark:bg-white/[0.04] p-3 transition-all hover:bg-black/[0.06] dark:hover:bg-white/[0.07]">
+    <p className="text-[10px] font-semibold uppercase tracking-wide text-black dark:text-slate-400">{label}</p>
+    <p className="mt-1 font-mono text-xl font-bold text-black dark:text-white">{value}</p>
   </div>
 );
 
 const Coverage = ({ label, count }: { label: string; count: number }) => (
-  <div className="flex items-center justify-between rounded-xl border border-white/10 bg-white/[0.04] px-4 py-3 text-xs transition-all hover:bg-white/[0.07]">
-    <span className="text-slate-300">{label}</span>
-    <span className="font-mono font-bold text-blue-300">{count}</span>
+  <div className="flex items-center justify-between rounded-xl border border-black/10 dark:border-white/10 bg-black/[0.03] dark:bg-white/[0.04] px-4 py-3 text-xs transition-all hover:bg-black/[0.06] dark:hover:bg-white/[0.07]">
+    <span className="text-black dark:text-slate-300 font-medium">{label}</span>
+    <span className="font-mono font-bold text-blue-600 dark:text-blue-300">{count}</span>
   </div>
 );

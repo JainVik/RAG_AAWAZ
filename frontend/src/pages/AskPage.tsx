@@ -236,11 +236,11 @@ export const AskPage: React.FC = () => {
           role="dialog"
           aria-modal="true"
           aria-labelledby="text-dialog-title"
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 p-4 backdrop-blur-[2px]"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/20 dark:bg-black/30 p-4 backdrop-blur-[2px]"
         >
           <div className="refractive-glass-card refractive-glass-card-primary w-full max-w-2xl overflow-hidden shadow-2xl">
-            <div className="flex items-center justify-between border-b border-white/10 p-4">
-              <div id="text-dialog-title" className="flex items-center gap-2 text-xs font-bold text-blue-400">
+            <div className="flex items-center justify-between border-b border-black/10 dark:border-white/10 p-4">
+              <div id="text-dialog-title" className="flex items-center gap-2 text-xs font-bold text-blue-600 dark:text-blue-400">
                 <TextT size={18} />
                 <span>Text query</span>
               </div>
@@ -249,20 +249,20 @@ export const AskPage: React.FC = () => {
                 type="button"
                 aria-label="Close text query dialog"
                 onClick={() => setShowTextModal(false)}
-                className="rounded-lg p-1 text-slate-400 hover:text-white transition-colors cursor-pointer"
+                className="rounded-lg p-1 text-slate-500 hover:text-black dark:text-slate-400 dark:hover:text-white transition-colors cursor-pointer"
               >
                 <X size={18} />
               </button>
             </div>
             <div className="space-y-4 p-6">
               {!canSubmit && (
-                <div className="glass-inner-box flex items-start gap-2 text-xs text-slate-200">
-                  <WarningCircle size={18} className="shrink-0 text-slate-400" />
-                  <span className="leading-relaxed text-slate-300">Backend readiness has not passed. Query submission is disabled.</span>
+                <div className="glass-inner-box flex items-start gap-2 text-xs text-black dark:text-slate-200">
+                  <WarningCircle size={18} className="shrink-0 text-amber-600 dark:text-slate-400" />
+                  <span className="leading-relaxed text-black dark:text-slate-300">Backend readiness has not passed. Query submission is disabled.</span>
                 </div>
               )}
               {textError && (
-                <div className="glass-inner-box flex items-start gap-2 text-xs text-rose-300">
+                <div className="glass-inner-box flex items-start gap-2 text-xs text-rose-800 dark:text-rose-300">
                   <span className="leading-relaxed">{textError}</span>
                 </div>
               )}

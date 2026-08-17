@@ -62,16 +62,16 @@ export const Shell: React.FC<ShellProps> = ({ children, isDark, onToggleTheme })
         refreshStatus: fetchStatus,
       }}
     >
-      <div className="relative min-h-[100dvh] flex flex-col text-slate-100 selection:bg-blue-500/30 selection:text-blue-200">
+      <div className="relative min-h-[100dvh] flex flex-col text-black dark:text-slate-100 selection:bg-blue-500/30 selection:text-blue-900 dark:selection:text-blue-200">
         {/* Global SVG Optical Displacement Definitions */}
         <LiquidGlassDefs />
 
         {/* Full-Screen Animated 3D WebGL Gradient Waves Background */}
-        <div className="fixed inset-0 z-0 pointer-events-none w-screen h-screen overflow-hidden bg-canvas">
+        <div className="fixed inset-0 z-0 pointer-events-none w-screen h-screen overflow-hidden bg-canvas transition-colors duration-500">
           <GradientWaves
-            horizonColor="#050814"
-            waveColor="#1e40af"
-            crestColor="#06b6d4"
+            horizonColor={isDark ? '#050814' : '#E8E8E9'}
+            waveColor={isDark ? '#1e40af' : '#3b82f6'}
+            crestColor={isDark ? '#06b6d4' : '#0052f5'}
             speed={0.4}
             amplitude={2.6}
             waveScale={0.7}
@@ -83,12 +83,12 @@ export const Shell: React.FC<ShellProps> = ({ children, isDark, onToggleTheme })
             height={4.8}
             fogDepth={16}
             detail="medium"
-            brightness={1.15}
-            opacity={0.9}
+            brightness={isDark ? 1.15 : 1.0}
+            opacity={isDark ? 0.9 : 0.75}
             mouseInteraction={true}
             parallaxStrength={0.4}
             grain={true}
-            grainIntensity={0.04}
+            grainIntensity={isDark ? 0.04 : 0.015}
           />
         </div>
 

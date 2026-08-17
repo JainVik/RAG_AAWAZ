@@ -3,7 +3,7 @@
  * LIQUID GLASS REFRACTIVE DESIGN SYSTEM
  * ============================================================================
  * High-fidelity optical refraction, SVG displacement lens simulation,
- * and 10-layer micro-specular edge reflections.
+ * and 10-layer micro-specular edge reflections matching the reference design.
  */
 
 :root {
@@ -11,8 +11,8 @@
   --c-light: #ffffff;
   --c-dark: #000000;
   
-  --c-content: #e1e1e1;
-  --c-action: #3b82f6;
+  --c-content: #f8fafc;
+  --c-action: #03d5ff;
   --c-action-synthesis: #a855f7;
   
   --c-bg: #050814;
@@ -21,6 +21,29 @@
   --glass-reflex-light: 0.3;
   
   --saturation: 150%;
+  --glass-bg-opacity: 12%;
+  --glass-box-bg-opacity: 14%;
+  --glass-btn-bg-opacity: 18%;
+}
+
+html:not(.dark) {
+  --c-glass: #bbbbbc;
+  --c-light: #ffffff;
+  --c-dark: #000000;
+  
+  --c-content: #000000;
+  --c-action: #0052f5;
+  --c-action-synthesis: #7c3aed;
+  
+  --c-bg: #E8E8E9;
+  
+  --glass-reflex-dark: 1;
+  --glass-reflex-light: 1;
+  
+  --saturation: 150%;
+  --glass-bg-opacity: 12%;
+  --glass-box-bg-opacity: 14%;
+  --glass-btn-bg-opacity: 18%;
 }
 
 /* ============================================================================
@@ -28,7 +51,8 @@
  * ============================================================================ */
 .refractive-glass-card {
   position: relative;
-  background-color: color-mix(in srgb, var(--c-glass) 12%, transparent);
+  color: var(--c-content);
+  background-color: color-mix(in srgb, var(--c-glass) var(--glass-bg-opacity, 12%), transparent);
   backdrop-filter: blur(8px) url(#liquid-glass) saturate(var(--saturation));
   -webkit-backdrop-filter: blur(8px) saturate(var(--saturation));
   border-radius: 1.25rem;
@@ -49,10 +73,11 @@
     border-color 300ms ease;
 }
 
-/* Liquid Glass Pill Variant (e.g. Header Nav, Floating Bars) */
+/* Liquid Glass Pill Variant (e.g. Header Nav, Floating Bars, Theme Toggle) */
 .refractive-glass-pill {
   position: relative;
-  background-color: color-mix(in srgb, var(--c-glass) 12%, transparent);
+  color: var(--c-content);
+  background-color: color-mix(in srgb, var(--c-glass) var(--glass-bg-opacity, 12%), transparent);
   backdrop-filter: blur(8px) url(#liquid-glass-subtle) saturate(var(--saturation));
   -webkit-backdrop-filter: blur(8px) saturate(var(--saturation));
   border-radius: 99em;
@@ -74,11 +99,11 @@
 }
 
 /* ============================================================================
- * 2. Primary Grounded Evidence Variant (Electric Blue Optical Tone)
+ * 2. Primary Grounded Evidence Variant (Electric Blue / Sapphire Optical Tone)
  * ============================================================================ */
 .refractive-glass-card-primary {
   --c-glass: #60a5fa;
-  --c-action: #3b82f6;
+  --c-action: #0052f5;
   box-shadow: 
     inset 0 0 0 1px color-mix(in srgb, #93c5fd calc(var(--glass-reflex-light) * 25%), transparent),
     inset 1.8px 3px 0px -2px color-mix(in srgb, var(--c-light) calc(var(--glass-reflex-light) * 90%), transparent), 
@@ -107,11 +132,11 @@
 }
 
 /* ============================================================================
- * 3. Groq Grounded Synthesis Variant (Violet Optical Tone)
+ * 3. Groq Grounded Synthesis Variant (Violet / Orchid Optical Tone)
  * ============================================================================ */
 .refractive-glass-card-synthesis {
   --c-glass: #c084fc;
-  --c-action: #a855f7;
+  --c-action: #7c3aed;
   box-shadow: 
     inset 0 0 0 1px color-mix(in srgb, #e9d5ff calc(var(--glass-reflex-light) * 25%), transparent),
     inset 1.8px 3px 0px -2px color-mix(in srgb, var(--c-light) calc(var(--glass-reflex-light) * 90%), transparent), 
@@ -146,12 +171,13 @@
 /* Inner optical glass sub-box (e.g. abstention, notices, loader) */
 .glass-inner-box {
   position: relative;
+  color: var(--c-content);
   padding: 1rem 1.25rem;
   border-radius: 0.875rem;
-  background-color: color-mix(in srgb, var(--c-glass) 12%, transparent);
+  background-color: color-mix(in srgb, var(--c-action) 6%, color-mix(in srgb, var(--c-glass) var(--glass-box-bg-opacity, 14%), transparent));
   backdrop-filter: blur(8px) url(#liquid-glass-subtle) saturate(var(--saturation));
   -webkit-backdrop-filter: blur(8px) saturate(var(--saturation));
-  border-top: 1.5px solid color-mix(in srgb, var(--c-light) 25%, transparent);
+  border-top: 3px solid color-mix(in srgb, var(--c-action) 50%, transparent);
   box-shadow: 
     inset 0 0 0 1px color-mix(in srgb, var(--c-light) calc(var(--glass-reflex-light) * 12%), transparent),
     inset 2px 1px 0px -1px color-mix(in srgb, var(--c-light) calc(var(--glass-reflex-light) * 90%), transparent), 
@@ -164,9 +190,11 @@
 }
 
 /* Rose/Error status variant */
-.glass-inner-box.text-rose-300 {
+.glass-inner-box.text-rose-300,
+.glass-inner-box.text-rose-700 {
   --c-glass: #fca5a5;
-  border-top: 2.5px solid rgba(244, 63, 94, 0.65);
+  border-top: 3px solid rgba(244, 63, 94, 0.7);
+  background-color: color-mix(in srgb, #f43f5e 8%, color-mix(in srgb, var(--c-glass) var(--glass-box-bg-opacity, 14%), transparent));
   box-shadow: 
     inset 0 0 0 1px rgba(244, 63, 94, 0.25),
     inset 2px 1px 0px -1px color-mix(in srgb, var(--c-light) calc(var(--glass-reflex-light) * 90%), transparent), 
@@ -178,9 +206,11 @@
 }
 
 /* Violet/Synthesis status variant */
-.glass-inner-box.text-violet-200 {
+.glass-inner-box.text-violet-200,
+.glass-inner-box.text-violet-700 {
   --c-glass: #c084fc;
-  border-top: 2.5px solid rgba(168, 85, 247, 0.65);
+  border-top: 3px solid rgba(168, 85, 247, 0.7);
+  background-color: color-mix(in srgb, #a855f7 8%, color-mix(in srgb, var(--c-glass) var(--glass-box-bg-opacity, 14%), transparent));
   box-shadow: 
     inset 0 0 0 1px rgba(168, 85, 247, 0.25),
     inset 2px 1px 0px -1px color-mix(in srgb, var(--c-light) calc(var(--glass-reflex-light) * 90%), transparent), 
@@ -191,11 +221,11 @@
     0px 3px 10px 0px rgba(168, 85, 247, 0.15);
 }
 
-/* Inner optical glass button / pill (matches .switcher::after / options) */
+/* Inner optical glass button / pill */
 .glass-btn {
   position: relative;
   border-radius: 99em;
-  background-color: color-mix(in srgb, var(--c-glass) 18%, transparent);
+  background-color: color-mix(in srgb, var(--c-glass) var(--glass-btn-bg-opacity, 18%), transparent);
   backdrop-filter: blur(6px) url(#liquid-glass-subtle) saturate(var(--saturation));
   -webkit-backdrop-filter: blur(6px) saturate(var(--saturation));
   box-shadow: 
@@ -210,10 +240,25 @@
 }
 
 .glass-btn:hover {
-  background-color: color-mix(in srgb, var(--c-action) 30%, transparent);
+  background-color: color-mix(in srgb, var(--c-action) 25%, transparent);
   box-shadow: 
     inset 0 0 0 1px color-mix(in srgb, var(--c-light) calc(var(--glass-reflex-light) * 20%), transparent),
     inset 2px 1px 0px -1px color-mix(in srgb, var(--c-light) calc(var(--glass-reflex-light) * 100%), transparent), 
     inset -1.5px -1px 0px -1px color-mix(in srgb, var(--c-light) calc(var(--glass-reflex-light) * 90%), transparent), 
     0 0 16px color-mix(in srgb, var(--c-action) 45%, transparent);
+}
+
+/* Glass Inner Divider */
+.glass-divider {
+  border: 0;
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    color-mix(in srgb, var(--c-light) calc(var(--glass-reflex-light) * 18%), transparent) 25%,
+    color-mix(in srgb, var(--c-light) calc(var(--glass-reflex-light) * 35%), transparent) 50%,
+    color-mix(in srgb, var(--c-light) calc(var(--glass-reflex-light) * 18%), transparent) 75%,
+    transparent 100%
+  );
+  margin: 1.25rem 0;
 }

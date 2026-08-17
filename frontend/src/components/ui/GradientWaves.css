@@ -8,6 +8,14 @@
     radial-gradient(ellipse 80% 50% at 50% -20%, rgba(6, 182, 212, 0.25), transparent 70%),
     radial-gradient(ellipse 60% 50% at 50% 120%, rgba(30, 64, 175, 0.35), transparent 80%),
     #050814;
+  transition: background 400ms cubic-bezier(1, 0.0, 0.4, 1);
+}
+
+html:not(.dark) .gradient-waves-container {
+  background: 
+    radial-gradient(ellipse 80% 50% at 50% -20%, rgba(0, 82, 245, 0.12), transparent 70%),
+    radial-gradient(ellipse 60% 50% at 50% 120%, rgba(124, 58, 237, 0.08), transparent 80%),
+    var(--bg-canvas, #E8E8E9);
 }
 
 .gradient-waves-container canvas {

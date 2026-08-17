@@ -97,30 +97,30 @@ export const QuestionPalette: React.FC<QuestionPaletteProps> = ({
       aria-label="Verified question gallery"
       className="refractive-glass-card refractive-glass-card-primary absolute bottom-full left-1/2 z-40 mb-3 flex max-h-[min(70dvh,38rem)] w-[min(94vw,46rem)] -translate-x-1/2 flex-col overflow-hidden shadow-2xl"
     >
-      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-white/10 px-4 py-3">
+      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-black/10 dark:border-white/10 px-4 py-3">
         <div>
-          <div className="flex items-center gap-2 text-xs font-bold text-white">
-            <Sparkle size={15} className="text-blue-400" weight="fill" />
+          <div className="flex items-center gap-2 text-xs font-bold text-black dark:text-white">
+            <Sparkle size={15} className="text-blue-500 dark:text-blue-400" weight="fill" />
             Verified questions
           </div>
-          <p className="mt-1 text-[10px] text-slate-400">
+          <p className="mt-1 text-[10px] text-black dark:text-slate-400">
             Corpus-backed recording plan · not a measured voice result
           </p>
         </div>
         {catalog && (
-          <span className="rounded-full border border-emerald-400/25 bg-emerald-500/10 px-2.5 py-1 font-mono text-[10px] text-emerald-300">
+          <span className="rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2.5 py-1 font-mono text-[10px] text-emerald-700 dark:text-emerald-300">
             {catalog.live_text_validated_count}/{catalog.total} live-text validated
           </span>
         )}
       </div>
 
-      <div className="flex gap-1 border-b border-white/10 px-3 pt-2" role="tablist">
+      <div className="flex gap-1 border-b border-black/10 dark:border-white/10 px-3 pt-2" role="tablist">
         <button
           type="button"
           role="tab"
           aria-selected={tab === 'verified'}
           onClick={() => setTab('verified')}
-          className={`rounded-t-lg px-3 py-2 text-xs font-semibold cursor-pointer transition-colors ${tab === 'verified' ? 'border-b-2 border-blue-400 text-blue-300' : 'text-slate-400 hover:text-white'}`}
+          className={`rounded-t-lg px-3 py-2 text-xs font-semibold cursor-pointer transition-colors ${tab === 'verified' ? 'border-b-2 border-blue-500 text-blue-600 dark:border-blue-400 dark:text-blue-300' : 'text-black hover:text-black dark:text-slate-400 dark:hover:text-white'}`}
         >
           Question gallery
         </button>
@@ -129,7 +129,7 @@ export const QuestionPalette: React.FC<QuestionPaletteProps> = ({
           role="tab"
           aria-selected={tab === 'recent'}
           onClick={() => setTab('recent')}
-          className={`rounded-t-lg px-3 py-2 text-xs font-semibold cursor-pointer transition-colors ${tab === 'recent' ? 'border-b-2 border-blue-400 text-blue-300' : 'text-slate-400 hover:text-white'}`}
+          className={`rounded-t-lg px-3 py-2 text-xs font-semibold cursor-pointer transition-colors ${tab === 'recent' ? 'border-b-2 border-blue-500 text-blue-600 dark:border-blue-400 dark:text-blue-300' : 'text-black hover:text-black dark:text-slate-400 dark:hover:text-white'}`}
         >
           Recent this session ({recentQueries.length})
         </button>
@@ -137,26 +137,26 @@ export const QuestionPalette: React.FC<QuestionPaletteProps> = ({
 
       {tab === 'verified' ? (
         <>
-          <div className="space-y-2 border-b border-white/10 p-3">
-            <label className="flex items-center gap-2 rounded-xl border border-white/10 bg-black/20 px-3 py-2 focus-within:border-blue-400 focus-within:bg-black/30 backdrop-blur-sm transition-all">
-              <MagnifyingGlass size={15} className="shrink-0 text-slate-400" />
+          <div className="space-y-2 border-b border-black/10 dark:border-white/10 p-3">
+            <label className="flex items-center gap-2 rounded-xl border border-black/10 dark:border-white/10 bg-black/[0.03] dark:bg-black/20 px-3 py-2 focus-within:border-blue-500 focus-within:bg-black/[0.06] dark:focus-within:bg-black/30 backdrop-blur-sm transition-all">
+              <MagnifyingGlass size={15} className="shrink-0 text-black dark:text-slate-400" />
               <span className="sr-only">Search verified questions</span>
               <input
                 type="search"
                 value={filters.search}
                 onChange={(event) => setFilters((current) => ({ ...current, search: event.target.value }))}
                 placeholder="Search the 60 corpus-backed questions…"
-                className="min-w-0 flex-1 bg-transparent text-xs text-white outline-none placeholder:text-slate-500"
+                className="min-w-0 flex-1 bg-transparent text-xs text-black dark:text-white outline-none placeholder:text-slate-500 dark:placeholder:text-slate-500"
               />
             </label>
             <div className="flex flex-wrap gap-2">
-              <div className="flex rounded-lg border border-white/10 bg-black/20 p-0.5 backdrop-blur-sm">
+              <div className="flex rounded-lg border border-black/10 dark:border-white/10 bg-black/5 dark:bg-black/20 p-0.5 backdrop-blur-sm">
                 {(['all', 'hi', 'en', 'hi-en'] as const).map((language) => (
                   <button
                     key={language}
                     type="button"
                     onClick={() => setFilters((current) => ({ ...current, language }))}
-                    className={`rounded-md px-2 py-1 text-[10px] font-semibold cursor-pointer transition-all ${filters.language === language ? 'bg-gradient-to-tr from-blue-600 via-blue-500 to-cyan-400 text-white font-bold shadow-sm' : 'text-slate-400 hover:text-white'}`}
+                    className={`rounded-md px-2 py-1 text-[10px] font-semibold cursor-pointer transition-all ${filters.language === language ? 'bg-gradient-to-tr from-blue-600 via-blue-500 to-cyan-400 text-white font-bold shadow-sm' : 'text-black hover:text-black dark:text-slate-400 dark:hover:text-white'}`}
                   >
                     {language === 'all' ? 'All languages' : LANGUAGE_LABELS[language]}
                   </button>
@@ -166,7 +166,7 @@ export const QuestionPalette: React.FC<QuestionPaletteProps> = ({
                 aria-label="Question length"
                 value={filters.length}
                 onChange={(event) => setFilters((current) => ({ ...current, length: event.target.value as QuestionLengthFilter }))}
-                className="rounded-lg border border-white/10 bg-black/30 px-2 py-1 text-[10px] text-slate-300 outline-none backdrop-blur-sm focus:border-blue-400"
+                className="rounded-lg border border-black/10 dark:border-white/10 bg-black/[0.03] dark:bg-black/30 px-2 py-1 text-[10px] text-black dark:text-slate-300 outline-none backdrop-blur-sm focus:border-blue-500"
               >
                 <option value="all">Any length</option>
                 <option value="short">Short</option>
@@ -176,7 +176,7 @@ export const QuestionPalette: React.FC<QuestionPaletteProps> = ({
                 aria-label="Recording condition"
                 value={filters.environment}
                 onChange={(event) => setFilters((current) => ({ ...current, environment: event.target.value as QuestionEnvironmentFilter }))}
-                className="rounded-lg border border-white/10 bg-black/30 px-2 py-1 text-[10px] text-slate-300 outline-none backdrop-blur-sm focus:border-blue-400"
+                className="rounded-lg border border-black/10 dark:border-white/10 bg-black/[0.03] dark:bg-black/30 px-2 py-1 text-[10px] text-black dark:text-slate-300 outline-none backdrop-blur-sm focus:border-blue-500"
               >
                 <option value="all">Clean or noisy</option>
                 <option value="clean">Clean</option>
@@ -187,13 +187,13 @@ export const QuestionPalette: React.FC<QuestionPaletteProps> = ({
 
           <div className="min-h-28 flex-1 overflow-y-auto p-3">
             {loading ? (
-              <div className="flex h-28 items-center justify-center gap-2 text-xs text-slate-400">
-                <ArrowClockwise size={16} className="animate-spin text-blue-400" />Loading verified questions…
+              <div className="flex h-28 items-center justify-center gap-2 text-xs text-black dark:text-slate-400">
+                <ArrowClockwise size={16} className="animate-spin text-blue-500 dark:text-blue-400" />Loading verified questions…
               </div>
             ) : error ? (
               <div className="glass-inner-box flex h-32 flex-col items-center justify-center gap-3 px-4 text-center">
-                <p className="text-xs text-slate-200">{error}</p>
-                <button type="button" onClick={onRetry} className="glass-btn inline-flex items-center gap-1.5 px-3 py-1.5 text-xs text-slate-200 cursor-pointer">
+                <p className="text-xs text-black dark:text-slate-200">{error}</p>
+                <button type="button" onClick={onRetry} className="glass-btn inline-flex items-center gap-1.5 px-3 py-1.5 text-xs text-black dark:text-slate-200 cursor-pointer">
                   <ArrowClockwise size={14} />Retry
                 </button>
               </div>
@@ -205,24 +205,24 @@ export const QuestionPalette: React.FC<QuestionPaletteProps> = ({
                     type="button"
                     disabled={!canSubmit}
                     onClick={() => onAsk(prompt.text, prompt.language)}
-                    className="group rounded-xl border border-white/10 bg-white/[0.04] p-3 text-left transition-all hover:border-blue-400/50 hover:bg-white/[0.08] hover:shadow-[0_4px_16px_rgba(37,99,235,0.15)] active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-40 cursor-pointer"
+                    className="group rounded-xl border border-black/10 dark:border-white/10 bg-black/[0.03] dark:bg-white/[0.04] p-3 text-left transition-all hover:border-blue-400/50 hover:bg-black/[0.06] dark:hover:bg-white/[0.08] hover:shadow-[0_4px_16px_rgba(37,99,235,0.15)] active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-40 cursor-pointer"
                   >
                     <span className="flex items-center justify-between gap-2 font-mono text-[9px] uppercase tracking-wide">
-                      <span className="text-blue-400 font-semibold">{LANGUAGE_LABELS[prompt.language]}</span>
-                      <span className="text-slate-400">{prompt.condition.replace('-', ' · ')}</span>
+                      <span className="text-blue-600 dark:text-blue-400 font-semibold">{LANGUAGE_LABELS[prompt.language]}</span>
+                      <span className="text-slate-600 dark:text-slate-400">{prompt.condition.replace('-', ' · ')}</span>
                     </span>
-                    <span className="mt-1.5 line-clamp-3 block text-xs leading-relaxed text-slate-200 group-hover:text-white transition-colors">
+                    <span className="mt-1.5 line-clamp-3 block text-xs leading-relaxed text-black dark:text-slate-200 group-hover:text-black dark:group-hover:text-white transition-colors">
                       {prompt.text}
                     </span>
                   </button>
                 ))}
               </div>
             ) : (
-              <div className="flex h-28 items-center justify-center text-xs text-slate-500">No verified questions match these filters.</div>
+              <div className="flex h-28 items-center justify-center text-xs text-black dark:text-slate-400">No verified questions match these filters.</div>
             )}
           </div>
           {catalog && !loading && !error && (
-            <div className="border-t border-white/10 px-4 py-2 text-[10px] text-slate-400">
+            <div className="border-t border-black/10 dark:border-white/10 px-4 py-2 text-[10px] text-black dark:text-slate-400">
               Showing {prompts.length} of {catalog.total} · Hindi {catalog.coverage.languages.hi} · English {catalog.coverage.languages.en} · Hinglish {catalog.coverage.languages['hi-en']}
             </div>
           )}
@@ -231,16 +231,16 @@ export const QuestionPalette: React.FC<QuestionPaletteProps> = ({
         <div className="min-h-48 flex-1 overflow-y-auto p-3">
           <div className="glass-inner-box mb-3 flex items-start justify-between gap-3 p-3">
             <div>
-              <div className="flex items-center gap-1.5 text-[11px] font-semibold text-slate-200">
-                <ClockCounterClockwise size={14} className="text-blue-400" />Private session history
+              <div className="flex items-center gap-1.5 text-[11px] font-semibold text-black dark:text-slate-200">
+                <ClockCounterClockwise size={14} className="text-blue-500 dark:text-blue-400" />Private session history
               </div>
-              <p className="mt-1 text-[10px] leading-relaxed text-slate-400">Stored only in this browser tab. Text result metadata only; microphone audio is never stored here.</p>
+              <p className="mt-1 text-[10px] leading-relaxed text-black dark:text-slate-400">Stored only in this browser tab. Text result metadata only; microphone audio is never stored here.</p>
             </div>
             <button
               type="button"
               disabled={!recentQueries.length}
               onClick={onClearRecent}
-              className="glass-btn inline-flex shrink-0 items-center gap-1 px-2.5 py-1 text-[10px] text-slate-300 hover:text-white disabled:opacity-40 cursor-pointer"
+              className="glass-btn inline-flex shrink-0 items-center gap-1 px-2.5 py-1 text-[10px] text-black dark:text-slate-300 hover:text-black dark:hover:text-white disabled:opacity-40 cursor-pointer"
             >
               <Trash size={12} />Clear
             </button>
@@ -253,24 +253,24 @@ export const QuestionPalette: React.FC<QuestionPaletteProps> = ({
                   type="button"
                   disabled={!canSubmit}
                   onClick={() => onAsk(entry.query, entry.language)}
-                  className="w-full rounded-xl border border-white/10 bg-white/[0.04] p-3 text-left transition-all hover:border-blue-400/50 hover:bg-white/[0.08] hover:shadow-[0_4px_16px_rgba(37,99,235,0.15)] active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-40 cursor-pointer"
+                  className="w-full rounded-xl border border-black/10 dark:border-white/10 bg-black/[0.03] dark:bg-white/[0.04] p-3 text-left transition-all hover:border-blue-400/50 hover:bg-black/[0.06] dark:hover:bg-white/[0.08] hover:shadow-[0_4px_16px_rgba(37,99,235,0.15)] active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-40 cursor-pointer"
                 >
-                  <span className="line-clamp-2 text-xs leading-relaxed text-slate-200">{entry.query}</span>
-                  <span className="mt-2 flex flex-wrap gap-x-3 gap-y-1 font-mono text-[9px] uppercase text-slate-400">
-                    <span className="text-blue-400 font-semibold">{getLanguageDisplayLabel(entry.language)}</span>
+                  <span className="line-clamp-2 text-xs leading-relaxed text-black dark:text-slate-200">{entry.query}</span>
+                  <span className="mt-2 flex flex-wrap gap-x-3 gap-y-1 font-mono text-[9px] uppercase text-black dark:text-slate-400">
+                    <span className="text-blue-600 dark:text-blue-400 font-semibold">{getLanguageDisplayLabel(entry.language)}</span>
                     <span>{OUTCOME_LABELS[entry.outcome]}</span>
                     <span>{entry.citationCount} citation{entry.citationCount === 1 ? '' : 's'}</span>
                     {entry.latencyMs !== null && <span>{formatResponseLatency(entry.latencyMs)}</span>}
-                    <span className="ml-auto text-blue-300 font-medium">Ask again</span>
+                    <span className="ml-auto text-blue-600 dark:text-blue-300 font-medium">Ask again</span>
                   </span>
                 </button>
               ))}
             </div>
           ) : (
             <div className="flex h-28 flex-col items-center justify-center text-center">
-              <ClockCounterClockwise size={22} className="mb-2 text-slate-500" />
-              <p className="text-xs text-slate-300">No questions in this tab yet.</p>
-              <p className="mt-1 text-[10px] text-slate-500">Completed voice and text queries will appear here.</p>
+              <ClockCounterClockwise size={22} className="mb-2 text-black dark:text-slate-500" />
+              <p className="text-xs text-black dark:text-slate-300">No questions in this tab yet.</p>
+              <p className="mt-1 text-[10px] text-black dark:text-slate-400">Completed voice and text queries will appear here.</p>
             </div>
           )}
         </div>

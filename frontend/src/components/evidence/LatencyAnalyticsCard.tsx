@@ -3,10 +3,10 @@ import { Lightning, ShieldCheck } from '@phosphor-icons/react';
 
 export const LatencyAnalyticsCard: React.FC = () => {
   const percentiles = [
-    { label: 'P50 Latency', value: '61.75 ms', tag: 'Median', desc: '50% of unique unseen queries complete in under 62ms', tone: 'text-blue-300' },
-    { label: 'P70 Latency', value: '66.94 ms', tag: '70th Percentile', desc: '70% of unique unseen queries complete in under 67ms', tone: 'text-blue-300' },
-    { label: 'P95 Latency', value: '86.79 ms', tag: '95th Percentile', desc: '95% of unique unseen queries complete in under 87ms', tone: 'text-blue-300' },
-    { label: 'P100 / Max', value: '128.50 ms', tag: 'Maximum', desc: 'Worst-case query across 100 unique unseen queries (Target < 200ms)', tone: 'text-white' },
+    { label: 'P50 Latency', value: '61.75 ms', tag: 'Median', desc: '50% of unique unseen queries complete in under 62ms', tone: 'text-blue-600 dark:text-blue-300' },
+    { label: 'P70 Latency', value: '66.94 ms', tag: '70th Percentile', desc: '70% of unique unseen queries complete in under 67ms', tone: 'text-blue-600 dark:text-blue-300' },
+    { label: 'P95 Latency', value: '86.79 ms', tag: '95th Percentile', desc: '95% of unique unseen queries complete in under 87ms', tone: 'text-blue-600 dark:text-blue-300' },
+    { label: 'P100 / Max', value: '128.50 ms', tag: 'Maximum', desc: 'Worst-case query across 100 unique unseen queries (Target < 200ms)', tone: 'text-black dark:text-white' },
   ];
 
   const stages = [
@@ -79,23 +79,23 @@ export const LatencyAnalyticsCard: React.FC = () => {
   return (
     <article className="refractive-glass-card refractive-glass-card-primary space-y-6 p-6 sm:p-8">
       {/* Header */}
-      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-white/10 pb-4">
+      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-black/10 dark:border-white/10 pb-4">
         <div className="flex items-center gap-3">
-          <div className="rounded-xl border border-blue-400/30 bg-blue-500/15 p-2.5 text-blue-300">
+          <div className="rounded-xl border border-blue-400/30 bg-blue-500/10 dark:bg-blue-500/15 p-2.5 text-blue-600 dark:text-blue-300">
             <Lightning size={22} weight="bold" />
           </div>
           <div>
-            <h2 className="text-base font-bold tracking-tight text-white sm:text-lg">
+            <h2 className="text-base font-bold tracking-tight text-black dark:text-white sm:text-lg">
               Latency Analytics (100 Test Queries)
             </h2>
-            <p className="text-xs text-slate-400">
+            <p className="text-xs text-black dark:text-slate-400">
               Submit P50 / P70 / P100 latency numbers measured across 100 test queries.
             </p>
           </div>
         </div>
 
-        <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-3 py-1 text-xs font-semibold text-emerald-300">
-          <ShieldCheck size={14} weight="fill" className="text-emerald-400" />
+        <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-3 py-1 text-xs font-semibold text-emerald-700 dark:text-emerald-300">
+          <ShieldCheck size={14} weight="fill" className="text-emerald-600 dark:text-emerald-400" />
           100 Queries Measured
         </span>
       </div>
@@ -105,18 +105,18 @@ export const LatencyAnalyticsCard: React.FC = () => {
         {percentiles.map((p) => (
           <div
             key={p.label}
-            className="space-y-1.5 rounded-xl border border-white/10 bg-white/[0.04] p-4 transition-all hover:border-blue-400/40 hover:bg-white/[0.07]"
+            className="space-y-1.5 rounded-xl border border-black/10 dark:border-white/10 bg-black/[0.03] dark:bg-white/[0.04] p-4 transition-all hover:border-blue-400/40 hover:bg-black/[0.06] dark:hover:bg-white/[0.07]"
           >
             <div className="flex items-center justify-between">
-              <span className="text-xs font-bold text-slate-400">{p.label}</span>
-              <span className="rounded bg-white/5 px-1.5 py-0.5 text-[9px] font-mono text-slate-400">
+              <span className="text-xs font-bold text-black dark:text-slate-400">{p.label}</span>
+              <span className="rounded bg-black/5 dark:bg-white/5 px-1.5 py-0.5 text-[9px] font-mono text-black dark:text-slate-400 font-semibold">
                 {p.tag}
               </span>
             </div>
-            <div className={`font-mono text-2xl font-bold ${p.tone}`}>
+            <div className={`font-mono text-2xl font-bold ${p.label === 'P100 / Max' ? 'text-black dark:text-white' : 'text-blue-600 dark:text-blue-300'}`}>
               {p.value}
             </div>
-            <p className="text-[10px] text-slate-400 leading-tight">
+            <p className="text-[10px] text-black dark:text-slate-400 leading-tight">
               {p.desc}
             </p>
           </div>
@@ -124,14 +124,14 @@ export const LatencyAnalyticsCard: React.FC = () => {
       </div>
 
       {/* Stage-by-Stage Sub-Latency Table */}
-      <div className="overflow-hidden rounded-xl border border-white/10 bg-black/25">
-        <div className="px-4 py-3 border-b border-white/10">
-          <span className="text-xs font-bold text-slate-200">
+      <div className="overflow-hidden rounded-xl border border-black/10 dark:border-white/10 bg-black/[0.03] dark:bg-black/25">
+        <div className="px-4 py-3 border-b border-black/10 dark:border-white/10">
+          <span className="text-xs font-bold text-black dark:text-slate-200">
             End-to-End Pipeline Evaluation (All 8 Stages Across 100 Queries)
           </span>
         </div>
-        <div className="divide-y divide-white/5">
-          <div className="grid grid-cols-[2.5rem_1fr_5.5rem_5.5rem_6rem] gap-2 px-4 py-2 text-[10px] font-bold uppercase tracking-wider text-slate-400">
+        <div className="divide-y divide-black/5 dark:divide-white/5">
+          <div className="grid grid-cols-[2.5rem_1fr_5.5rem_5.5rem_6rem] gap-2 px-4 py-2 text-[10px] font-bold uppercase tracking-wider text-black dark:text-slate-400">
             <span className="text-center">Step</span>
             <span>Pipeline Stage</span>
             <span className="text-right">P50</span>
@@ -141,18 +141,18 @@ export const LatencyAnalyticsCard: React.FC = () => {
           {stages.map((st) => (
             <div
               key={st.name}
-              className="grid grid-cols-[2.5rem_1fr_5.5rem_5.5rem_6rem] items-center gap-2 px-4 py-2.5 text-xs hover:bg-white/[0.04] transition-colors"
+              className="grid grid-cols-[2.5rem_1fr_5.5rem_5.5rem_6rem] items-center gap-2 px-4 py-2.5 text-xs hover:bg-black/[0.02] dark:hover:bg-white/[0.04] transition-colors"
             >
-              <span className="text-center font-mono text-[11px] font-bold text-slate-400">
+              <span className="text-center font-mono text-[11px] font-bold text-black dark:text-slate-400">
                 {st.step}
               </span>
               <div>
-                <span className="font-semibold text-slate-200 block text-xs">{st.name}</span>
-                <span className="text-[10px] text-slate-400 block">{st.scope}</span>
+                <span className="font-semibold text-black dark:text-slate-200 block text-xs">{st.name}</span>
+                <span className="text-[10px] text-black dark:text-slate-400 block">{st.scope}</span>
               </div>
-              <span className="text-right font-mono text-blue-300 font-semibold">{st.p50}</span>
-              <span className="text-right font-mono text-slate-300">{st.p70}</span>
-              <span className="text-right font-mono text-slate-400">{st.p100}</span>
+              <span className="text-right font-mono text-blue-600 dark:text-blue-300 font-semibold">{st.p50}</span>
+              <span className="text-right font-mono text-black dark:text-slate-300 font-medium">{st.p70}</span>
+              <span className="text-right font-mono text-black dark:text-slate-400">{st.p100}</span>
             </div>
           ))}
         </div>
