@@ -46,7 +46,6 @@ export const VoicePillControls: React.FC<VoicePillControlsProps> = ({
   textSubmitting,
   canSubmit,
   selectedLanguage,
-  recordingDuration,
   onLanguageChange,
   onStartRecording,
   onStopAndAsk,
@@ -87,12 +86,6 @@ export const VoicePillControls: React.FC<VoicePillControlsProps> = ({
   const isProcessing = isVoiceProcessing || textSubmitting;
   const isRequesting = state === 'requesting_permission';
   const isTerminal = state === 'terminal';
-
-  const formatTime = (seconds: number) => {
-    const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
-    return `${mins}:${secs.toString().padStart(2, '0')}`;
-  };
 
   const currentLangObj =
     LANGUAGE_REGISTRY.find((l) => l.code === selectedLanguage) || LANGUAGE_REGISTRY[0];
@@ -173,14 +166,6 @@ export const VoicePillControls: React.FC<VoicePillControlsProps> = ({
               )}
             </button>
           ))}
-        </div>
-      )}
-
-      {/* Recording Duration Floating Badge */}
-      {isRecording && (
-        <div className="absolute bottom-full mb-3 inline-flex items-center gap-2 px-3.5 py-1 bg-blue-500/10 border border-blue-400/30 backdrop-blur-md rounded-full text-[11px] font-mono font-bold text-blue-400 shadow-xl animate-pulse z-30">
-          <span className="w-2 h-2 rounded-full bg-blue-400 animate-ping" />
-          <span>Listening: {formatTime(recordingDuration)} / 1:00 · Auto-stop on</span>
         </div>
       )}
 

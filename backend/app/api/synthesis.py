@@ -147,7 +147,8 @@ async def synthesize_query(
             ),
             started_ns=started_ns,
         )
-    except GroqGroundingFailed:
+    except GroqGroundingFailed as exc:
+        logger.warning("Groq grounding failed for %s: %s", body.request_id, exc)
         return _terminal_response(
             body,
             settings,

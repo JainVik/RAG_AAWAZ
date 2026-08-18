@@ -77,46 +77,46 @@ export const LatencyAnalyticsCard: React.FC = () => {
   ];
 
   return (
-    <article className="refractive-glass-card refractive-glass-card-primary space-y-6 p-6 sm:p-8">
+    <article className="refractive-glass-card refractive-glass-card-primary w-full min-w-0 max-w-full overflow-hidden space-y-4 sm:space-y-6 p-4 sm:p-6 md:p-8">
       {/* Header */}
-      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-black/10 dark:border-white/10 pb-4">
-        <div className="flex items-center gap-3">
-          <div className="rounded-xl border border-blue-400/30 bg-blue-500/10 dark:bg-blue-500/15 p-2.5 text-blue-600 dark:text-blue-300">
-            <Lightning size={22} weight="bold" />
+      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-black/10 dark:border-white/10 pb-3 sm:pb-4">
+        <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
+          <div className="rounded-xl border border-blue-400/30 bg-blue-500/10 dark:bg-blue-500/15 p-2 sm:p-2.5 text-blue-600 dark:text-blue-300 shrink-0">
+            <Lightning size={20} weight="bold" className="sm:w-[22px] sm:h-[22px]" />
           </div>
-          <div>
-            <h2 className="text-base font-bold tracking-tight text-black dark:text-white sm:text-lg">
+          <div className="min-w-0">
+            <h2 className="text-sm sm:text-base font-bold tracking-tight text-black dark:text-white md:text-lg">
               Latency Analytics (100 Test Queries)
             </h2>
-            <p className="text-xs text-black dark:text-slate-400">
+            <p className="text-[11px] sm:text-xs text-black dark:text-slate-400 line-clamp-1 sm:line-clamp-none">
               Submit P50 / P70 / P100 latency numbers measured across 100 test queries.
             </p>
           </div>
         </div>
 
-        <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-3 py-1 text-xs font-semibold text-emerald-700 dark:text-emerald-300">
+        <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2.5 sm:px-3 py-0.5 sm:py-1 text-[11px] sm:text-xs font-semibold text-emerald-700 dark:text-emerald-300">
           <ShieldCheck size={14} weight="fill" className="text-emerald-600 dark:text-emerald-400" />
           100 Queries Measured
         </span>
       </div>
 
       {/* P50 / P70 / P95 / P100 Grid */}
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+      <div className="grid grid-cols-2 gap-2 sm:gap-3 sm:grid-cols-4">
         {percentiles.map((p) => (
           <div
             key={p.label}
-            className="space-y-1.5 rounded-xl border border-black/10 dark:border-white/10 bg-black/[0.03] dark:bg-white/[0.04] p-4 transition-all hover:border-blue-400/40 hover:bg-black/[0.06] dark:hover:bg-white/[0.07]"
+            className="space-y-1 rounded-xl border border-black/10 dark:border-white/10 bg-black/[0.03] dark:bg-white/[0.04] p-2.5 sm:p-4 transition-all hover:border-blue-400/40 hover:bg-black/[0.06] dark:hover:bg-white/[0.07]"
           >
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-bold text-black dark:text-slate-400">{p.label}</span>
-              <span className="rounded bg-black/5 dark:bg-white/5 px-1.5 py-0.5 text-[9px] font-mono text-black dark:text-slate-400 font-semibold">
+            <div className="flex items-center justify-between gap-1">
+              <span className="text-[11px] sm:text-xs font-bold text-black dark:text-slate-400 truncate">{p.label}</span>
+              <span className="rounded bg-black/5 dark:bg-white/5 px-1 py-0.5 text-[8px] sm:text-[9px] font-mono text-black dark:text-slate-400 font-semibold shrink-0">
                 {p.tag}
               </span>
             </div>
-            <div className={`font-mono text-2xl font-bold ${p.label === 'P100 / Max' ? 'text-black dark:text-white' : 'text-blue-600 dark:text-blue-300'}`}>
+            <div className={`font-mono text-lg sm:text-2xl font-bold ${p.label === 'P100 / Max' ? 'text-black dark:text-white' : 'text-blue-600 dark:text-blue-300'}`}>
               {p.value}
             </div>
-            <p className="text-[10px] text-black dark:text-slate-400 leading-tight">
+            <p className="text-[9px] sm:text-[10px] text-black dark:text-slate-400 leading-tight line-clamp-2 sm:line-clamp-none">
               {p.desc}
             </p>
           </div>
@@ -125,36 +125,38 @@ export const LatencyAnalyticsCard: React.FC = () => {
 
       {/* Stage-by-Stage Sub-Latency Table */}
       <div className="overflow-hidden rounded-xl border border-black/10 dark:border-white/10 bg-black/[0.03] dark:bg-black/25">
-        <div className="px-4 py-3 border-b border-black/10 dark:border-white/10">
+        <div className="px-3 sm:px-4 py-2.5 sm:py-3 border-b border-black/10 dark:border-white/10">
           <span className="text-xs font-bold text-black dark:text-slate-200">
             End-to-End Pipeline Evaluation (All 8 Stages Across 100 Queries)
           </span>
         </div>
-        <div className="divide-y divide-black/5 dark:divide-white/5">
-          <div className="grid grid-cols-[2.5rem_1fr_5.5rem_5.5rem_6rem] gap-2 px-4 py-2 text-[10px] font-bold uppercase tracking-wider text-black dark:text-slate-400">
-            <span className="text-center">Step</span>
-            <span>Pipeline Stage</span>
-            <span className="text-right">P50</span>
-            <span className="text-right">P70</span>
-            <span className="text-right">P100 (Max)</span>
-          </div>
-          {stages.map((st) => (
-            <div
-              key={st.name}
-              className="grid grid-cols-[2.5rem_1fr_5.5rem_5.5rem_6rem] items-center gap-2 px-4 py-2.5 text-xs hover:bg-black/[0.02] dark:hover:bg-white/[0.04] transition-colors"
-            >
-              <span className="text-center font-mono text-[11px] font-bold text-black dark:text-slate-400">
-                {st.step}
-              </span>
-              <div>
-                <span className="font-semibold text-black dark:text-slate-200 block text-xs">{st.name}</span>
-                <span className="text-[10px] text-black dark:text-slate-400 block">{st.scope}</span>
-              </div>
-              <span className="text-right font-mono text-blue-600 dark:text-blue-300 font-semibold">{st.p50}</span>
-              <span className="text-right font-mono text-black dark:text-slate-300 font-medium">{st.p70}</span>
-              <span className="text-right font-mono text-black dark:text-slate-400">{st.p100}</span>
+        <div className="overflow-x-auto">
+          <div className="min-w-[480px] divide-y divide-black/5 dark:divide-white/5">
+            <div className="grid grid-cols-[2rem_1fr_4.5rem_4.5rem_5rem] sm:grid-cols-[2.5rem_1fr_5.5rem_5.5rem_6rem] gap-2 px-3 sm:px-4 py-2 text-[9px] sm:text-[10px] font-bold uppercase tracking-wider text-black dark:text-slate-400">
+              <span className="text-center">Step</span>
+              <span>Pipeline Stage</span>
+              <span className="text-right">P50</span>
+              <span className="text-right">P70</span>
+              <span className="text-right">P100 (Max)</span>
             </div>
-          ))}
+            {stages.map((st) => (
+              <div
+                key={st.name}
+                className="grid grid-cols-[2rem_1fr_4.5rem_4.5rem_5rem] sm:grid-cols-[2.5rem_1fr_5.5rem_5.5rem_6rem] items-center gap-2 px-3 sm:px-4 py-2 sm:py-2.5 text-xs hover:bg-black/[0.02] dark:hover:bg-white/[0.04] transition-colors"
+              >
+                <span className="text-center font-mono text-[10px] sm:text-[11px] font-bold text-black dark:text-slate-400">
+                  {st.step}
+                </span>
+                <div className="min-w-0">
+                  <span className="font-semibold text-black dark:text-slate-200 block text-[11px] sm:text-xs truncate">{st.name}</span>
+                  <span className="text-[9px] sm:text-[10px] text-black dark:text-slate-400 block line-clamp-1">{st.scope}</span>
+                </div>
+                <span className="text-right font-mono text-blue-600 dark:text-blue-300 font-semibold text-[11px] sm:text-xs">{st.p50}</span>
+                <span className="text-right font-mono text-black dark:text-slate-300 font-medium text-[11px] sm:text-xs">{st.p70}</span>
+                <span className="text-right font-mono text-black dark:text-slate-400 text-[11px] sm:text-xs">{st.p100}</span>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
     </article>

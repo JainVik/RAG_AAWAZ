@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from app.domain.enums import Language
+from app.domain.enums import ChunkStrategy, Language
 from app.domain.languages import analyze_language, language_from_tag
 from app.domain.models import CorpusDocument
 from app.ingestion.chunk_factory import ChunkFactory
@@ -78,3 +78,20 @@ def test_explicit_language_hint_supports_romanized_indic_queries() -> None:
 
     tagged = TideRouter().route("Goa rajya kab bana?", language_hint="hin_Deva")
     assert tagged.language == Language.HINDI
+
+
+def test_hindi_hint_with_latin_entities_routes_as_codemixed() -> None:
+    query = "क्या Barack Obama फिर से President बन सकता है"
+    analysis = analyze_language(query, hint=Language.HINDI)
+    assert analysis.code_mixed is True
+    assert analysis.language == Language.CODE_MIXED
+
+    plan = TideRouter().route(query, language_hint=Language.HINDI)
+    assert plan.language == Language.CODE_MIXED
+    assert plan.code_mixed is True
+    assert ChunkStrategy.BILINGUAL_PAIRED in plan.strategies
+    assert plan.representation_languages is not None
+    assert Language.CODE_MIXED in plan.representation_languages
+    assert Language.ENGLISH in plan.representation_languages
+    assert Language.HINDI in plan.representation_languages
+
