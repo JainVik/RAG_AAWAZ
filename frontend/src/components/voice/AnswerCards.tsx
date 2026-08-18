@@ -312,23 +312,28 @@ export const AnswerCards: React.FC<AnswerCardsProps> = ({
         </div>
 
         {/* Outcome & Latency Summary Pills aligned to card columns */}
-        <div className={`mt-3.5 grid gap-4 ${hasSynthesisCard ? 'lg:grid-cols-2' : ''}`}>
+        <div className={`mt-3.5 grid gap-2.5 sm:gap-4 ${hasSynthesisCard ? 'lg:grid-cols-2' : ''}`}>
           {/* Left Column Pill (Evidence Answer) */}
           <div className="flex justify-center">
-            <div aria-label="Query outcome summary" className="refractive-glass-pill flex items-center gap-x-2 px-3.5 py-1.5 font-mono text-[10px] text-black dark:text-slate-300">
-              <span className="inline-flex items-center gap-1 font-bold text-blue-600 dark:text-blue-300">
+            <div
+              aria-label="Query outcome summary"
+              className="refractive-glass-pill flex flex-wrap items-center justify-center gap-x-2 gap-y-1 px-3 sm:px-3.5 py-1.5 font-mono text-[10px] sm:text-xs text-black dark:text-slate-300 text-center max-w-full"
+            >
+              <span className="inline-flex items-center gap-1 font-bold text-blue-600 dark:text-blue-300 whitespace-nowrap">
                 <Sparkle size={12} weight="fill" /> Evidence Answer
               </span>
+              <span className="text-slate-400 dark:text-slate-600 hidden sm:inline" aria-hidden="true">·</span>
+              <span className="text-blue-600 dark:text-blue-300 whitespace-nowrap">{getLanguageDisplayLabel(result.language)}</span>
               <span className="text-slate-400 dark:text-slate-600" aria-hidden="true">·</span>
-              <span className="text-blue-600 dark:text-blue-300">{getLanguageDisplayLabel(result.language)}</span>
+              <span className={`whitespace-nowrap ${primaryOutcome === 'Grounded' ? 'text-emerald-600 dark:text-emerald-300 font-semibold' : 'text-amber-600 dark:text-amber-300'}`}>
+                {primaryOutcome}
+              </span>
               <span className="text-slate-400 dark:text-slate-600" aria-hidden="true">·</span>
-              <span className={primaryOutcome === 'Grounded' ? 'text-emerald-600 dark:text-emerald-300 font-semibold' : 'text-amber-600 dark:text-amber-300'}>{primaryOutcome}</span>
-              <span className="text-slate-400 dark:text-slate-600" aria-hidden="true">·</span>
-              <span>{result.citations.length} citation{result.citations.length === 1 ? '' : 's'}</span>
+              <span className="whitespace-nowrap">{result.citations.length} citation{result.citations.length === 1 ? '' : 's'}</span>
               {responseLatencyMs !== null && (
                 <>
                   <span className="text-slate-400 dark:text-slate-600" aria-hidden="true">·</span>
-                  <span className="font-bold text-blue-600 dark:text-blue-300">{formatResponseLatency(responseLatencyMs)}</span>
+                  <span className="font-bold text-blue-600 dark:text-blue-300 whitespace-nowrap">{formatResponseLatency(responseLatencyMs)}</span>
                 </>
               )}
             </div>
@@ -337,30 +342,33 @@ export const AnswerCards: React.FC<AnswerCardsProps> = ({
           {/* Right Column Pill (Groq Grounded Synthesis) */}
           {hasSynthesisCard && (
             <div className="flex justify-center">
-              <div className="refractive-glass-pill flex items-center gap-x-2 px-3.5 py-1.5 font-mono text-[10px] text-black dark:text-slate-300">
-                <span className="inline-flex items-center gap-1 font-bold text-violet-600 dark:text-violet-300">
+              <div
+                aria-label="Synthesis outcome summary"
+                className="refractive-glass-pill flex flex-wrap items-center justify-center gap-x-2 gap-y-1 px-3 sm:px-3.5 py-1.5 font-mono text-[10px] sm:text-xs text-black dark:text-slate-300 text-center max-w-full"
+              >
+                <span className="inline-flex items-center gap-1 font-bold text-violet-600 dark:text-violet-300 whitespace-nowrap">
                   <Sparkle size={12} weight="fill" /> Groq Synthesis
                 </span>
                 {synthesisModel && (
                   <>
-                    <span className="text-slate-400 dark:text-slate-600" aria-hidden="true">·</span>
-                    <span className="text-violet-600 dark:text-violet-200 font-medium">{modelDisplayName(synthesisModel)}</span>
+                    <span className="text-slate-400 dark:text-slate-600 hidden sm:inline" aria-hidden="true">·</span>
+                    <span className="text-violet-600 dark:text-violet-200 font-medium whitespace-nowrap">{modelDisplayName(synthesisModel)}</span>
                   </>
                 )}
                 <span className="text-slate-400 dark:text-slate-600" aria-hidden="true">·</span>
-                <span className={synthesisResult?.status === 'completed' ? 'text-emerald-600 dark:text-emerald-300 font-semibold' : 'text-violet-600 dark:text-violet-300'}>
+                <span className={`whitespace-nowrap ${synthesisResult?.status === 'completed' ? 'text-emerald-600 dark:text-emerald-300 font-semibold' : 'text-violet-600 dark:text-violet-300'}`}>
                   {synthesisResult?.status === 'completed' ? 'Grounded' : synthesisLoading ? 'Generating…' : (synthesisResult?.status ?? 'Pending')}
                 </span>
                 {synthesisResult?.citations && (
                   <>
                     <span className="text-slate-400 dark:text-slate-600" aria-hidden="true">·</span>
-                    <span>{synthesisResult.citations.length} citation{synthesisResult.citations.length === 1 ? '' : 's'}</span>
+                    <span className="whitespace-nowrap">{synthesisResult.citations.length} citation{synthesisResult.citations.length === 1 ? '' : 's'}</span>
                   </>
                 )}
                 {synthesisLatencyMs !== null && (
                   <>
                     <span className="text-slate-400 dark:text-slate-600" aria-hidden="true">·</span>
-                    <span className="font-bold text-violet-600 dark:text-violet-300">Generated in {formatResponseLatency(synthesisLatencyMs)}</span>
+                    <span className="font-bold text-violet-600 dark:text-violet-300 whitespace-nowrap">Generated in {formatResponseLatency(synthesisLatencyMs)}</span>
                   </>
                 )}
               </div>

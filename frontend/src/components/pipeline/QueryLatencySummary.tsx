@@ -93,32 +93,32 @@ export const QueryLatencySummary: React.FC<QueryLatencySummaryProps> = ({
       className="group mt-4 overflow-hidden refractive-glass-card refractive-glass-card-primary"
     >
       {/* The summary stays compact; measured stages are revealed on demand. */}
-      <summary className="flex cursor-pointer list-none flex-wrap items-center justify-between gap-3 px-5 py-3.5 transition-colors hover:bg-black/[0.02] dark:hover:bg-white/[0.04] [&::-webkit-details-marker]:hidden">
-        <span className="flex items-center gap-3">
-          <span className="rounded-xl border border-blue-400/30 bg-blue-500/15 p-2 text-blue-600 dark:text-blue-300">
-            <Lightning size={18} weight="fill" />
+      <summary className="flex cursor-pointer list-none items-center justify-between gap-2.5 sm:gap-3 p-3 sm:px-5 sm:py-3.5 transition-colors hover:bg-black/[0.02] dark:hover:bg-white/[0.04] [&::-webkit-details-marker]:hidden">
+        <span className="flex items-center gap-2.5 sm:gap-3 min-w-0">
+          <span className="rounded-xl border border-blue-400/30 bg-blue-500/15 p-1.5 sm:p-2 text-blue-600 dark:text-blue-300 shrink-0">
+            <Lightning size={16} weight="fill" className="sm:w-[18px] sm:h-[18px]" />
           </span>
-          <span>
-            <span className="block text-sm font-bold text-black dark:text-white tracking-wide" role="heading" aria-level={4}>
+          <span className="min-w-0">
+            <span className="block text-xs sm:text-sm font-bold text-black dark:text-white tracking-wide truncate" role="heading" aria-level={4}>
               End-to-End Pipeline Evaluation
             </span>
-            <span className="block text-xs text-black dark:text-slate-400">
-              Granular measured timings for each stage of this query · Full latency evidence
+            <span className="block text-[10px] sm:text-xs text-black dark:text-slate-400 line-clamp-1 sm:line-clamp-none">
+              Granular measured timings for each stage · Full evidence
             </span>
           </span>
         </span>
 
-        <span className="flex items-center gap-3">
+        <span className="flex items-center gap-2 sm:gap-3 shrink-0">
           <span className="text-right">
-            <span className="font-mono text-xl font-bold text-blue-600 dark:text-blue-300">
+            <span className="font-mono text-base sm:text-xl font-bold text-blue-600 dark:text-blue-300">
               {formatResponseLatency(totalTime)}
             </span>
-            <span className="block text-[10px] uppercase tracking-wider text-black dark:text-slate-400">
-              Total Request Latency
+            <span className="block text-[9px] sm:text-[10px] uppercase tracking-wider text-black dark:text-slate-400 whitespace-nowrap">
+              Request Latency
             </span>
           </span>
           <CaretDown
-            size={18}
+            size={16}
             className="shrink-0 text-slate-400 transition-transform duration-200 group-open:rotate-180"
             aria-hidden="true"
           />
@@ -126,19 +126,19 @@ export const QueryLatencySummary: React.FC<QueryLatencySummaryProps> = ({
       </summary>
 
       {/* Core RAG Stage Spotlight Subtotal */}
-      <div className="flex flex-wrap items-center justify-between gap-2 border-t border-b border-black/10 dark:border-white/10 bg-black/[0.02] dark:bg-white/[0.02] px-5 py-2.5 text-xs text-black dark:text-slate-300">
-        <div className="flex items-center gap-2">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-1.5 sm:gap-2 border-t border-b border-black/10 dark:border-white/10 bg-black/[0.02] dark:bg-white/[0.02] p-3 sm:px-5 sm:py-2.5 text-[11px] sm:text-xs text-black dark:text-slate-300">
+        <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
           <span className="font-semibold text-blue-600 dark:text-blue-300">Fast grounded path</span>
           <span className="text-slate-400 dark:text-slate-600" aria-hidden="true">·</span>
-          <span>Core RAG stage subtotal:</span>
+          <span>Core RAG subtotal:</span>
           <span className="font-mono font-bold text-black dark:text-white">{formatStageLatency(coreSubtotal)}</span>
         </div>
-        <div className="flex items-center gap-2 text-[11px] text-black dark:text-slate-400">
+        <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 text-[10px] sm:text-[11px] text-black dark:text-slate-400">
           <span>Hybrid search</span>
           <span className="text-slate-400 dark:text-slate-600" aria-hidden="true">·</span>
           <span>Grounding</span>
           <span className="text-slate-400 dark:text-slate-600" aria-hidden="true">·</span>
-          <span className="font-mono font-semibold text-blue-600 dark:text-blue-300">Full request {formatResponseLatency(totalTime)}</span>
+          <span className="font-mono font-semibold text-blue-600 dark:text-blue-300">Full {formatResponseLatency(totalTime)}</span>
         </div>
       </div>
 
@@ -146,10 +146,10 @@ export const QueryLatencySummary: React.FC<QueryLatencySummaryProps> = ({
       <div className="divide-y divide-black/5 dark:divide-white/5 overflow-x-auto">
         <table className="w-full text-left text-xs">
           <thead>
-            <tr className="border-b border-black/10 dark:border-white/10 bg-black/[0.01] dark:bg-white/[0.01] text-[10px] uppercase tracking-wider text-black dark:text-slate-400 font-semibold">
-              <th className="px-5 py-2.5 w-12 text-center">Step</th>
-              <th className="px-4 py-2.5">Stage & Scope</th>
-              <th className="px-5 py-2.5 text-right w-32">Measured Latency</th>
+            <tr className="border-b border-black/10 dark:border-white/10 bg-black/[0.01] dark:bg-white/[0.01] text-[9px] sm:text-[10px] uppercase tracking-wider text-black dark:text-slate-400 font-semibold">
+              <th className="px-2.5 sm:px-5 py-2 sm:py-2.5 w-8 sm:w-12 text-center">Step</th>
+              <th className="px-2 sm:px-4 py-2 sm:py-2.5">Stage & Scope</th>
+              <th className="px-2.5 sm:px-5 py-2 sm:py-2.5 text-right w-24 sm:w-32">Measured</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-black/[0.04] dark:divide-white/[0.04]">
@@ -158,15 +158,15 @@ export const QueryLatencySummary: React.FC<QueryLatencySummaryProps> = ({
                 key={st.name}
                 className="transition-colors hover:bg-black/[0.02] dark:hover:bg-white/[0.03]"
               >
-                <td className="px-5 py-2.5 text-center font-mono text-[11px] font-bold text-black dark:text-slate-400">
+                <td className="px-2.5 sm:px-5 py-2 sm:py-2.5 text-center font-mono text-[10px] sm:text-[11px] font-bold text-black dark:text-slate-400">
                   {st.step}
                 </td>
-                <td className="px-4 py-2.5">
-                  <p className="font-semibold text-black dark:text-white text-xs">{st.name}</p>
-                  <p className="text-[11px] text-black dark:text-slate-400">{st.scope}</p>
+                <td className="px-2 sm:px-4 py-2 sm:py-2.5">
+                  <p className="font-semibold text-black dark:text-white text-[11px] sm:text-xs">{st.name}</p>
+                  <p className="text-[10px] sm:text-[11px] text-slate-600 dark:text-slate-400 line-clamp-1 sm:line-clamp-none">{st.scope}</p>
                 </td>
-                <td className="px-5 py-2.5 text-right font-mono text-xs font-bold">
-                  <span className={`rounded-md border border-black/10 dark:border-white/10 bg-black/[0.04] dark:bg-white/[0.06] px-2 py-1 text-blue-700 dark:text-blue-300`}>
+                <td className="px-2.5 sm:px-5 py-2 sm:py-2.5 text-right font-mono text-[10px] sm:text-xs font-bold whitespace-nowrap">
+                  <span className="rounded-md border border-black/10 dark:border-white/10 bg-black/[0.04] dark:bg-white/[0.06] px-1.5 sm:px-2 py-0.5 sm:py-1 text-blue-700 dark:text-blue-300">
                     {formatStageLatency(st.value)}
                   </span>
                 </td>
@@ -177,16 +177,16 @@ export const QueryLatencySummary: React.FC<QueryLatencySummaryProps> = ({
       </div>
 
       {/* Footer */}
-      <div className="flex flex-col gap-2 border-t border-black/10 dark:border-white/10 bg-black/[0.01] dark:bg-white/[0.01] px-5 py-3 text-xs text-black dark:text-slate-400 sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex flex-col gap-2 border-t border-black/10 dark:border-white/10 bg-black/[0.01] dark:bg-white/[0.01] p-3 sm:px-5 sm:py-3 text-[10px] sm:text-xs text-black dark:text-slate-400 sm:flex-row sm:items-center sm:justify-between">
         <span className="inline-flex items-center gap-1.5 font-medium text-emerald-700 dark:text-emerald-400">
-          <CheckCircle size={15} weight="fill" className="shrink-0" />
-          Deterministic grounded extraction • Zero hallucination • Verified across MSMARCO-XI
+          <CheckCircle size={14} weight="fill" className="shrink-0" />
+          <span>Grounded extraction • MSMARCO-XI</span>
         </span>
         <a
           href="/evidence"
           className="inline-flex items-center gap-1 font-semibold text-blue-600 dark:text-blue-300 transition-colors hover:text-blue-700 dark:hover:text-blue-200 hover:underline"
         >
-          View 100-query benchmark evidence <ArrowSquareOut size={13} />
+          View 100-query benchmark evidence <ArrowSquareOut size={12} />
         </a>
       </div>
     </details>

@@ -87,13 +87,11 @@ export const VoiceStage: React.FC<VoiceStageProps> = (props) => {
 
           <div className="flex min-h-[100px] w-full flex-col items-center justify-center space-y-3 px-4 pb-3">
             {isRecording ? (
-              <>
-                <h2 className="text-3xl font-bold text-black dark:text-white">Listening…</h2>
+              props.partialTranscript ? (
                 <p className="max-w-xl text-base leading-relaxed text-blue-600 dark:text-blue-300 font-medium">
-                  {props.partialTranscript || 'Speak your complete question.'}
+                  {props.partialTranscript}
                 </p>
-                <span className="text-[10px] text-black dark:text-slate-500 font-medium">Live draft — auto-stops after 1.5 seconds of silence</span>
-              </>
+              ) : null
             ) : isRequesting ? (
               <>
                 <h2 className="text-2xl font-bold text-black dark:text-white">Requesting microphone…</h2>
@@ -115,7 +113,9 @@ export const VoiceStage: React.FC<VoiceStageProps> = (props) => {
                 onDismiss={props.onReset}
               />
             ) : (
-              <h2 className="text-3xl font-bold text-black dark:text-white">Ask with voice or text</h2>
+              <h2 className="hidden sm:block text-2xl sm:text-3xl font-bold text-black dark:text-white">
+                Ask with voice or text
+              </h2>
             )}
 
             {props.error && !props.result && (
