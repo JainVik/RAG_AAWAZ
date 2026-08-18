@@ -215,7 +215,7 @@ class PipelineOrchestrator:
                     else None
                 ),
             )
-            if transcript.language == Language.UNKNOWN:
+            if transcript.language == Language.UNKNOWN or plan.language == Language.CODE_MIXED:
                 transcript = transcript.model_copy(update={"language": plan.language})
             evidence_selection_query = build_retrieval_query(
                 transcript.text,

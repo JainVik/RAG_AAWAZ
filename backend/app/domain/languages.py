@@ -165,13 +165,15 @@ def analyze_language(
         assert hint is not None
         profile = LANGUAGE_PROFILES[hint]
         mismatch = bool(scripts) and not set(profile.scripts).intersection(scripts)
+        is_code_mixed = len(scripts) > 1
+        effective_language = Language.CODE_MIXED if is_code_mixed else hint
         return LanguageAnalysis(
-            language=hint,
+            language=effective_language,
             scripts=scripts,
             component_languages=tuple(dict.fromkeys((hint, *component_languages))),
-            code_mixed=len(scripts) > 1,
+            code_mixed=is_code_mixed,
             confidence=language_confidence,
-            source="provider_hint",
+            source="provider_hint" if not is_code_mixed else "script_codemix",
             ambiguous=mismatch or len(profile.scripts) != 1,
             fallback_used=False,
             hint_script_mismatch=mismatch,
