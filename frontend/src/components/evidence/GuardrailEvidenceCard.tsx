@@ -12,7 +12,7 @@ interface GuardrailEvidenceCardProps {
 }
 
 export const GuardrailEvidenceCard: React.FC<GuardrailEvidenceCardProps> = ({ guardrails }) => (
-  <article className="refractive-glass-card refractive-glass-card-primary space-y-4 sm:space-y-6 p-4 sm:p-6 md:p-8">
+  <article className="refractive-glass-card refractive-glass-card-primary w-full min-w-0 max-w-full overflow-hidden space-y-4 sm:space-y-6 p-4 sm:p-6 md:p-8">
     <div className="flex flex-wrap items-center justify-between gap-3 border-b border-black/10 dark:border-white/10 pb-3 sm:pb-4">
       <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
         <div className="rounded-xl border border-blue-400/30 bg-blue-500/10 dark:bg-blue-500/15 p-2 sm:p-2.5 text-blue-600 dark:text-blue-300 shrink-0">

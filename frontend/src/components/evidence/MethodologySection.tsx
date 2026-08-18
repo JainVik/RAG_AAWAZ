@@ -10,7 +10,7 @@ export const MethodologySection: React.FC<MethodologySectionProps> = ({ provenan
   const [isOpen, setIsOpen] = useState(false);
 
   return (
-    <div className="refractive-glass-card refractive-glass-card-primary overflow-hidden">
+    <div className="refractive-glass-card refractive-glass-card-primary overflow-hidden w-full min-w-0 max-w-full">
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}

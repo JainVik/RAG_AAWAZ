@@ -77,7 +77,7 @@ export const LatencyAnalyticsCard: React.FC = () => {
   ];
 
   return (
-    <article className="refractive-glass-card refractive-glass-card-primary space-y-4 sm:space-y-6 p-4 sm:p-6 md:p-8">
+    <article className="refractive-glass-card refractive-glass-card-primary w-full min-w-0 max-w-full overflow-hidden space-y-4 sm:space-y-6 p-4 sm:p-6 md:p-8">
       {/* Header */}
       <div className="flex flex-wrap items-center justify-between gap-3 border-b border-black/10 dark:border-white/10 pb-3 sm:pb-4">
         <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">

@@ -9,7 +9,7 @@ interface CorpusIndexCardProps {
 export const CorpusIndexCard: React.FC<CorpusIndexCardProps> = ({ corpus }) => {
   const count = (value: number | null) => value === null ? 'Not available' : value.toLocaleString();
   return (
-    <article className="refractive-glass-card refractive-glass-card-primary p-4 sm:p-6 md:p-8 space-y-4 sm:space-y-6">
+    <article className="refractive-glass-card refractive-glass-card-primary w-full min-w-0 max-w-full overflow-hidden p-4 sm:p-6 md:p-8 space-y-4 sm:space-y-6">
       {/* Header */}
       <div className="flex flex-wrap items-center justify-between gap-3 pb-3 sm:pb-4 border-b border-black/10 dark:border-white/10">
         <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">

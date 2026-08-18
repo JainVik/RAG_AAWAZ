@@ -38,7 +38,7 @@ export const EvidencePage: React.FC = () => {
   }, []);
 
   return (
-    <div className="mx-auto max-w-5xl px-3 sm:px-6 lg:px-8 space-y-6 sm:space-y-8 py-4 sm:py-6 select-none">
+    <div className="w-full min-w-0 max-w-5xl mx-auto px-3 sm:px-6 lg:px-8 space-y-6 sm:space-y-8 py-4 sm:py-6 select-none">
       {/* Header */}
       <header className="border-b border-black/10 dark:border-white/10 pb-4">
         <div>
